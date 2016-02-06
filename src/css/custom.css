@@ -1,0 +1,149 @@
+.root{
+	-fx-background-color: #1d241f;
+	-fx-control-inner-background: #1d241f;
+	-fx-font-size: 10pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.createReport_Header{
+	-fx-background-color: #ECECEC;
+	-fx-control-inner-background: #1d241f;
+	-fx-text-fill: #1d241f;
+	-fx-font-size: 16pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.createReport_Status{
+	-fx-background-color: #1d241f;
+	-fx-control-inner-background: #ECECEC;
+	-fx-text-fill: #1d241f;
+	-fx-font-size: 10pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.createReport_Options{
+	-fx-background-color: #1d241f;
+	-fx-text-fill: #ECECEC;
+	-fx-control-inner-background: #1d241f;
+	-fx-font-size: 13pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.createReport_Options_Headers{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 13pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.createReport_Options_Text{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 8pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.createReport_Message{
+	-fx-control-inner-background: #ECECEC;
+	-fx-text-fill: #1d241f;
+	-fx-font-size: 13pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.reportDescription{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 12pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.dialog-pane {
+    -fx-background-color: -fx-background;
+    -fx-padding: 0;
+}
+
+.reportid{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 13pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.reportidheader{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 15pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.loggedLabel{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 19pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.tagstyle{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 11pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.openScreenShots{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 9pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.messageStyle{
+	-fx-background-color: #1d241f;
+	-fx-padding: 5 5 5 5;
+}
+
+.extraMessageInfo{
+	-fx-background-color: #ECECEC;
+	-fx-text-fill: #1d241f;
+	-fx-font-size: 7pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.extraMessageInfoHeaders{
+	-fx-background-color: #ECECEC;
+	-fx-text-fill: #1d241f;
+	-fx-font-size: 10pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.button_create{
+	-fx-background-color: #84B683;
+	-fx-font-size: 13px;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.button_create:hover{
+	-fx-background-color: #569055;
+}
+
+.button_delete{
+	-fx-background-color: #AD3B3B;
+	-fx-font-size: 13px;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.button_delete:hover{
+	-fx-background-color: #5f2020;
+}
+
+.button_edit{
+	-fx-background-color: #B1A863;
+	-fx-font-size: 13px;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
+.button_edit:hover{
+	-fx-background-color: #77703c;
+}
+
+.button_extra{
+	-fx-background-color: #ECECEC;
+	-fx-control-inner-background: #1d241f;
+	-fx-font-size: 10pt;
+}
+
+.button_extra:hover{
+	-fx-background-color: #bfbfbf;
+}

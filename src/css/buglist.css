@@ -1,0 +1,28 @@
+.root{
+	-fx-background-color: #1d241f;
+	-fx-control-inner-background: #1d241f;
+	-fx-font-size: 5pt;
+}
+
+.table-view .column-header{
+    -fx-font-size: 8;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+    -fx-background-color: #1d241f;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-cell {
+    -fx-font-size: 8px;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+    -fx-border-width: 0, 0;
+}
+
+.table-row-cell{
+    //-fx-background-color: -fx-table-cell-border-color, #616161;
+    -fx-background-insets: 0, 0 0 0 0;
+    /*-fx-padding: 0.0em; */
+}
