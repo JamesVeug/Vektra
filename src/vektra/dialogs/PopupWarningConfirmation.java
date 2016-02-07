@@ -1,4 +1,4 @@
-package vektra;
+package vektra.dialogs;
 
 import java.util.Optional;
 

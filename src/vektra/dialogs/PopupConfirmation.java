@@ -1,4 +1,4 @@
-package vektra;
+package vektra.dialogs;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;

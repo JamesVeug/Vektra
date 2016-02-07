@@ -48,6 +48,12 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
+import vektra.dialogs.LoginDialog;
+import vektra.dialogs.PopupConfirmation;
+import vektra.dialogs.PopupError;
+import vektra.dialogs.PopupMessage;
+import vektra.extrawindows.CreateReport;
+import vektra.extrawindows.EditReport;
 
 
 

@@ -1,9 +1,9 @@
-package vektra;
+package vektra.extrawindows;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javafx.event.ActionEvent;
@@ -12,11 +12,9 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -32,32 +30,39 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import vektra.BugItem;
+import vektra.dialogs.PopupConfirmation;
+import vektra.dialogs.PopupError;
 
-public class CreateReport {
-	private static Stage primaryStage;
+public class ModifyReport {
+	protected static Stage primaryStage;
 	
-	private static TextArea text;
-	private static final String exampleText = "Type stuff in here";
+	protected static TextArea text;
+	protected static final String exampleText = "Type stuff in here";
 
-	private static CheckBox GAMEPLAY;
-	private static CheckBox VISUAL;
-	private static CheckBox AUDIO;
-	private static CheckBox BREAKING;
+	protected static CheckBox GAMEPLAY;
+	protected static CheckBox VISUAL;
+	protected static CheckBox AUDIO;
+	protected static CheckBox BREAKING;
 	
-	private static TextField enterLink;
-	private static HBox screenshotList;
+	protected static TextField enterLink;
+	protected static HBox screenshotList;
 	private static Map<String,Image> images;
 	private static Map<Image,String> links;
-	private static ToggleGroup priorityGroup;
-	private static RadioButton LOW;
-	private static RadioButton MEDIUM;
-	private static RadioButton HIGH;
 	
-	private static ComboBox<String> statusSelection;
+	protected static ToggleGroup priorityGroup;
+	protected static RadioButton LOW;
+	protected static RadioButton MEDIUM;
+	protected static RadioButton HIGH;
 	
+	
+	protected static ComboBox<String> statusSelection;
+	protected static GridPane bottomPane;
+	
+	protected static int bugID;
+
 	public static void display(int maxID) {
-		//MAXID = maxID;
-		
+		bugID = maxID;
 		Stage stage = new Stage();
 		stage.setTitle("Create Report");
 		stage.setWidth(800);
@@ -71,7 +76,7 @@ public class CreateReport {
 		headerPane.setPrefHeight(30);
 		headerPane.getStyleClass().add("createReport_Header");
 			Label reportLabel = new Label("REPORT ID: ");
-			Label reportIDLabel = new Label(String.valueOf(maxID+1));
+			Label reportIDLabel = new Label(String.valueOf(maxID));
 		headerPane.addColumn(0, reportLabel);
 		headerPane.addColumn(1, reportIDLabel);
 		
@@ -87,7 +92,6 @@ public class CreateReport {
 			optionPane.addRow(0, priorityLabel);
 			
 			LOW = new RadioButton(); 
-			LOW.setSelected(true);
 			Label LOWLabel = new Label("LOW");
 			LOWLabel.getStyleClass().add("createReport_Options_Text");
 			optionPane.addColumn(1, LOW);
@@ -114,7 +118,6 @@ public class CreateReport {
 			optionPane.addRow(1, tagLabel);
 			
 			GAMEPLAY = new CheckBox();
-			GAMEPLAY.setSelected(true);
 			Label GAMEPLAYLabel = new Label("GAMEPLAY");
 			GAMEPLAYLabel.getStyleClass().add("createReport_Options_Text");
 			optionPane.addColumn(1, GAMEPLAY);
@@ -183,12 +186,13 @@ public class CreateReport {
 				reportDescriptionLabel.getStyleClass().add("createReport_Options_Headers");
 			reportDescriptionpane.getChildren().add(reportDescriptionLabel);
 		
-		GridPane pane = new GridPane();
-		pane.setPadding(new Insets(10, 10, 0, 10)); //margins around the whole grid
-			text = new TextArea(exampleText);
+		bottomPane = new GridPane();
+		bottomPane.setPadding(new Insets(10, 10, 0, 10)); //margins around the whole grid
+			text = new TextArea();
+			text.setPromptText("Server");
 			text.setPrefHeight(300);
 			text.getStyleClass().add("createReport_Message");
-		pane.addRow(0,text);
+		bottomPane.addRow(0,text);
 		//pane.setBackground(new Background(new BackgroundFill(Paint.valueOf("pink"), new CornerRadii(0), new Insets(0))));
 		
 			Pane statusPane = new Pane();
@@ -212,16 +216,8 @@ public class CreateReport {
 					statusSelection.getStyleClass().add("createReport_Options_Text");
 					statusSelection.setValue("Pending");
 				statusInnerPane.getChildren().add(statusSelection);
-			statusPane.getChildren().add(0,statusInnerPane);
-			
-			Button createReport = new Button("CREATE REPORT");
-			createReport.setOnAction(new CreateReportButtonPress());
-			
-			
-		pane.addRow(1,statusInnerPane);
-		pane.addColumn(0,createReport);
-		GridPane.setHalignment(createReport, HPos.RIGHT);
-		GridPane.setValignment(createReport, VPos.CENTER);
+			statusPane.getChildren().add(0,statusInnerPane);			
+		bottomPane.addRow(1,statusInnerPane);
 		
 		
 			
@@ -230,7 +226,7 @@ public class CreateReport {
 		mainLayout.getChildren().add(optionPane);
 		mainLayout.getChildren().add(screenShotPane);
 		mainLayout.getChildren().add(reportDescriptionpane);
-		mainLayout.getChildren().add(pane);
+		mainLayout.getChildren().add(bottomPane);
 		mainLayout.getChildren().add(statusPane);
 		
 		
@@ -240,56 +236,38 @@ public class CreateReport {
 		stage.show();
 		
 		primaryStage = stage;
-
 	}
 	
-	private static void ProcessCreatingReport(){
+	protected static void addImage(String link, Image image){
+		images.put(link, image);
+		links.put(image, link);
 		
-		
-		
-
-		//
-		// Safe checks
-		//
-		
-		// Are we connected?
-		/*if( !SQLData.isConnected() ){
-			popupError("Not Connected!", "You are not connected to the database, to create this report!");
-			return;
-		}
-		else if( text.getText().equals(exampleText) ){
-			popupError("Incomplete Report!", "You have not filled out a description!");
-			return;
-		}
-		else if( tags.isEmpty() ){
-			popupError("Incomplete Report!", "You have not selected a Tag!");
-			return;
-		}
-		
-		if( images == null || images.isEmpty() ){
-			if( !popupWarningConfirmation("Incomplete Report!", "No images have been selected!\nThis can make it difficult to fix.","Do you still want to continue?") ){
-				return;
-			}
-		}*/
-		
-		// Combine info
-		Set<String> tags = getSelectedTags();
-		
-		
-		// UPDATE
-		BugItem bug = new BugItem(-1, tags, getPriority(), statusSelection.getValue(), null, text.getText(), null, images);
-		boolean inserted = SQLData.insert(bug);
-		if( !inserted ){
-			PopupError.show("Failed to insert new Report!", "Could not insert new Report.");
-		}
-		else{
-			primaryStage.close();
-			PopupMessage.show("Success!", "Created new Report!");
-		}
-		
+		ImageView v = new ImageView(image);
+		v.setOnMouseClicked(new ImageClickedListener());
+		v.setFitWidth(100);
+		v.setFitHeight(100);
+		screenshotList.getChildren().add(v);
 	}
 
-	private static String getPriority() {
+	protected static BugItem getBug(){
+		return new BugItem(bugID, getSelectedTags(), getPriority(), statusSelection.getValue(), null, text.getText(), null, images);
+	}
+
+	
+	protected static void addImages(Map<String, Image> imageMap) {
+		for(Entry<String, Image> p : imageMap.entrySet()){
+			addImage(p.getKey(),p.getValue());
+		}
+	}
+	
+	protected static void setConfirmButton(Node createReport) {
+		
+		bottomPane.addColumn(0,createReport);
+		GridPane.setHalignment(createReport, HPos.RIGHT);
+		GridPane.setValignment(createReport, VPos.CENTER);
+	}
+	
+	protected static String getPriority() {
 		if( priorityGroup.getSelectedToggle() == LOW ){
 			return "LOW";
 		}
@@ -302,7 +280,7 @@ public class CreateReport {
 		return "UNSELECTED";
 	}
 
-	private static Set<String> getSelectedTags() {
+	protected static Set<String> getSelectedTags() {
 		Set<String> tags = new HashSet<String>();
 		
 		if( GAMEPLAY.isSelected() ){
@@ -323,7 +301,7 @@ public class CreateReport {
 		return tags;
 	}
 	
-	private static class ImageClickedListener implements EventHandler<MouseEvent> {
+	protected static class ImageClickedListener implements EventHandler<MouseEvent> {
 
 		@Override
 		public void handle(MouseEvent arg0) {
@@ -339,7 +317,7 @@ public class CreateReport {
 		
 	}
 
-	private static class UploadLinkButtonPressed implements EventHandler<ActionEvent> {
+	protected static class UploadLinkButtonPressed implements EventHandler<ActionEvent> {
 
 		@Override
 		public void handle(ActionEvent arg0) {
@@ -353,15 +331,8 @@ public class CreateReport {
 			
 			try{
 				Image image = new Image(link);
-				images.put(link,image);
-				links.put(image,link);
+				addImage(link,image);
 				enterLink.setText("");
-				
-				ImageView v = new ImageView(image);
-				v.setOnMouseClicked(new ImageClickedListener());
-				v.setFitWidth(100);
-				v.setFitHeight(100);
-				screenshotList.getChildren().add(v);
 			}catch(IllegalArgumentException e){
 				PopupError.show("Could not load image", "The provided link can not be converted to an image!");
 				System.out.println("Can not load image '" + link + "'");
@@ -370,14 +341,4 @@ public class CreateReport {
 		}
 
 	}
-	
-	private static class CreateReportButtonPress implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			ProcessCreatingReport();			
-		}
-
-	}
-	
 }

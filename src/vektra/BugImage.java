@@ -40,7 +40,7 @@ public class BugImage {
 			// Add the image
 			
 			// Create the image map
-			Map<String, Image> newImageMap = new HashMap<String, Image>()
+			Map<String, Image> newImageMap = new HashMap<String, Image>();
 			
 			// Add our image
 			image = new Image(link,w,h,true,true);

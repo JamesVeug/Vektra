@@ -1,4 +1,4 @@
-package vektra;
+package vektra.dialogs;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -17,6 +17,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 import javafx.util.Pair;
+import vektra.SQLData;
 
 public class LoginDialog {
 	public static boolean hasConnected = false;
@@ -42,15 +43,19 @@ public class LoginDialog {
 		grid.setVgap(10);
 		grid.setPadding(new Insets(20, 150, 10, 10));
 
+		final TextField table = new TextField();
+		table.setPromptText("Server");
 		final TextField username = new TextField();
 		username.setPromptText("Username");
 		final PasswordField password = new PasswordField();
 		password.setPromptText("Password");
 
-		grid.add(new Label("Username:"), 0, 0);
-		grid.add(username, 1, 0);
-		grid.add(new Label("Password:"), 0, 1);
-		grid.add(password, 1, 1);
+		grid.add(new Label("Server:"), 0, 0);
+		grid.add(table, 1, 0);
+		grid.add(new Label("Username:"), 0, 1);
+		grid.add(username, 1, 1);
+		grid.add(new Label("Password:"), 0, 2);
+		grid.add(password, 1, 2);
 
 		// Enable/Disable login button depending on whether a username was entered.
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
@@ -73,7 +78,7 @@ public class LoginDialog {
 
 			@Override
 			public void run() {
-				username.requestFocus();
+				table.requestFocus();
 			}
 			
 		});
@@ -99,7 +104,7 @@ public class LoginDialog {
 
 			@Override
 			public void accept(Pair<String, String> pair) {
-				if( SQLData.connect(pair.getKey(), pair.getValue()) ){
+				if( SQLData.connect(table.getText(), pair.getKey(), pair.getValue()) ){
 					
 					hasConnected = true;
 				}

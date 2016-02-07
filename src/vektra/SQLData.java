@@ -1,26 +1,16 @@
 package vektra;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 public class SQLData {
@@ -29,6 +19,7 @@ public class SQLData {
 	private static String username = "-";
 	private static String password = "-";
 	private static String server = "mathparser.com";
+	private static String table = "-";
 
 	
 //	public static ObservableList<BugItem> getDataUpdated(){
@@ -170,7 +161,7 @@ public class SQLData {
 			dataSource.setUser(username);
 			dataSource.setPassword(password);
 			dataSource.setServerName(server);
-			dataSource.setDatabaseName("stardrop");
+			dataSource.setDatabaseName(table);
 			dataSource.setPort(3306);			
 			con = dataSource.getConnection();
 			
@@ -194,7 +185,8 @@ public class SQLData {
 		}
 	}
 	
-	public static boolean connect(String name, String pass){
+	public static boolean connect(String server, String name, String pass){
+		table = server;
 		username = name;
 		password = pass;
 		

@@ -1,13 +1,13 @@
-package vektra;
+package vektra.dialogs;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Alert.AlertType;
 
-public class PopupError {
+public class PopupMessage {
 
 	public static void show(String title, String text){
-		Alert alert = new Alert(AlertType.ERROR);
+		Alert alert = new Alert(AlertType.CONFIRMATION);
 		alert.getButtonTypes().setAll(new ButtonType("Okay"));
 		alert.setTitle(title);
 		alert.setHeaderText(null);

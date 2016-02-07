@@ -1,4 +1,4 @@
-package vektra;
+package vektra.dialogs;
 
 import javafx.geometry.Pos;
 import javafx.scene.Group;
