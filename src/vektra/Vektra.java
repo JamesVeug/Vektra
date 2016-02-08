@@ -1,9 +1,9 @@
 package vektra;
-import java.io.File;
-import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +31,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -86,12 +87,11 @@ public class Vektra extends Application{
 	private WindowCloseRequest closeRequest;
 	
 	
-	@SuppressWarnings("unchecked")
 	public void start(Stage primaryStage) throws Exception {
 		
 		// Required in order to be able to use it in css's
 		@SuppressWarnings("unused")
-		final Font font = Font.loadFont(new FileInputStream(new File("src/fonts/Microstyle Bold Extended ATT.ttf")), 20);
+		final Font font = Font.loadFont(Vektra.class.getClass().getResourceAsStream("/fonts/Microstyle Bold Extended ATT.ttf"), 20);
 		
 		this.primaryStage = primaryStage;
 		primaryStage.setTitle("VEKTRA - Bug Reporter");
@@ -178,63 +178,11 @@ public class Vektra extends Application{
 		options.addColumn(1, extraButtonGrid);
 		options.addColumn(2, loggedGrid);
 		
-		
-		
-		
-		
-		// Bottom Left ( BUG LIST )
-		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("REPORT ID");
-		idColumn.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
-		idColumn.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
-		idColumn.setPrefWidth(60);
-		idColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Integer>("ID"));
-		idColumn.setCellFactory(new Callback<TableColumn<BugItem, Integer>, TableCell<BugItem, Integer>>() {
-	        public TableCell<BugItem, Integer> call(TableColumn<BugItem, Integer> param) {
-	            return new TableCell<BugItem, Integer>() {
 
-	                @Override
-	                public void updateItem(Integer item, boolean empty) {
-	                    super.updateItem(item, empty);
-	                    if (!isEmpty()) {
-	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
-	                        setText(String.valueOf(item));
-	                    }
-	                }
-	            };
-	        }
-	    });
-		
-		TableColumn<BugItem, String> statusColumn = new TableColumn<BugItem, String>("STATUS");
-		statusColumn.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
-		statusColumn.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
-		statusColumn.setPrefWidth(70);
-		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("status"));
-		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
-	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
-	            return new TableCell<BugItem, String>() {
-
-	                @Override
-	                public void updateItem(String item, boolean empty) {
-	                    super.updateItem(item, empty);
-	                    if (!isEmpty()) {
-	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
-	                        setText(item);
-	                    }
-	                }
-	            };
-	        }
-	    });
-		//statusColumn.get.setStyle("-fx-text-fill: red; ");
-		
 		bugs = new TableView<BugItem>();
-		bugs.getColumns().addAll(idColumn, statusColumn);
-		bugs.setPrefHeight(400);
-		bugs.setPrefWidth(320);
-		bugs.getStylesheets().add("css/buglist.css");
-		bugs.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
-		bugs.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
+		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		setupTable();
+		
 		
 		// Middle area
 		GridPane screenshotinfo = new GridPane();
@@ -286,6 +234,7 @@ public class Vektra extends Application{
 		
 		// Bottom Middle
 		GridPane screenshotListPane = new GridPane();
+		screenshotListPane.setPrefWidth(600);
 		screenshotListPane.setPrefHeight(200);
 		
 		openScreenshots = new Label("Open Screenshots(0)");
@@ -374,6 +323,72 @@ public class Vektra extends Application{
 	}
 	
 
+	/**
+	 * Sets up the table with all the bugs we currently have sorted
+	 * HACK HACK HACK
+	 * Recreates all the columns
+	 */
+	private void setupTable() {
+		
+		// Bottom Left ( BUG LIST )
+		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("REPORT ID");
+		idColumn.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
+		idColumn.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
+		idColumn.setPrefWidth(60);
+		idColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Integer>("ID"));
+		idColumn.setCellFactory(new Callback<TableColumn<BugItem, Integer>, TableCell<BugItem, Integer>>() {
+	        public TableCell<BugItem, Integer> call(TableColumn<BugItem, Integer> param) {
+	            return new TableCell<BugItem, Integer>() {
+
+	                @Override
+	                public void updateItem(Integer item, boolean empty) {
+	                    super.updateItem(item, empty);
+	                    if (!isEmpty()) {
+	                        this.getStylesheets().add("css/buglist.css");
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
+	                        setText(String.valueOf(item));
+	                    }
+	                }
+	            };
+	        }
+	    });
+		
+		TableColumn<BugItem, String> statusColumn = new TableColumn<BugItem, String>("STATUS");
+		statusColumn.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
+		statusColumn.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
+		statusColumn.setPrefWidth(70);
+		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("status"));
+		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
+	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
+	            return new TableCell<BugItem, String>() {
+
+	                @Override
+	                public void updateItem(String item, boolean empty) {
+	                    super.updateItem(item, empty);
+	                    if (!isEmpty()) {
+	                        this.getStylesheets().add("css/buglist.css");
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
+	                        setText(item);
+	                    }
+	                }
+	            };
+	        }
+	    });
+		
+		
+		//statusColumn.get.setStyle("-fx-text-fill: red; ");
+		
+		//bugs = new TableView<BugItem>();
+		bugs.getColumns().clear();
+		bugs.getColumns().addAll(idColumn, statusColumn);		
+		bugs.setPrefHeight(400);
+		bugs.setPrefWidth(320);
+		bugs.getStylesheets().add("css/buglist.css");
+		bugs.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
+		bugs.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
+	}
+
+
 	private static void popupLoading(String title, String text){
 		
 		
@@ -413,41 +428,132 @@ public class Vektra extends Application{
         stage.show();
 	}
 	
-	public void refreshData(ObservableList<BugItem> loadedData, long length) {
+	public void refreshData(final ObservableList<BugItem> loadedData, long length) {
 		System.out.println("Refresh Time: " + length);
 		
 		// Don't do anything if they are the same
 		if( importedData != null && importedData.equals(loadedData) ){
 			//System.out.println("NO CHANGE");
-			return;
+			//return;
 		}
 		
 		for(BugItem i : loadedData){
 			System.out.println(i);
 		}
+
 		
+		Thread t = new Thread(new Runnable(){
+
+			@Override
+			public void run() {
+				setupTable();
 				
-		// Assign new values in the table
-		//bugs.getItems().removeAll(bugs.getItems());
-		//FXCollections.copy(bugs.getItems(), loadedData);
-		/*for(BugItem i : loadedData){
-			bugs.getItems().add(i);
-		}*/
-		bugs.setItems(loadedData);
+				// Assign new values in the table
+				//bugs.getItems().removeAll(bugs.getItems());
+				//FXCollections.copy(bugs.getItems(), loadedData);
+				/*for(BugItem i : loadedData){
+					bugs.getItems().add(i);
+				}*/
+				bugs.setItems(loadedData);
+				
+				
+				
+				//bugs.itemsProperty().
+				
+				
+				// Reselect
+				deselectBug();
+				if( selectedBug != null ){
+					System.out.println("Reselecting bug");
+					
+					// Get new bug from new data
+					int index = loadedData.indexOf(selectedBug);
+					if( index == -1 ){
+						// Not in new data
+						selectedBug = null;
+					}
+					else{
+						selectedBug = loadedData.get(index);
+					
+						bugs.getSelectionModel().select(selectedBug);
+						selectBug(selectedBug);
+					}
+				}
+			}
+			
+		});
+		Platform.runLater(t);
 		
-		
-		
-		//bugs.itemsProperty().
-		
-		// Reselect
-		if( selectedBug != null ){
-			bugs.getSelectionModel().select(selectedBug);
-		}
 		
 
 		// Save local data
 		importedData = loadedData;
 		
+		
+	}
+
+
+	protected void deselectBug() {
+
+    	screenshotList.getChildren().clear();
+    	displayScreenshot.setImage(null);
+	}
+
+
+	public void selectBug(BugItem item) {
+		 //System.out.println("bugid " + item.ID);
+		if( item != null ){
+			//System.out.println("Selected Bug: ");
+            //System.out.println("id = " + item.getID());
+            //System.out.println("message = " + item.getMessage());
+            selectedBug = item;
+            openScreenshots.setText("Open Screenshots (" + item.imageMap.size() + ")");
+            message.setText(item.getMessage());
+            reportID.setText(String.valueOf(item.getID()));
+            
+            int i = 0;
+            String tagString = "";
+            for(String tag : item.getTags()){ 
+            	tagString += tag;
+            	if( (++i) < item.getTags().size() ){
+            		tagString += ", ";
+            	}
+            }
+            
+            tags.setText(tagString);
+            priority.setText(item.getPriority());
+            
+            whoLogged.setText(item.who);
+            loggedDate.setText(item.date);
+
+            // Clear images and add new ones if there are some
+        	screenshotList.getChildren().clear();
+        	displayScreenshot.setImage(null);
+            if( !item.images.isEmpty() ){
+            	/*if( image != null && image.getImage().equals(logo)){
+	            	image.fitWidthProperty().bind(screenshotPane.widthProperty());
+	    			image.fitHeightProperty().bind(screenshotPane.heightProperty());	
+            	}*/
+            	
+            	
+            	i = 0;
+            	ScreenShotListListener listener = new ScreenShotListListener();
+            	for( String link : item.imageMap.keySet() ){
+            		
+            		Image image = new Image(link);
+            		ImageView v = new ImageView(image);
+            		v.preserveRatioProperty();
+            		v.setOnMouseClicked(listener);
+            		screenshotList.getChildren().add(v);
+            		if( i++ == 0 ){
+            			selectImage(v);
+            		}
+            		else{
+	            		scaleImageView(v,75,75);
+            		}
+            	}
+            }
+		}
 	}
 	
 
@@ -498,8 +604,18 @@ public class Vektra extends Application{
 			}
 			
 		});
+		MenuItem quitMenuItem = new MenuItem("Quit");
+		quitMenuItem.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent arg0) {
+                closeRequest.closeEverything();
+				Platform.exit();
+                System.exit(0);
+			}
+			
+		});
 		file.getItems().add(loginMenuItem);
 		file.getItems().add(signoutMenuItem);
+		file.getItems().add(quitMenuItem);
 		
 		Menu edit = new Menu("Edit");
 		Menu view = new Menu("View");
@@ -510,6 +626,23 @@ public class Vektra extends Application{
 			public void handle(ActionEvent arg0) {
 				int maxID = importedData == null ? -1 : importedData.get(importedData.size()-1).ID;
 				CreateReport.display(maxID);
+			}
+			
+		});
+		MenuItem editReport = new MenuItem("Edit Report");
+		report.getItems().add(editReport);
+		editReport.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent arg0) {
+				EditReport.display(selectedBug);
+			}
+			
+		});
+		MenuItem deleteReport = new MenuItem("Delete Report");
+		report.getItems().add(deleteReport);
+		deleteReport.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent arg0) {
+				int maxID = importedData == null ? -1 : importedData.get(importedData.size()-1).ID;
+				deleteCurrentBug();
 			}
 			
 		});
@@ -571,6 +704,10 @@ public class Vektra extends Application{
 		
 		// Change UI to reflect being logged in
 		closeRequest.setThread(refreshThread);
+		
+		//Platform.runLater(refreshThread);
+		//Platform.setImplicitExit(false);
+		
 		loggedInName.setText(SQLData.getUsername());		
 		loginMenuItem.setVisible(false);
 		signoutMenuItem.setVisible(true);
@@ -604,32 +741,7 @@ public class Vektra extends Application{
 
 		@Override
 		public void handle(ActionEvent t) {
-			System.out.println("Delete Report Pressed");
-			if( !SQLData.isConnected() ){
-				PopupMessage.show("Delete Report", "Must be logged in before attempting to Delete!");
-				return;
-			}
-			else if( selectedBug == null ){
-				PopupMessage.show("Delete Report", "Must select a Bug before attempting to Delete!");
-				return;
-			}
-			
-    		BugItem item = selectedBug;
-    		if( item == null || !PopupConfirmation.show("Delete Report","BugID: " + item.ID + "\nAre you sure you want to delete this report?")){
-    			return;
-    		}
-    		
-    		//
-    		// DELETE
-    		//
-    		
-    		boolean isDeleted = SQLData.delete(item);
-    		if( isDeleted ){
-    			PopupMessage.show("Delete Compelted", "Successfully deleted Bug with ID '" + item.ID + "'");
-    		}
-    		else{
-    			PopupError.show("Delete Failed", "Could not delete the Bug with ID '" + item.ID + "'");
-    		}
+			deleteCurrentBug();
 		}
 	}
 	
@@ -669,6 +781,35 @@ public class Vektra extends Application{
     	scaleImageView(displayScreenshot, 400, 400);
 	}
 	
+	public void deleteCurrentBug() {
+		System.out.println("Delete Report Pressed");
+		if( !SQLData.isConnected() ){
+			PopupMessage.show("Delete Report", "Must be logged in before attempting to Delete!");
+			return;
+		}
+		else if( selectedBug == null ){
+			PopupMessage.show("Delete Report", "Must select a Bug before attempting to Delete!");
+			return;
+		}
+		
+		BugItem item = selectedBug;
+		if( item == null || !PopupConfirmation.show("Delete Report","BugID: " + item.ID + "\nAre you sure you want to delete this report?")){
+			return;
+		}
+		
+		//
+		// DELETE
+		//
+		
+		boolean isDeleted = SQLData.delete(item);
+		if( isDeleted ){
+			PopupMessage.show("Delete Compelted", "Successfully deleted Bug with ID '" + item.ID + "'");
+		}
+		else{
+			PopupError.show("Delete Failed", "Could not delete the Bug with ID '" + item.ID + "'");
+		}
+	}
+
 	private class ScreenShotListListener implements EventHandler<MouseEvent> {
 
 		@Override
@@ -695,6 +836,8 @@ public class Vektra extends Application{
 		
 	}
 	
+	
+	
 	private class BugListListener implements EventHandler<MouseEvent> {
 
 
@@ -706,59 +849,7 @@ public class Vektra extends Application{
             int index = c.getIndex();
             //System.out.println("index " + index);
     		BugItem item = importedData.get(index);
-            //System.out.println("bugid " + item.ID);
-    		if( item != null ){
-    			//System.out.println("Selected Bug: ");
-	            //System.out.println("id = " + item.getID());
-	            //System.out.println("message = " + item.getMessage());
-	            selectedBug = item;
-	            openScreenshots.setText("Open Screenshots (" + item.images.size() + ")");
-	            message.setText(item.getMessage());
-	            reportID.setText(String.valueOf(item.getID()));
-	            
-	            int i = 0;
-	            String tagString = "";
-	            for(String tag : item.getTags()){ 
-	            	tagString += tag;
-	            	if( (++i) < item.getTags().size() ){
-	            		tagString += ", ";
-	            	}
-	            }
-	            
-	            tags.setText(tagString);
-	            priority.setText(item.getPriority());
-	            
-	            whoLogged.setText(item.who);
-	            loggedDate.setText(item.date);
-
-	            // Clear images and add new ones if there are some
-            	screenshotList.getChildren().clear();
-            	displayScreenshot.setImage(null);
-	            if( !item.images.isEmpty() ){
-	            	/*if( image != null && image.getImage().equals(logo)){
-		            	image.fitWidthProperty().bind(screenshotPane.widthProperty());
-		    			image.fitHeightProperty().bind(screenshotPane.heightProperty());	
-	            	}*/
-	            	
-	            	
-	            	i = 0;
-	            	ScreenShotListListener listener = new ScreenShotListListener();
-	            	for( String link : item.imageMap.keySet() ){
-	            		
-	            		Image image = new Image(link);
-	            		ImageView v = new ImageView(image);
-	            		v.preserveRatioProperty();
-	            		v.setOnMouseClicked(listener);
-	            		screenshotList.getChildren().add(v);
-	            		if( i++ == 0 ){
-	            			selectImage(v);
-	            		}
-	            		else{
-		            		scaleImageView(v,75,75);
-	            		}
-	            	}
-	            }
-    		}
+    		selectBug(item);
 		}
 
 	}
@@ -803,6 +894,20 @@ public class Vektra extends Application{
 		}
 		
 		
+		public void closeEverything() {
+			if( refreshThreads != null ){
+				refreshThreads.stopRunning();
+			}
+			
+			// Wait for it to close
+			while(refreshThreads != null && refreshThreads.isAlive() ){
+				//System.out.println("Waiting for refresh Thread to die...");
+			}
+			
+			SQLData.close();
+		}
+
+
 		public void setThread(RefreshThread t){
 			refreshThreads = t;
 		}
@@ -820,16 +925,7 @@ public class Vektra extends Application{
 		 */
 		@Override
 		public void handle(WindowEvent arg0) {
-			if( refreshThreads != null ){
-				refreshThreads.stopRunning();
-			}
-			
-			// Wait for it to close
-			while(refreshThreads != null && refreshThreads.isAlive() ){
-				
-			}
-			
-			SQLData.close();
+			closeEverything();
 		}
 	}
 

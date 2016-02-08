@@ -22,7 +22,7 @@ public class EditReport extends ModifyReport{
 		
 		bugToEdit = bug;
 		
-		display(bug.ID);
+		ModifyReport.display(bug.ID);
 		
 		text.setText(bug.message);
 
@@ -48,7 +48,7 @@ public class EditReport extends ModifyReport{
 		
 		// UPDATE
 		BugItem bug = getBug();
-		boolean updated = SQLData.update(bug);
+		boolean updated = SQLData.update(bugToEdit, bug);
 		if( !updated ){
 			PopupError.show("Failed to update Bug!", "Could not Update bug on server!.");
 		}

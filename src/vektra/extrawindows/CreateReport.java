@@ -12,7 +12,7 @@ import vektra.dialogs.PopupMessage;
 public class CreateReport extends ModifyReport{
 	
 	public static void display(int maxID) {
-		display(maxID+1);
+		ModifyReport.display(maxID+1);
 		//MAXID = maxID;
 		
 

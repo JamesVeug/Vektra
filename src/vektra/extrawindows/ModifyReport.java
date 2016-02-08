@@ -29,6 +29,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import vektra.BugItem;
 import vektra.dialogs.PopupConfirmation;
@@ -68,6 +69,7 @@ public class ModifyReport {
 		stage.setWidth(800);
 		stage.setHeight(600);
 		stage.getIcons().add(new Image("v.jpg"));
+		stage.initModality(Modality.APPLICATION_MODAL);
 		
 		VBox mainLayout = new VBox();
 		mainLayout.getStylesheets().add("css/custom.css");
@@ -189,7 +191,7 @@ public class ModifyReport {
 		bottomPane = new GridPane();
 		bottomPane.setPadding(new Insets(10, 10, 0, 10)); //margins around the whole grid
 			text = new TextArea();
-			text.setPromptText("Server");
+			text.setPromptText(exampleText);
 			text.setPrefHeight(300);
 			text.getStyleClass().add("createReport_Message");
 		bottomPane.addRow(0,text);
@@ -247,6 +249,14 @@ public class ModifyReport {
 		v.setFitWidth(100);
 		v.setFitHeight(100);
 		screenshotList.getChildren().add(v);
+	}
+	
+	protected static void removeImage(ImageView view){
+		// Finishe remove so removing via mosue click works
+		String link = links.get(view.getImage());
+		images.remove(link);
+		links.remove(view.getImage());
+		screenshotList.getChildren().remove(view);
 	}
 
 	protected static BugItem getBug(){
@@ -306,12 +316,9 @@ public class ModifyReport {
 		@Override
 		public void handle(MouseEvent arg0) {
 			ImageView v = (ImageView)arg0.getSource();
-			boolean delete = PopupConfirmation.show("Remove Image", "Are you sure you want to remove this screenshot form the report?");
+			boolean delete = PopupConfirmation.show("Remove Image", "Are you sure you want to remove this screenshot from the report?");
 			if( delete ){
-				String link = links.get(v);
-				images.remove(link);
-				links.remove(v);
-				screenshotList.getChildren().remove(v);
+				removeImage(v);
 			}
 		}
 		

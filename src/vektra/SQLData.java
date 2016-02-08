@@ -4,14 +4,17 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import vektra.dialogs.PopupError;
 
 public class SQLData {
 	private static Connection con;
@@ -91,7 +94,6 @@ public class SQLData {
 			}
 			
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -240,7 +242,7 @@ public class SQLData {
 		
 		String screenshotcommand;
 		if( bug.imageMap != null && !bug.imageMap.isEmpty() ){
-			screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES " + listToMultipleValues(bug.imageMap.keySet(), bugid);
+			screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES " + listToMultipleValues(bug.imageMap.keySet(), String.valueOf(bugid));
 		}
 		else{
 			screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES ('" + "NULL" + "', '" + bugid + "');";
@@ -251,7 +253,7 @@ public class SQLData {
 			return false;
 		}
 		
-		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.getTags(), bugid);
+		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.getTags(), String.valueOf(bugid));
 		boolean tagcommandConfirmation = submitQuery(tagcommand);
 		if( !tagcommandConfirmation ){
 			System.out.println("Did not submit TAGS!!");
@@ -297,8 +299,8 @@ public class SQLData {
 		return false;
 	}
 
-	private static String listToMultipleValues(Set<String> set, int bugID){
-		if( set == null || set.isEmpty() ){
+	private static String listToMultipleValues(Collection<String> list, String value){
+		if( list == null || list.isEmpty() ){
 			return null;
 		}
 		
@@ -306,9 +308,9 @@ public class SQLData {
 		
 		
 		int i = 0;
-		for(String s : set){
-			string += "( '" + s + "', '" + bugID + "')";
-			if( (++i) < set.size() ){
+		for(String s : list){
+			string += "( '" + s + "', '" + value + "')";
+			if( (++i) < list.size() ){
 				string += ",";
 			}
 		}
@@ -340,12 +342,186 @@ public class SQLData {
 	}
 
 
-	public static boolean update(BugItem bug) {
-		// TODO Auto-generated method stub
+	public static boolean update(BugItem oldBug, BugItem newBug) {
+		System.out.println("Updating bug " + oldBug.ID);
+		
+		// Make sure we are updating the right bug
+		if( oldBug.ID != newBug.ID ){
+			PopupError.show("Can not update Bug", "BugID's do not match! Old: " + oldBug.ID + " New: " + newBug.ID);
+			return false;
+		}
+
+		// Get ID
+		String ID = String.valueOf(newBug.ID);
+		
+		// Add everything to a single query to make sure it works
+		List<String> queries = new ArrayList<String>();
+
+		// Images have changed
+		if( oldBug.imageMap.values().size() != newBug.imageMap.values().size() ){
+			System.out.println("Different sizes");
+			
+			List<String> newImages = new ArrayList<String>();
+			List<String> deleted = new ArrayList<String>();
+			
+			// Check for what is new in the new bugs images
+			for(String newLink : newBug.imageMap.keySet()){
+				if( !oldBug.imageMap.keySet().contains(newLink) ){
+					newImages.add(newLink);
+				}
+			}
+			
+			// Check for what has been deleted
+			for(String oldLink : oldBug.imageMap.keySet()){
+				if( !newBug.imageMap.keySet().contains(oldLink) ){
+					deleted.add(oldLink);
+				}
+			}
+			
+			// Make sure we have at least 1 image!
+			if( newImages.isEmpty() ){
+				System.out.println("No Images in new bug");
+				
+				// TODO should only delete what is in the delete list to avoid conflict!
+				// Delete everything from screenshots and add a NULL
+				queries.add("Delete from screenshots where bugid = " + ID);
+				queries.add("INSERT INTO screenshots (`link`, `bugid`) VALUES ('NULL', '" + ID + "')");
+			}
+			else{
+				System.out.println("More new bugs");
+				
+				
+				// Delete removed images
+				if( !deleted.isEmpty() ){
+					System.out.println("Deleteing bugs");
+					String seperated = "";
+					
+					int i = 0;
+					for(String s : deleted ){
+						seperated += "'" + s + "'";
+						if( ++i < deleted.size() ){
+							 seperated += ", ";
+						}
+					}
+					
+					queries.add("Delete * from screenshots where bugid = " + ID + " AND link IN (" + seperated + ")");					
+					
+				}
+				
+				// Add the new images
+				if( !newImages.isEmpty() ){
+					System.out.println("Adding new bugs");
+
+					queries.add("INSERT INTO screenshots (`link`, `bugid`) VALUES " + listToMultipleValues(newImages, ID));
+				}
+			}
+		}
+
+		// Message has changed
+		//Map<String,String> bugsTableToUpdate = new HashMap<String,String>();
+		if( !oldBug.getMessage().equals(newBug.getMessage()) ){
+			//bugsTableToUpdate.put("message", newBug.getMessage());
+			queries.add("UPDATE bugs SET message = '" + newBug.getMessage() + "' WHERE BugId = " + ID + "; ");
+		}
+
+		// Priority has changed
+		if( !oldBug.getPriority().equals(newBug.getPriority()) ){
+			//bugsTableToUpdate.put("priority", newBug.getPriority());
+			queries.add("UPDATE priorities SET priority = '" + newBug.getPriority() + "' WHERE BugId = " + ID + "; ");
+		}
+
+		// Status has changed
+		if( !oldBug.getStatus().equals(newBug.getStatus()) ){
+			//bugsTableToUpdate.put("status", newBug.getStatus());
+			queries.add("UPDATE statuses SET status = '" + newBug.getStatus() + "' WHERE BugId = " + ID + "; ");
+		}
+		
+		// Join BUGS Table to a single query
+//		if( !bugsTableToUpdate.isEmpty() ){
+//
+//			query += "UPDATE bugs SET ";
+//			
+//			int i = 0;
+//			for( Entry<String, String> e : bugsTableToUpdate.entrySet()){
+//				query += e.getKey() + " = '" + e.getValue() + "'";
+//				if( ++i < bugsTableToUpdate.size() ){
+//					query += ",";
+//				}
+//				
+//				query += " ";
+//			}
+//			
+//			
+//			query += " WHERE BugId = " + oldBug.ID + "; ";
+//			
+//		}
+		
+
+		// Tags have changed
+		if( oldBug.getTags().size() != newBug.getTags().size() ){
+			
+		}
+
+		// The person editing is not the same person that created the bug
+		if( !oldBug.getWho().equals(username)  ){
+			
+		}
+		
+		
+		if( queries.isEmpty() ){
+			PopupError.show("Can not update Bug", "No changes were made to the bug.");
+			return false;
+		}
+		
+		connect();
+		
+		if( isConnected() ){
+			
+			try{
+				System.out.println("Beginning Update with " + queries.size() + " queries.");
+
+				long start = System.currentTimeMillis();
+				for(int i = 0; i < queries.size(); i++){
+					String query = queries.get(i);
+					System.out.println("\tUpdating with: \n\t" + query);
+					
+					long updateStart = System.currentTimeMillis();
+					Statement st = con.createStatement();
+					boolean result = st.execute(query);
+					long updateEnd = System.currentTimeMillis();
+					long updateTime = updateEnd-updateStart;
+					
+					
+					System.out.println("\t\tFinished Submitting Update Query: '" + result + "' " + updateTime + "ms.");
+				}
+				
+				long end = System.currentTimeMillis();
+				long time = end-start;
+				System.out.println("\tFinished Update: " + time + "ms.");
+				
+				return true;
+			}catch(SQLException e){
+				e.printStackTrace();
+			}
+		}
+		
 		return false;
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
