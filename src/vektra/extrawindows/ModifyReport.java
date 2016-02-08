@@ -158,6 +158,7 @@ public class ModifyReport {
 				Button openScreenshotButton = new Button("OPEN");
 				openScreenshotButton.getStyleClass().add("button_extra");
 				openScreenshotButton.setPrefWidth(100);
+				openScreenshotButton.setDisable(true);
 				screenShotUploadPane.addColumn(1, openScreenshotButton);
 				
 				screenshotList = new HBox();

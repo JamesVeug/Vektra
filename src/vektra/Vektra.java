@@ -463,20 +463,20 @@ public class Vektra extends Application{
             //System.out.println("message = " + item.getMessage());
             selectedBug = bug;
             openScreenshots.setText("Open Screenshots (" + bug.imageMap.size() + ")");
-            message.setText(bug.getMessage());
-            reportID.setText(String.valueOf(bug.getID()));
+            message.setText(bug.message);
+            reportID.setText(String.valueOf(bug.ID));
             
             int i = 0;
             String tagString = "";
-            for(String tag : bug.getTags()){ 
+            for(String tag : bug.tags){ 
             	tagString += tag;
-            	if( (++i) < bug.getTags().size() ){
+            	if( (++i) < bug.tags.size() ){
             		tagString += ", ";
             	}
             }
             
             tags.setText(tagString);
-            priority.setText(bug.getPriority());
+            priority.setText(bug.priority);
             
             whoLogged.setText(bug.who);
             loggedDate.setText(bug.date);
@@ -484,7 +484,7 @@ public class Vektra extends Application{
             // Clear images and add new ones if there are some
         	screenshotList.getChildren().clear();
         	displayScreenshot.setImage(null);
-            if( !bug.images.isEmpty() ){
+            if( !bug.getImages().isEmpty() ){
 
             	i = 0;
             	ScreenShotListListener listener = new ScreenShotListListener();

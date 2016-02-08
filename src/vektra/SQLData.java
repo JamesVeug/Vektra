@@ -145,7 +145,7 @@ public class SQLData {
 			}catch( IllegalArgumentException e ){
 				//popupException("Can not load image: '" + link + "'", e);
 				//System.err.println("Can not load image: '" + link + "'");
-				//System.err.println(e.getMessage());
+				//System.err.println(e.message);
 				//e.printStackTrace();
 			}
 		}
@@ -216,7 +216,7 @@ public class SQLData {
 			return false;
 		}
 			
-		String bugcommand = "INSERT INTO bugs (`poster`, `message`) VALUES ('" + username + "', '" + bug.getMessage() + "')";
+		String bugcommand = "INSERT INTO bugs (`poster`, `message`) VALUES ('" + username + "', '" + bug.message + "')";
 		boolean bugcommandConfirmation = submitQuery(bugcommand);
 		if( !bugcommandConfirmation ){
 			System.out.println("Did not submit bug!");
@@ -225,7 +225,7 @@ public class SQLData {
 		
 		
 		// Get the bug we just added		
-		int bugid = getSubmittedBugID(username, bug.getMessage() );
+		int bugid = getSubmittedBugID(username, bug.message );
 		String prioritycommand = "INSERT INTO priorities (`priority`, `bugid`) VALUES ('" + bug.priority + "', '" + bugid + "')";
 		boolean prioritycommandConfirmation = submitQuery(prioritycommand);
 		if( !prioritycommandConfirmation ){
@@ -233,7 +233,7 @@ public class SQLData {
 			return false;
 		}	
 		
-		String statuscommand = "INSERT INTO statuses (`status`, `bugid`) VALUES ('"+bug.getStatus()+"', '" + bugid + "')";
+		String statuscommand = "INSERT INTO statuses (`status`, `bugid`) VALUES ('"+bug.status+"', '" + bugid + "')";
 		boolean statusstatusConfirmation = submitQuery(statuscommand);
 		if( !statusstatusConfirmation ){
 			System.out.println("Did not submit Status!");
@@ -253,7 +253,7 @@ public class SQLData {
 			return false;
 		}
 		
-		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.getTags(), String.valueOf(bugid));
+		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.tags, String.valueOf(bugid));
 		boolean tagcommandConfirmation = submitQuery(tagcommand);
 		if( !tagcommandConfirmation ){
 			System.out.println("Did not submit TAGS!!");
@@ -419,21 +419,21 @@ public class SQLData {
 
 		// Message has changed
 		//Map<String,String> bugsTableToUpdate = new HashMap<String,String>();
-		if( !oldBug.getMessage().equals(newBug.getMessage()) ){
-			//bugsTableToUpdate.put("message", newBug.getMessage());
-			queries.add("UPDATE bugs SET message = '" + newBug.getMessage() + "' WHERE BugId = " + ID + "; ");
+		if( !oldBug.message.equals(newBug.message) ){
+			//bugsTableToUpdate.put("message", newBug.message);
+			queries.add("UPDATE bugs SET message = '" + newBug.message + "' WHERE BugId = " + ID + "; ");
 		}
 
 		// Priority has changed
-		if( !oldBug.getPriority().equals(newBug.getPriority()) ){
-			//bugsTableToUpdate.put("priority", newBug.getPriority());
-			queries.add("UPDATE priorities SET priority = '" + newBug.getPriority() + "' WHERE BugId = " + ID + "; ");
+		if( !oldBug.priority.equals(newBug.priority) ){
+			//bugsTableToUpdate.put("priority", newBug.priority);
+			queries.add("UPDATE priorities SET priority = '" + newBug.priority + "' WHERE BugId = " + ID + "; ");
 		}
 
 		// Status has changed
-		if( !oldBug.getStatus().equals(newBug.getStatus()) ){
-			//bugsTableToUpdate.put("status", newBug.getStatus());
-			queries.add("UPDATE statuses SET status = '" + newBug.getStatus() + "' WHERE BugId = " + ID + "; ");
+		if( !oldBug.status.equals(newBug.status) ){
+			//bugsTableToUpdate.put("status", newBug.status);
+			queries.add("UPDATE statuses SET status = '" + newBug.status + "' WHERE BugId = " + ID + "; ");
 		}
 		
 		// Join BUGS Table to a single query
@@ -458,12 +458,12 @@ public class SQLData {
 		
 
 		// Tags have changed
-		if( oldBug.getTags().size() != newBug.getTags().size() ){
+		if( oldBug.tags.size() != newBug.tags.size() ){
 			
 		}
 
 		// The person editing is not the same person that created the bug
-		if( !oldBug.getWho().equals(username)  ){
+		if( !oldBug.who.equals(username)  ){
 			
 		}
 		
