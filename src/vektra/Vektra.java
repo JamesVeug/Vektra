@@ -1,37 +1,21 @@
 package vektra;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.sun.javafx.scene.control.skin.TableViewSkinBase;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.Slider;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -41,7 +25,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
@@ -57,7 +40,13 @@ import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.EditReport;
 
 
-
+/**
+ * Primary class for the Vektra Bug Reporter
+ * This class includes all GUI aspects for the main window that gets used by all users.
+ * No Bug modification or SQL queries are made in this
+ * @author James
+ *
+ */
 public class Vektra extends Application{
 	@SuppressWarnings("unused")
 	private Stage primaryStage;
@@ -86,7 +75,9 @@ public class Vektra extends Application{
 	private RefreshThread refreshThread;
 	private WindowCloseRequest closeRequest;
 	
-	
+	/**
+	 * Starting method that creates the main window and loads the primary font.
+	 */
 	public void start(Stage primaryStage) throws Exception {
 		
 		// Required in order to be able to use it in css's
@@ -317,7 +308,7 @@ public class Vektra extends Application{
 		primaryStage.show();
 		
 		// Ask to log in!
-		loginMenuItemPressed();
+		login();
 		
 		//popupLoading("Loading:", "Uploading Report");
 	}
@@ -389,57 +380,25 @@ public class Vektra extends Application{
 	}
 
 
-	private static void popupLoading(String title, String text){
-		
-		
-		Group root = new Group();
-        Scene scene = new Scene(root);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.setTitle("Progress Controls");
- 
-        final Slider slider = new Slider();
-        slider.setMin(0);
-        slider.setMax(50);
-         
-        final ProgressBar pb = new ProgressBar(0);
-        final ProgressIndicator pi = new ProgressIndicator(0);
- 
-        slider.valueProperty().addListener(new ChangeListener<Number>() {
-            public void changed(ObservableValue<? extends Number> ov,
-                Number old_val, Number new_val) {
-                pb.setProgress(new_val.doubleValue()/50);
-                pi.setProgress(new_val.doubleValue()/50);
-                
-                if( new_val.doubleValue() == 100 ){
-                	System.out.println("DONE");
-                }
-                else{
-                	System.out.println(new_val);
-                }
-            }
-        });
- 
-        final HBox hb = new HBox();
-        hb.setSpacing(5);
-        hb.setAlignment(Pos.CENTER);
-        hb.getChildren().addAll(slider, pb, pi);
-        scene.setRoot(hb);
-        stage.show();
-	}
-	
+	/**
+	 * Given an amount of data that was received from a database.
+	 * We want to update the visual representation of the data on the GUI
+	 * 
+	 * @param loadedData New data loaded off a website
+	 * @param length time taken to load the data
+	 */
 	public void refreshData(final ObservableList<BugItem> loadedData, long length) {
 		System.out.println("Refresh Time: " + length);
 		
 		// Don't do anything if they are the same
-		if( importedData != null && importedData.equals(loadedData) ){
-			//System.out.println("NO CHANGE");
-			//return;
+		if( importedData == null || importedData.isEmpty() ){
+			System.out.println("NO CHANGE");
+			return;
 		}
 		
-		for(BugItem i : loadedData){
+		/*for(BugItem i : loadedData){
 			System.out.println(i);
-		}
+		}*/
 
 		
 		Thread t = new Thread(new Runnable(){
@@ -449,17 +408,8 @@ public class Vektra extends Application{
 				setupTable();
 				
 				// Assign new values in the table
-				//bugs.getItems().removeAll(bugs.getItems());
-				//FXCollections.copy(bugs.getItems(), loadedData);
-				/*for(BugItem i : loadedData){
-					bugs.getItems().add(i);
-				}*/
 				bugs.setItems(loadedData);
-				
-				
-				
-				//bugs.itemsProperty().
-				
+
 				
 				// Reselect
 				deselectBug();
@@ -492,53 +442,53 @@ public class Vektra extends Application{
 		
 	}
 
-
+	/**
+	 * Deselects the current bug in the bug list
+	 */
 	protected void deselectBug() {
 
     	screenshotList.getChildren().clear();
     	displayScreenshot.setImage(null);
 	}
 
-
-	public void selectBug(BugItem item) {
+	/**
+	 * Selects the given bug parameter from the bugs list and displays it on the screen visually.
+	 * @param bug What to select from the list
+	 */
+	public void selectBug(BugItem bug) {
 		 //System.out.println("bugid " + item.ID);
-		if( item != null ){
+		if( bug != null ){
 			//System.out.println("Selected Bug: ");
             //System.out.println("id = " + item.getID());
             //System.out.println("message = " + item.getMessage());
-            selectedBug = item;
-            openScreenshots.setText("Open Screenshots (" + item.imageMap.size() + ")");
-            message.setText(item.getMessage());
-            reportID.setText(String.valueOf(item.getID()));
+            selectedBug = bug;
+            openScreenshots.setText("Open Screenshots (" + bug.imageMap.size() + ")");
+            message.setText(bug.getMessage());
+            reportID.setText(String.valueOf(bug.getID()));
             
             int i = 0;
             String tagString = "";
-            for(String tag : item.getTags()){ 
+            for(String tag : bug.getTags()){ 
             	tagString += tag;
-            	if( (++i) < item.getTags().size() ){
+            	if( (++i) < bug.getTags().size() ){
             		tagString += ", ";
             	}
             }
             
             tags.setText(tagString);
-            priority.setText(item.getPriority());
+            priority.setText(bug.getPriority());
             
-            whoLogged.setText(item.who);
-            loggedDate.setText(item.date);
+            whoLogged.setText(bug.who);
+            loggedDate.setText(bug.date);
 
             // Clear images and add new ones if there are some
         	screenshotList.getChildren().clear();
         	displayScreenshot.setImage(null);
-            if( !item.images.isEmpty() ){
-            	/*if( image != null && image.getImage().equals(logo)){
-	            	image.fitWidthProperty().bind(screenshotPane.widthProperty());
-	    			image.fitHeightProperty().bind(screenshotPane.heightProperty());	
-            	}*/
-            	
-            	
+            if( !bug.images.isEmpty() ){
+
             	i = 0;
             	ScreenShotListListener listener = new ScreenShotListListener();
-            	for( String link : item.imageMap.keySet() ){
+            	for( String link : bug.imageMap.keySet() ){
             		
             		Image image = new Image(link);
             		ImageView v = new ImageView(image);
@@ -555,35 +505,12 @@ public class Vektra extends Application{
             }
 		}
 	}
-	
 
 	/**
-	 * Loads all the bugs from a database
-	 * @return
+	 * Sets up the menu bar on startup with the required file/edit/view... etc items.
+	 * @param mainLayout Layout to add the items to.
+	 * @param primaryStage What stage to add the menu to.
 	 */
-	@SuppressWarnings("unused")
-	private ObservableList<BugItem> getSetTestBugs(){
-		ObservableList<BugItem> list = FXCollections.observableArrayList();
-		
-		//int iD, List<String> tags, int priority, String status,
-		//String who, String message, String date
-		String image1Link = "test.jpg";
-		Map<String, Image> images1 = new HashMap<String, Image>(); images1.put(image1Link, new Image(image1Link));
-		list.add(new BugItem(0, toList("Gameplay","Visual"),"High", "WIP","Joure","Where is the Turkey?","27 July 07 1991", images1));
-		
-		String image2Link = "test2.jpg";
-		Map<String, Image> images2 = new HashMap<String, Image>(); images2.put(image2Link, new Image(image2Link));
-		list.add(new BugItem(1, toList("Gameplay"),"Low", "PENDING","Josh","Why can't I feel my toes?","2 June 17 2001", images2));
-		
-		return list;
-	}
-
-	private Set<String> toList(String... string) {
-		Set<String> s = new HashSet<String>();
-		s.addAll(Arrays.asList(string));
-		return s;
-	}
-
 	private void setupMenu(BorderPane mainLayout, Stage primaryStage) {
 		
 		MenuBar menuBar = new MenuBar();
@@ -592,7 +519,7 @@ public class Vektra extends Application{
 		loginMenuItem = new MenuItem("Login");
 		loginMenuItem.setOnAction(new EventHandler<ActionEvent>(){
 			public void handle(ActionEvent arg0) {
-				loginMenuItemPressed();
+				login();
 			}
 			
 		});
@@ -600,7 +527,7 @@ public class Vektra extends Application{
 		signoutMenuItem.setVisible(false);
 		signoutMenuItem.setOnAction(new EventHandler<ActionEvent>(){
 			public void handle(ActionEvent arg0) {
-				signOutMenuItemPressed();
+				signOut();
 			}
 			
 		});
@@ -641,7 +568,6 @@ public class Vektra extends Application{
 		report.getItems().add(deleteReport);
 		deleteReport.setOnAction(new EventHandler<ActionEvent>(){
 			public void handle(ActionEvent arg0) {
-				int maxID = importedData == null ? -1 : importedData.get(importedData.size()-1).ID;
 				deleteCurrentBug();
 			}
 			
@@ -656,7 +582,11 @@ public class Vektra extends Application{
 		
 	}
 
-	protected void signOutMenuItemPressed() {
+	/**
+	 * Signs out of the database
+	 * If we are not signed in, it will still reset all GUI appropriately.
+	 */
+	protected void signOut() {
 		
 		// Disconnect from server
 		if( SQLData.isConnected() ){
@@ -664,6 +594,9 @@ public class Vektra extends Application{
 			// Stop refreshing
 			closeRequest.removeThread();
 			SQLData.close();
+
+			// Tell the user we logged in!
+			PopupMessage.show("Sign Out","Logged Out Successfully!\nGood Bye" + SQLData.getUsername() + "!");
 		}
 
 		// Change GUI
@@ -671,12 +604,13 @@ public class Vektra extends Application{
 		signoutMenuItem.setVisible(false);
 		loggedInName.setText("-");
 		
-
-		// Tell the user we logged in!
-		PopupMessage.show("Sign Out","Logged Out Successfully!\nGood Bye" + SQLData.getUsername() + "!");
 	}
 
-	protected void loginMenuItemPressed() {
+	/**
+	 * Calls LoginDialog which grabs the information from the user and attempts to log in with it.
+	 * If the log in is successful. A refresh thread will begin and a message will appear.
+	 */
+	protected void login() {
 		
 		
 		boolean loggedIn = LoginDialog.show();
@@ -717,70 +651,31 @@ public class Vektra extends Application{
 		
 	}
 
-	private class MenuItemCreateReport implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			//int maxID = importedData == null ? -1 : importedData.get(importedData.size()-1).ID;
-			CreateReport.display(-1);
-		}
-
-	}
-	
-	private class EditReportButtonPressed implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			System.out.println("Edit Report Pressed");
-			EditReport.display(selectedBug);
-		}
-
-	}
-	
-	private class DeleteReport implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent t) {
-			deleteCurrentBug();
-		}
-	}
-	
-	private class OpenID implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			System.out.println("OpenID Pressed");
-		}
-	}
-	
-	private class Refresh implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			if( refreshThread == null || !refreshThread.isAlive() ){
-				PopupError.show("Can not refresh!", "Not logged in?");
-			}
-			
-			refreshThread.resetTime();
-		}
-	}
-	
+	/**
+	 * When clicking on each of the screenshits in the screenshot list. 
+	 * This is triggered and will then select the screenshot and display the correct image in the main area whiel deseleting the other.
+	 * @param v Image clicked on, on the GUI
+	 */
 	public void selectImage(ImageView v){
+		
+		// Reset the old image if we have one
 		if( selectedListImage != null ){
 			scaleImageView(selectedListImage,75,75);
-			/*selectedListImage.setScaleX(0.75);
-			selectedListImage.setScaleY(0.75);// getImage()*/
 		}
 		
-
+		// Scale the new image to 100x100
 		scaleImageView(v,100,100);
 		selectedListImage = v;
 		
-
+		// Display the new image
     	displayScreenshot.setImage(v.getImage());
     	scaleImageView(displayScreenshot, 400, 400);
 	}
 	
+	/**
+	 * Pressing the delete button or menuitem will call this and will ask for verification if we can or should deleete it.
+	 * Removes from the database!
+	 */
 	public void deleteCurrentBug() {
 		System.out.println("Delete Report Pressed");
 		if( !SQLData.isConnected() ){
@@ -810,6 +705,80 @@ public class Vektra extends Application{
 		}
 	}
 
+	/**
+	 * Scales the given view to the given width and height for display.
+	 * @param view ImageView we want to scale
+	 * @param desiredWidth Width to assign the image to
+	 * @param desiredHeight height to assign the image to
+	 */
+	private void scaleImageView(ImageView view, int desiredWidth, int desiredHeight) {		
+		view.setFitWidth(desiredWidth);
+		view.setFitHeight(desiredHeight);
+	}
+	
+	/**
+	 * When the Create Report menu item is pressed. It will call the create report class to create a new bug report.  
+	 * @author James
+	 *
+	 */
+	private class MenuItemCreateReport implements EventHandler<ActionEvent> {
+		@Override public void handle(ActionEvent arg0) { CreateReport.display(-1); }
+	}
+	
+	/**
+	 * When the Edit Report menu item is pressed. It will call the edit report class to edit the currently selected report
+	 * @author James
+	 *
+	 */
+	private class EditReportButtonPressed implements EventHandler<ActionEvent> {
+		@Override public void handle(ActionEvent arg0) { EditReport.display(selectedBug);	}
+	}
+	
+	/**
+	 * When the Delete Report menu item is pressed. It will ask for verification before deleteing.  
+	 * @author James
+	 *
+	 */
+	private class DeleteReport implements EventHandler<ActionEvent> {
+		@Override public void handle(ActionEvent t) { deleteCurrentBug(); }
+	}
+	
+	/**
+	 * When the Create Report menu item is pressed. It will call the create report method  
+	 * @author James
+	 *
+	 */
+	private class OpenID implements EventHandler<ActionEvent> {
+
+		@Override
+		public void handle(ActionEvent arg0) {
+			System.out.println("OpenID Pressed");
+		}
+	}
+	
+	/**
+	 * When the refresh button is pressed. It will reset the timer on the refresh thread which will then refresh the data.
+	 * @author James
+	 *
+	 */
+	private class Refresh implements EventHandler<ActionEvent> {
+
+		@Override
+		public void handle(ActionEvent arg0) {
+			if( refreshThread == null || !refreshThread.isAlive() ){
+				PopupError.show("Can not refresh!", "Not logged in?");
+			}
+			
+			refreshThread.resetTime();
+		}
+	}
+
+	/**
+	 * Listens for a click of the mouse on the screenshot list.
+	 * This gets the image selected by the mouse and returns it to the selectImage method
+	 * @author James
+	 *
+	 */
 	private class ScreenShotListListener implements EventHandler<MouseEvent> {
 
 		@Override
@@ -820,24 +789,13 @@ public class Vektra extends Application{
 		
 		
 	}
-
-	private void scaleImageView(ImageView v, int desiredWidth, int desiredHeight) {
-		double imageW = v.getImage().getWidth();
-		double imageH = v.getImage().getHeight();
-		
-		double widthScale = desiredWidth/imageW;
-		double heightScale = desiredHeight/imageH;
-		
-		v.setFitWidth(desiredWidth);
-		v.setFitHeight(desiredHeight);
-		/*v.set
-		v.setScaleX(widthScale);
-		v.setScaleY(heightScale);*/
-		
-	}
 	
-	
-	
+	/**
+	 * Listens for the user to click on a bug in the bug list table.
+	 * Then selects the bug that was clicked on and displays it's information visually.
+	 * @author James
+	 *
+	 */
 	private class BugListListener implements EventHandler<MouseEvent> {
 
 
@@ -854,21 +812,42 @@ public class Vektra extends Application{
 
 	}
 	
+	/**
+	 * Constantly running thread in the background checking if the database has any new updates
+	 * @author James
+	 *
+	 */
 	private class RefreshThread extends Thread {
+		
+		// Next possible time we can refresh
 		private long time = 0;
+		
+		// Boolean to allow us to continue running or not.
 		private boolean running = true;
 		
 		@Override
 		public void run() {
 			while(running){
 				
+				// Only check every so often
 				if( time < System.currentTimeMillis() ){
+					
+					// Record when we tried getting the new data
 					long start = System.currentTimeMillis();
+					
+					// Get the data from the database
 					ObservableList<BugItem> loadedData = SQLData.getData();
+					
+					// Get the end time
 					long end = System.currentTimeMillis();
+					
+					// Get how long it took to pull the data
 					long length = end-start;
 					
+					// Refresh the GUI
 					refreshData(loadedData,length);
+					
+					// Reset the timer
 					time = System.currentTimeMillis() + 1000;
 				}
 				
@@ -876,45 +855,62 @@ public class Vektra extends Application{
 			System.out.println("No longer refreshing!");
 		}
 		
+		/**
+		 * Resets the timer allowing us to pull the data next interation.
+		 */
 		public void resetTime() {
 			time = 0;
 		}
 
+		/**
+		 * Stops the thread from running and kills it.
+		 */
 		public void stopRunning(){
 			running = false;
 		}
 	}
 	
+	/**
+	 * When we want to close the program. We want to make sure we disconnect from everything else.
+	 * @author James
+	 *
+	 */
 	private class WindowCloseRequest implements EventHandler<WindowEvent>{
 		
-		private RefreshThread refreshThreads;
+		// The thread that is constantly running in the background
+		private RefreshThread thread;
 		
-		public WindowCloseRequest(){
-			
-		}
-		
-		
+		/**
+		 * Closes everything
+		 */
 		public void closeEverything() {
-			if( refreshThreads != null ){
-				refreshThreads.stopRunning();
+			if( thread != null ){
+				thread.stopRunning();
 			}
 			
 			// Wait for it to close
-			while(refreshThreads != null && refreshThreads.isAlive() ){
+			while(thread != null && thread.isAlive() ){
 				//System.out.println("Waiting for refresh Thread to die...");
 			}
 			
+			// Close the connection to the database
 			SQLData.close();
 		}
 
-
+		/**
+		 * Assigns a new thread to this window for us to close later
+		 * @param t
+		 */
 		public void setThread(RefreshThread t){
-			refreshThreads = t;
+			thread = t;
 		}
 		
+		/**
+		 * Stops and removes the thread
+		 */
 		public void removeThread(){
-			refreshThreads.stopRunning();
-			refreshThreads = null;
+			thread.stopRunning();
+			thread = null;
 		}
 
 
@@ -933,8 +929,6 @@ public class Vektra extends Application{
 	
 	
 	public static void main(String[] args){
-			
-		
 		launch(args);
 	}
 }
