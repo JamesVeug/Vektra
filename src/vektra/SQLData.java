@@ -287,6 +287,8 @@ public class SQLData {
 			System.out.println("Not connected!");
 			return false;
 		}
+		
+		String currentTime = retrieveCurrentTime();
 			
 		String bugcommand = "INSERT INTO bugs (`poster`, `message`) VALUES ('" + username + "', '" + fix(bug.message) + "')";
 		boolean bugcommandConfirmation = submitQuery(bugcommand);
@@ -298,6 +300,7 @@ public class SQLData {
 		
 		// Get the bug we just added		
 		int bugid = getSubmittedBugID(username, bug.message );
+		bug.ID = bugid;
 		String prioritycommand = "INSERT INTO priorities (`priority`, `bugid`) VALUES ('" + bug.priority + "', '" + bugid + "')";
 		boolean prioritycommandConfirmation = submitQuery(prioritycommand);
 		if( !prioritycommandConfirmation ){
@@ -331,6 +334,10 @@ public class SQLData {
 			System.out.println("Did not submit TAGS!!");
 			return false;
 		}
+		
+		// Tell everyone this has been updated
+		updateBugsLastReportedDate(bug,currentTime);
+		System.out.println("Inserted bug with ID " + bugid);
 		
 		return true;
 	}

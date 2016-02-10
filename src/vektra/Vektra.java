@@ -414,16 +414,19 @@ public class Vektra extends Application{
 				else{
 					// Modify the data in the currently save
 					for(BugItem i : loadedData){
-						int index = loadedData.indexOf(i);
+						int index = importedData.indexOf(i);
+						System.out.println("Index " + index);
 						if( index == -1 ){
+							System.out.println("Adding bug " + i.ID);
 							
 							// Add new item to bug
-							loadedData.add(i);
+							importedData.add(0,i);
 						}
 						else{
+							System.out.println("Setting bug " + i);
 							
 							// Replace bug
-							loadedData.set(index,i);
+							importedData.set(index,i);
 						}
 					}
 				}
