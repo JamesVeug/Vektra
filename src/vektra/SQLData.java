@@ -1,15 +1,20 @@
 package vektra;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+
+//import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,35 +28,78 @@ public class SQLData {
 	private static String password = "-";
 	private static String server = "mathparser.com";
 	private static String table = "-";
+	
+	private static String lastUpdate = "";
 
 	
-//	public static ObservableList<BugItem> getDataUpdated(){
-//		connect();
-//		
-//		if( con == null ){
-//			return null;
-//		}
-//		
-//		
-//		try {
-//
-//			Statement st = con.createStatement();			
-//			ResultSet result = st.executeQuery("SELECT b.bugid, date, message,poster, priority, status, tag, link FROM "
-//					+ "bugs b, priorities p, statuses s , tags t, screenshots h WHERE "
-//					+ "b.bugid = p.bugid AND b.bugid = s.bugid AND b.bugid = t.bugid AND b.bugid = h.bugid;");
-//			
-//			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
-//			processResults(result, bugs);
-//			return bugs;
-//			
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		
-//		return null;
-//	}
-	
+	public static ObservableList<BugItem> getUpdatedData(){
+		connect();
+		
+		if( !isConnected() ){
+			return null;
+		}
+		
+		System.out.println("Getting updated data");
+
+		try {
+
+			// Get what the current date off the server is.
+			String currentDate = retrieveCurrentTime();
+			
+			// Get all the updates from the last time we performed a select
+			String previousDate = lastUpdate;
+			
+			System.out.println("Current:  " + currentDate);
+			System.out.println("Previous: " + previousDate);
+			
+			
+			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
+			
+			Statement st = con.createStatement();// createStatement();
+			
+			// Get all the bugid's that have been updated since the last time we updated
+			String dateQuery = "(SELECT `bugid` FROM `bugdates` WHERE `lastupdated` >= '" + previousDate + "')";
+			System.out.println("Date Query: '" + dateQuery + "'");
+			
+
+//			ObservableList<BugItem> bugst = FXCollections.observableArrayList();
+//			ResultSet results = st.executeQuery(dateQuery);
+//			// Get all the bugs that we queried
+//			processResults(results, bugst);
+//			System.out.println("DATE QUERY: " + bugst.size());
+			
+			String selectionQuery = "SELECT b.bugid, date, message,poster, priority, status, tag, link FROM "
+									+ "bugs b, priorities p, statuses s , tags t, screenshots h, " + dateQuery + " AS d "
+									+ "WHERE "
+									+ "d.bugid = b.bugid AND d.bugid = p.bugid AND d.bugid = s.bugid AND d.bugid = t.bugid AND d.bugid = h.bugid;";
+			//System.out.println("Selection Query: \n'" + selectionQuery + "'"); 
+							
+			// Get all the information
+			ResultSet result = st.executeQuery(selectionQuery);
+		
+			// Get all the bugs that we queried
+			processResults(result, bugs);
+			
+			
+			// Save lastUpdate as currentDate so we can get the next load of date!
+			if( !bugs.isEmpty() ){
+				lastUpdate = currentDate;
+				System.out.println("Size: " + bugs);
+			}
+			
+			return bugs;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * Converts the given objects from the result object into BugItem's and adds them to the bugs list.
+	 * @param result Where the bugs are stored and retreived off the database.
+	 * @param bugs Where to store the bugs
+	 */
 	private static void processResults(ResultSet result, ObservableList<BugItem> bugs){
 		//long startTime = System.currentTimeMillis();
 		
@@ -111,12 +159,11 @@ public class SQLData {
 		try {
 			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
 			
-			Statement st = con.createStatement();
-			/*ResultSet result = st.executeQuery("SELECT * FROM (bugs LEFT JOIN priorities ON bugs.bugid=priorities.bugid a "
-												+ "LEFT JOIN statuses ON a.bugid=statuses.bugid b "
-												+ "LEFT JOIN tags ON b.bugid=tags.bugid c "
-												+ "LEFT JOIN screenshots ON c.bugid=screenshots.bugid d);");*/
+			// Get current time
+			lastUpdate = retrieveCurrentTime();
 			
+			
+			Statement st = con.createStatement();			
 			ResultSet result = st.executeQuery("SELECT b.bugid, date, message,poster, priority, status, tag, link FROM "
 												+ "bugs b, priorities p, statuses s , tags t, screenshots h WHERE "
 												+ "b.bugid = p.bugid AND b.bugid = s.bugid AND b.bugid = t.bugid AND b.bugid = h.bugid;");
@@ -134,6 +181,30 @@ public class SQLData {
 		
 		return null;
 	}
+
+	/**
+	 * Gets the current time off the database
+	 * @return
+	 */
+	private static String retrieveCurrentTime() {
+		
+		Statement st;
+		try {
+			st = con.createStatement();
+			ResultSet result = st.executeQuery("SELECT NOW() currentDate");
+			while( result.next() ){
+				String date = result.getString("currentDate");
+				date = date.substring(0, date.lastIndexOf("."));
+				return date;
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+
 
 	private static Image getScreenshot(String link) {
 		//System.out.println("Link: " + link);
@@ -158,6 +229,7 @@ public class SQLData {
 			if( con != null && !con.isClosed() ){
 				return;
 			}
+			
 			
 			MysqlDataSource dataSource = new MysqlDataSource();
 			dataSource.setUser(username);
@@ -216,7 +288,7 @@ public class SQLData {
 			return false;
 		}
 			
-		String bugcommand = "INSERT INTO bugs (`poster`, `message`) VALUES ('" + username + "', '" + bug.message + "')";
+		String bugcommand = "INSERT INTO bugs (`poster`, `message`) VALUES ('" + username + "', '" + fix(bug.message) + "')";
 		boolean bugcommandConfirmation = submitQuery(bugcommand);
 		if( !bugcommandConfirmation ){
 			System.out.println("Did not submit bug!");
@@ -416,45 +488,24 @@ public class SQLData {
 				}
 			}
 		}
+		
+		// Get the date off the server
+		String currentTime = retrieveCurrentTime();
 
 		// Message has changed
-		//Map<String,String> bugsTableToUpdate = new HashMap<String,String>();
 		if( !oldBug.message.equals(newBug.message) ){
-			//bugsTableToUpdate.put("message", newBug.message);
-			queries.add("UPDATE bugs SET message = '" + newBug.message + "' WHERE BugId = " + ID + "; ");
+			queries.add("UPDATE bugs SET message = '" + fix(newBug.message) + "' WHERE BugId = " + ID + "; ");
 		}
 
 		// Priority has changed
 		if( !oldBug.priority.equals(newBug.priority) ){
-			//bugsTableToUpdate.put("priority", newBug.priority);
 			queries.add("UPDATE priorities SET priority = '" + newBug.priority + "' WHERE BugId = " + ID + "; ");
 		}
 
 		// Status has changed
 		if( !oldBug.status.equals(newBug.status) ){
-			//bugsTableToUpdate.put("status", newBug.status);
 			queries.add("UPDATE statuses SET status = '" + newBug.status + "' WHERE BugId = " + ID + "; ");
 		}
-		
-		// Join BUGS Table to a single query
-//		if( !bugsTableToUpdate.isEmpty() ){
-//
-//			query += "UPDATE bugs SET ";
-//			
-//			int i = 0;
-//			for( Entry<String, String> e : bugsTableToUpdate.entrySet()){
-//				query += e.getKey() + " = '" + e.getValue() + "'";
-//				if( ++i < bugsTableToUpdate.size() ){
-//					query += ",";
-//				}
-//				
-//				query += " ";
-//			}
-//			
-//			
-//			query += " WHERE BugId = " + oldBug.ID + "; ";
-//			
-//		}
 		
 
 		// Tags have changed
@@ -472,6 +523,14 @@ public class SQLData {
 			PopupError.show("Can not update Bug", "No changes were made to the bug.");
 			return false;
 		}
+		
+		// Save current time so we know it has been edited!
+		
+		// Attempt updating
+		System.out.println("Updating with time: " + currentTime);
+		updateBugsLastReportedDate(newBug, currentTime);
+
+		
 		
 		connect();
 		
@@ -506,6 +565,67 @@ public class SQLData {
 		}
 		
 		return false;
+	}
+
+	/**
+	 * Adds or removes required characters from the message so there aren't any confusions with the SQL query
+	 * @param message What to fix
+	 * @return fixed string version of the message
+	 */
+	private static String fix(String message) {
+		
+		String quotes = message.replaceAll("'", "''");
+		
+		return quotes;
+	}
+
+	/**
+	 * 
+	 * @param newBug
+	 */
+	private static void updateBugsLastReportedDate(BugItem bug, String currentTime) {
+
+		System.out.println("UPDATING BUG");
+		
+		// TODO Implement and TEST adding new rows to the bugdates Table!
+		// TODO Test Vektra method where the the updated items are selected and modify the current table
+		
+		// Attempt to update
+		String updateBug = "UPDATE `bugdates` SET `lastupdated` = '"+currentTime+"' WHERE `bugid` = '"+bug.ID+"';";
+
+		try {
+		
+			Statement st = con.createStatement();
+			
+			int b = st.executeUpdate(updateBug);
+			int r = st.getUpdateCount();
+
+			System.out.println("UPDATED: " + r + " b " + b);
+			if( r == 0 ){
+				String insertUpdate = "INSERT INTO `bugdates`(`bugid`, `lastupdated`) VALUES ('"+bug.ID+"', '"+currentTime+"');";
+				
+				Statement st2 = con.createStatement();
+				int inserted = st2.executeUpdate(insertUpdate);
+				System.out.println("INSERTED: " + inserted);
+			}
+			else if( r < 0 ){
+				throw new RuntimeException("Updating returned " + r);
+			}
+		
+		
+		
+		// Else
+		
+		
+		
+		
+		// Insert
+		
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -178,4 +178,22 @@ public class BugItem {
 		return true;
 	}
 
+	/**
+	 * Gets ID of the BugItem
+	 * Required Method for the table in the Vektra class to be used
+	 * @return the iD
+	 */
+	public int getID() {
+		return ID;
+	}
+
+	/**
+	 * Gets Status of the BugItem
+	 * Required Method for the table in the Vektra class to be used
+	 * @return the status
+	 */
+	public String getStatus() {
+		return status;
+	}
+
 }

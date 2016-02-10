@@ -54,6 +54,7 @@ public class Vektra extends Application{
 	private ObservableList<BugItem> importedData;
 	private BugItem selectedBug;
 	
+	private Button refresh;
 	private Label loggedInLabel;
 	private Label loggedInName;
 	private TableView<BugItem> bugs;
@@ -145,7 +146,7 @@ public class Vektra extends Application{
 		openID.getStyleClass().add("button_extra");
 		openID.setPrefWidth(150);
 		openID.setPrefHeight(50);
-		Button refresh = new Button("REFRESH");
+		refresh = new Button("REFRESH");
 		refresh.setOnAction(new Refresh());
 		refresh.getStyleClass().add("button_extra");
 		refresh.setPrefWidth(150);
@@ -258,6 +259,7 @@ public class Vektra extends Application{
 			message = new TextArea("No Text Here");
 			message.setPrefHeight(575);
 			message.setEditable(false);
+			message.setWrapText(true);
 			messagePane.addRow(1, message);
 			messagePane.setPrefHeight(200);
 			
@@ -323,8 +325,6 @@ public class Vektra extends Application{
 		
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("REPORT ID");
-		idColumn.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
-		idColumn.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
 		idColumn.setPrefWidth(60);
 		idColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Integer>("ID"));
 		idColumn.setCellFactory(new Callback<TableColumn<BugItem, Integer>, TableCell<BugItem, Integer>>() {
@@ -345,8 +345,6 @@ public class Vektra extends Application{
 	    });
 		
 		TableColumn<BugItem, String> statusColumn = new TableColumn<BugItem, String>("STATUS");
-		statusColumn.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
-		statusColumn.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
 		statusColumn.setPrefWidth(70);
 		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("status"));
 		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
@@ -386,19 +384,18 @@ public class Vektra extends Application{
 	 * 
 	 * @param loadedData New data loaded off a website
 	 * @param length time taken to load the data
+	 * @param fullUpdate 
 	 */
-	public void refreshData(final ObservableList<BugItem> loadedData, long length) {
+	public void refreshData(final ObservableList<BugItem> loadedData, long length, final boolean fullUpdate) {
 		System.out.println("Refresh Time: " + length);
 		
 		// Don't do anything if they are the same
-		if( importedData == null || importedData.isEmpty() ){
+		if( loadedData == null || loadedData.isEmpty() ){
 			System.out.println("NO CHANGE");
 			return;
 		}
 		
-		/*for(BugItem i : loadedData){
-			System.out.println(i);
-		}*/
+
 
 		
 		Thread t = new Thread(new Runnable(){
@@ -408,7 +405,28 @@ public class Vektra extends Application{
 				setupTable();
 				
 				// Assign new values in the table
-				bugs.setItems(loadedData);
+				if( fullUpdate ){
+					bugs.setItems(loadedData);
+					
+					// Save local data
+					importedData = loadedData;
+				}
+				else{
+					// Modify the data in the currently save
+					for(BugItem i : loadedData){
+						int index = loadedData.indexOf(i);
+						if( index == -1 ){
+							
+							// Add new item to bug
+							loadedData.add(i);
+						}
+						else{
+							
+							// Replace bug
+							loadedData.set(index,i);
+						}
+					}
+				}
 
 				
 				// Reselect
@@ -434,10 +452,6 @@ public class Vektra extends Application{
 		});
 		Platform.runLater(t);
 		
-		
-
-		// Save local data
-		importedData = loadedData;
 		
 		
 	}
@@ -544,8 +558,8 @@ public class Vektra extends Application{
 		file.getItems().add(signoutMenuItem);
 		file.getItems().add(quitMenuItem);
 		
-		Menu edit = new Menu("Edit");
-		Menu view = new Menu("View");
+		//Menu edit = new Menu("Edit");
+		//Menu view = new Menu("View");
 		Menu report = new Menu("Report");
 		MenuItem createReport = new MenuItem("Create Report");
 		report.getItems().add(createReport);
@@ -574,8 +588,8 @@ public class Vektra extends Application{
 		});
 		
 		menuBar.getMenus().add(file);
-		menuBar.getMenus().add(edit);
-		menuBar.getMenus().add(view);
+		//menuBar.getMenus().add(edit);
+		//menuBar.getMenus().add(view);
 		menuBar.getMenus().add(report);
 
 		mainLayout.setTop(menuBar);
@@ -769,7 +783,7 @@ public class Vektra extends Application{
 				PopupError.show("Can not refresh!", "Not logged in?");
 			}
 			
-			refreshThread.resetTime();
+			refreshThread.fullRefreshTime();
 		}
 	}
 
@@ -819,6 +833,12 @@ public class Vektra extends Application{
 	 */
 	private class RefreshThread extends Thread {
 		
+		// Time in between refreshes
+		private static final int REFRESHDELAY = 5000;
+		
+		// Amoutn of times we have refreshed
+		private int refreshCount = 0;
+		
 		// Next possible time we can refresh
 		private long time = 0;
 		
@@ -832,11 +852,33 @@ public class Vektra extends Application{
 				// Only check every so often
 				if( time < System.currentTimeMillis() ){
 					
+					// Disable refresh button
+					Thread disable = new Thread(new Runnable(){
+
+						@Override
+						public void run() {
+							refresh.setDisable(true);
+						}
+						
+					});
+					Platform.runLater(disable);
+					
+					
 					// Record when we tried getting the new data
 					long start = System.currentTimeMillis();
 					
+
+					// Increase refresh counter and store if this was a full update or not
+					boolean fullUpdate = refreshCount++ == 0; 
+					
 					// Get the data from the database
-					ObservableList<BugItem> loadedData = SQLData.getData();
+					ObservableList<BugItem> loadedData;
+					if( fullUpdate ){
+						loadedData = SQLData.getData();
+					}
+					else{
+						loadedData = SQLData.getUpdatedData();
+					}
 					
 					// Get the end time
 					long end = System.currentTimeMillis();
@@ -844,11 +886,24 @@ public class Vektra extends Application{
 					// Get how long it took to pull the data
 					long length = end-start;
 					
+					
 					// Refresh the GUI
-					refreshData(loadedData,length);
+					refreshData(loadedData,length, fullUpdate);
+					
+					// Disable refresh button
+					while(disable != null && disable.isAlive() ){}
+					Thread enable = new Thread(new Runnable(){
+
+						@Override
+						public void run() {
+							refresh.setDisable(false);
+						}
+						
+					});
+					Platform.runLater(enable);
 					
 					// Reset the timer
-					time = System.currentTimeMillis() + 1000;
+					time = System.currentTimeMillis() + REFRESHDELAY;
 				}
 				
 			}
@@ -856,10 +911,11 @@ public class Vektra extends Application{
 		}
 		
 		/**
-		 * Resets the timer allowing us to pull the data next interation.
+		 * Performs a full refresh on the data collecting everything
 		 */
-		public void resetTime() {
+		public void fullRefreshTime() {
 			time = 0;
+			refreshCount = 0;
 		}
 
 		/**
