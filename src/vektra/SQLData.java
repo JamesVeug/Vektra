@@ -1,11 +1,9 @@
 package vektra;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,11 +12,8 @@ import java.util.Map;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
-//import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.image.Image;
 import vektra.dialogs.PopupError;
 
 public class SQLData {
@@ -28,7 +23,7 @@ public class SQLData {
 	private static String password = "-";
 	private static String server = "mathparser.com";
 	private static String table = "-";
-	
+
 	private static String lastUpdate = "";
 
 	
@@ -58,7 +53,7 @@ public class SQLData {
 			Statement st = con.createStatement();// createStatement();
 			
 			// Get all the bugid's that have been updated since the last time we updated
-			String dateQuery = "(SELECT `bugid` FROM `bugdates` WHERE `lastupdated` >= '" + previousDate + "')";
+			String dateQuery = "(SELECT * FROM `bugdates` WHERE `lastupdated` >= '" + previousDate + "')";
 			System.out.println("Date Query: '" + dateQuery + "'");
 			
 
@@ -68,7 +63,7 @@ public class SQLData {
 //			processResults(results, bugst);
 //			System.out.println("DATE QUERY: " + bugst.size());
 			
-			String selectionQuery = "SELECT b.bugid, date, message,poster, priority, status, tag, link FROM "
+			String selectionQuery = "SELECT b.bugid, d.whoupdated, d.lastupdated, date, message,poster, priority, status, tag, tagid, link FROM "
 									+ "bugs b, priorities p, statuses s , tags t, screenshots h, " + dateQuery + " AS d "
 									+ "WHERE "
 									+ "d.bugid = b.bugid AND d.bugid = p.bugid AND d.bugid = s.bugid AND d.bugid = t.bugid AND d.bugid = h.bugid;";
@@ -114,19 +109,34 @@ public class SQLData {
 				String priority = result.getString("priority");
 				String status = result.getString("status");
 				
+				String whoUpdated = "-";
+				String lastUpdated = "-";
+				try{
+					String temp = result.getString("whoupdated");
+					whoUpdated = temp;
+				}catch(Exception e ){};
+				try{
+					String temp = result.getString("lastupdated");
+					lastUpdated = temp;
+				}catch(Exception e ){};
+				
 				// Multiple entries
 				String tag = result.getString("tag");
+				int tagid = result.getInt("tagid");
 				String link = result.getString("link");
 	
 				// Get screenshots
-				Image screenshot = getScreenshot(link);
+				BugImage screenshot = getScreenshot(link);
+				Tag tagItem = new Tag(tagid, id, tag);
 				
 				if( bugMapping.containsKey(id) ){
 					BugItem saved = bugMapping.get(id);
+					saved.whoUpdated = whoUpdated;
+					saved.lastUpdate = lastUpdated;
 					
 					// Add another tag
 					if( tag != null ){
-						saved.addTag(tag);
+						saved.addTag(tagItem);
 					}
 					
 					// Add another screenshot
@@ -135,7 +145,7 @@ public class SQLData {
 					}
 				}
 				else{
-					BugItem bug = new BugItem(id, tag,priority, status, poster,message,date, screenshot != null ? link : null, screenshot != null ? screenshot : null);
+					BugItem bug = new BugItem(id, tagItem,priority, status, poster,message,date, screenshot != null ? link : null, screenshot != null ? screenshot : null);
 					bugs.add(bug);
 					bugMapping.put(id, bug);
 				}
@@ -164,7 +174,7 @@ public class SQLData {
 			
 			
 			Statement st = con.createStatement();			
-			ResultSet result = st.executeQuery("SELECT b.bugid, date, message,poster, priority, status, tag, link FROM "
+			ResultSet result = st.executeQuery("SELECT b.bugid, date, message,poster, priority, status, tag, tagid, link FROM "
 												+ "bugs b, priorities p, statuses s , tags t, screenshots h WHERE "
 												+ "b.bugid = p.bugid AND b.bugid = s.bugid AND b.bugid = t.bugid AND b.bugid = h.bugid;");
 						
@@ -186,7 +196,7 @@ public class SQLData {
 	 * Gets the current time off the database
 	 * @return
 	 */
-	private static String retrieveCurrentTime() {
+	public static String retrieveCurrentTime() {
 		
 		Statement st;
 		try {
@@ -206,11 +216,11 @@ public class SQLData {
 
 
 
-	private static Image getScreenshot(String link) {
+	private static BugImage getScreenshot(String link) {
 		//System.out.println("Link: " + link);
 		if( link != null && !link.isEmpty() ){
 			try{
-				Image image = new Image(link, 400, 300, true, true);
+				BugImage image = BugImage.createImage(link, 400, 300);
 				//System.out.println("Loaded image: '" + link + "'");
 				return image;
 			}catch( IllegalArgumentException e ){
@@ -328,7 +338,7 @@ public class SQLData {
 			return -5;
 		}
 		
-		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.tags, String.valueOf(bugid));
+		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.getTagMessages(), String.valueOf(bugid));
 		boolean tagcommandConfirmation = submitQuery(tagcommand);
 		if( !tagcommandConfirmation ){
 			System.out.println("Did not submit TAGS!!");
@@ -516,13 +526,19 @@ public class SQLData {
 		
 
 		// Tags have changed
-		if( oldBug.tags.size() != newBug.tags.size() ){
-			
+		List<String> tagQueries = getModifiedTags(oldBug,newBug);
+		if( !tagQueries.isEmpty() ){
+			for(String s : tagQueries ){
+				queries.add(s);
+			}
 		}
 
 		// The person editing is not the same person that created the bug
-		if( !oldBug.who.equals(username)  ){
-			
+		List<String> screenshotQueries = getModifiedScreenshots(oldBug, newBug);
+		if( !screenshotQueries.isEmpty() ){
+			for(String s : screenshotQueries ){
+				queries.add(s);
+			}
 		}
 		
 		
@@ -549,7 +565,8 @@ public class SQLData {
 				long start = System.currentTimeMillis();
 				for(int i = 0; i < queries.size(); i++){
 					String query = queries.get(i);
-					System.out.println("\tUpdating with: \n\t" + query);
+					
+					System.out.println("\tUpdating with: \n\t\t'" + query + "'");
 					
 					long updateStart = System.currentTimeMillis();
 					Statement st = con.createStatement();
@@ -572,6 +589,74 @@ public class SQLData {
 		}
 		
 		return false;
+	}
+
+	private static List<String> getModifiedTags(BugItem oldBug, BugItem newBug) {
+		
+		List<String> queries = new ArrayList<String>();
+		
+		// Step through each tag in oldBug
+		for( Tag tag : oldBug.tags ){
+		
+			// Is it in new Bug?
+			if( !newBug.tags.contains(tag) ){
+			
+				// No?
+					
+				// Delete Tag from DB
+				queries.add("DELETE FROM `tags` WHERE `tagid` = '" + tag.tagid + "';");
+			}
+		}
+		
+		// Step through each tag in newBug
+		for( Tag tag : newBug.tags ){
+		
+			// Is it in old Bug?
+			if( !oldBug.tags.contains(tag) ){
+				
+				// No?
+					
+				// Insert Tag into DB
+				queries.add("INSERT INTO `tags` (`tag`, `bugid`) VALUES ('"+tag.message+"', '"+tag.bugid+"');");
+			}
+		}
+		
+		
+		return queries;
+	}
+	
+	private static List<String> getModifiedScreenshots(BugItem oldBug, BugItem newBug) {
+		
+		List<String> queries = new ArrayList<String>();
+		
+		// Step through each tag in oldBug
+		for( String link : oldBug.imageMap.keySet() ){
+		
+			// Is it in new Bug?
+			if( !newBug.imageMap.keySet().contains(link) ){
+			
+				// No?
+					
+				// Delete Tag Screenshot DB
+				queries.add("DELETE FROM `screenshots` WHERE `bugid` = '" + newBug.ID + "' AND `link` = '"+ link +"');");
+			}
+		}
+		
+		// Step through each tag in newBug
+		for( String link : newBug.imageMap.keySet() ){
+		
+			// Is it in old Bug?
+			if( !oldBug.imageMap.keySet().contains(link) ){
+				
+				// No?
+					
+				// Insert Screenshot into DB
+				queries.add("INSERT INTO screenshots (`link`, `bugid`) VALUES ('" + link + "', '" + oldBug.ID + "');");
+			}
+		}
+		
+		
+		return queries;
 	}
 
 	/**
@@ -598,7 +683,7 @@ public class SQLData {
 		// TODO Test Vektra method where the the updated items are selected and modify the current table
 		
 		// Attempt to update
-		String updateBug = "UPDATE `bugdates` SET `lastupdated` = '"+currentTime+"' WHERE `bugid` = '"+bug.ID+"';";
+		String updateBug = "UPDATE `bugdates` SET `lastupdated` = '"+currentTime+"', `whoupdated` = '" + username + "' WHERE `bugid` = '"+bug.ID+"';";
 
 		try {
 		
@@ -609,7 +694,7 @@ public class SQLData {
 
 			System.out.println("UPDATED: " + r + " b " + b);
 			if( r == 0 ){
-				String insertUpdate = "INSERT INTO `bugdates`(`bugid`, `lastupdated`) VALUES ('"+bug.ID+"', '"+currentTime+"');";
+				String insertUpdate = "INSERT INTO `bugdates`(`bugid`, `lastupdated`, `whoupdated`) VALUES ('"+bug.ID+"', '"+currentTime+"', '" + username + "');";     
 				
 				Statement st2 = con.createStatement();
 				int inserted = st2.executeUpdate(insertUpdate);
@@ -633,6 +718,17 @@ public class SQLData {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * @return the lastUpdate
+	 */
+	public static String getLastUpdate() {
+		return lastUpdate;
+	}
+
+	public static String getServer() {
+		return table;
 	}
 
 }

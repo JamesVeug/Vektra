@@ -1,57 +1,88 @@
 package vektra;
 
-import java.awt.Dimension;
 import java.util.HashMap;
 import java.util.Map;
 
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class BugImage {
 
-	public static Map<Dimension, Map<String, Image>> images = new HashMap<Dimension, Map<String, Image>>();
+	public static Map<String, Image> images = new HashMap<String, Image>();
 	
+	public final ImageView view;
 	private BugImage(String link){
-		
+		this(importImage(link),getWidth(link),getHeight(link));
 	}
 	
-	public static BugImage createImage(String link, int w, int h){
-		Dimension d = new Dimension(w,h);
-		Image image = null;
-		
-		// Check the dimension has not been created yet
-		if( images.containsKey(d) ){
-			
-			// Check that we don't have this image yet
-			if( images.get(d).containsKey(link) ){
-				return null;
-			}
-			else{
-				
-				image = new Image(link,w,h,true,true);
-				if( image != null ){
-					images.get(d).put(link,image);
-				}
-			}
+	private static double getHeight(String link) {
+		Image i = images.get(link);
+		if( i == null ){
+			return 0;
 		}
-		else{
-			
-			// Don't even have the dimension.
-			// Add the dimension
-			// Add the image
-			
-			// Create the image map
-			Map<String, Image> newImageMap = new HashMap<String, Image>();
-			
-			// Add our image
-			image = new Image(link,w,h,true,true);
-			if( image != null ){
-				newImageMap.put(link,image);
-			}
-			
-			// Add the iamge map to the dimension map and add to everything.
-			images.put(d, newImageMap);
+		return i.getHeight();
+	}
+
+	private static double getWidth(String link) {
+		Image i = images.get(link);
+		if( i == null ){
+			return 0;
+		}
+		return i.getWidth();
+	}
+
+	private BugImage(String link, double w, double h){
+		this(importImage(link),w,h);
+	}
+
+	private BugImage(Image image, double w, double h){
+		view = new ImageView(image);
+		view.setFitWidth(w);
+		view.setFitHeight(h);
+	}
+	
+	public static BugImage createImage(String link, double w, double h){
+		
+		// Return the object we already have
+		if( images.keySet().contains(link) ){
+			return new BugImage(images.get(link),w,h);
 		}
 		
-		return null;
+		return new BugImage(link,w,h);
+	}
+	
+	public static BugImage createImage(String link){
+		
+		
+		
+		// Return the object we already have
+		if( images.keySet().contains(link) ){
+			Image image = images.get(link);
+			return new BugImage(image,image.getWidth(),image.getHeight());
+		}
+		
+		return new BugImage(link);
+	}
+	
+	private static Image importImage(String link) {
+		
+		Image i = new Image(link);
+		if( i != null ){
+			images.put(link, i);
+		}
+		
+		return i;
+	}
+	
+	public Image getImage(){
+		return view.getImage();
+	}
+	
+	public ImageView getImageView(){
+		return view;
+	}
+
+	public ImageView cloneView() {
+		return new ImageView(view.getImage());
 	}
 }

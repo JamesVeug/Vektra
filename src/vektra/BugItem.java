@@ -1,8 +1,10 @@
 package vektra;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,8 +27,10 @@ public class BugItem {
 	public String date;
 	
 	// Will be modified
-	public Set<String> tags;
-	public Map<String, Image> imageMap;
+	public Set<Tag> tags;
+	public Map<String, BugImage> imageMap;
+	public String whoUpdated;
+	public String lastUpdate;
 	
 	/**
 	 * Sets up the bug with the given starter values
@@ -39,8 +43,8 @@ public class BugItem {
 	 * @param date When was this bug created?
 	 * @param images Images mapped from their link to the image which visually representing the bug
 	 */
-	public BugItem(int iD, Set<String> tags, String priority, String status,
-			String who, String message, String date, Map<String,Image> images){
+	public BugItem(int iD, Set<Tag> tags, String priority, String status,
+			String who, String message, String date, Map<String,BugImage> images){
 
 		ID = iD;
 		this.tags = tags;
@@ -50,7 +54,7 @@ public class BugItem {
 		this.message = message;
 		this.date = date;
 		
-		this.imageMap = new HashMap<String, Image>();
+		this.imageMap = new HashMap<String, BugImage>();
 		this.imageMap.putAll(images);
 	}
 	
@@ -66,9 +70,9 @@ public class BugItem {
 	 * @param link Link for the image to be downloaded from later. 
 	 * @param image Image that visually represents the bug
 	 */
-	public BugItem(int iD, String tag, String priority, String status,
-			String who, String message, String date, String link, Image image) {
-		this(iD, toSet(tag), priority, status, who, message, date, toMap(link,image));
+	public BugItem(int iD, Tag tag, String priority, String status,
+			String who, String message, String date, String link, BugImage image) {
+		this(iD, toTagSet(tag), priority, status, who, message, date, toMap(link,image));
 	}
 
 	/**
@@ -77,8 +81,8 @@ public class BugItem {
 	 * @param image Value
 	 * @return new HashMap containing a single entry
 	 */
-	private static Map<String, Image> toMap(String link, Image image) {
-		Map<String, Image> images = new HashMap<String, Image>();
+	private static Map<String, BugImage> toMap(String link, BugImage image) {
+		Map<String, BugImage> images = new HashMap<String, BugImage>();
 		if( image != null ){
 			images.put(link, image);
 		}
@@ -90,8 +94,8 @@ public class BugItem {
 	 * @param tag What to add to the set
 	 * @return new Set with the tag as its only element.
 	 */
-	private static Set<String> toSet(String tag) {
-		Set<String> list = new HashSet<String>();
+	private static Set<Tag> toTagSet(Tag tag) {
+		Set<Tag> list = new HashSet<Tag>();
 		list.add(tag);
 		return list;
 	}
@@ -100,7 +104,7 @@ public class BugItem {
 	 * Gets the images related to this bug.
 	 * @return Collection of images
 	 */
-	public Collection<Image> getImages() {
+	public Collection<BugImage> getImages() {
 		return imageMap.values();
 	}
 
@@ -108,8 +112,16 @@ public class BugItem {
 	 * Adds the given string as a tag to this bug.
 	 * @param tag
 	 */
-	public void addTag(String tag) {
+	public void addTag(Tag tag) {
 		tags.add(tag);		
+	}
+	
+	public List<String> getTagMessages(){
+		List<String> messages = new ArrayList<String>();
+		for(Tag t : tags){
+			messages.add(t.message);
+		}
+		return messages;
 	}
 
 	/**
@@ -117,7 +129,7 @@ public class BugItem {
 	 * @param link Link to the screenshot to be downloaded
 	 * @param screenshot Image of the screenshot which was downloaded from the link.
 	 */
-	public void addScreenshot(String link, Image screenshot) {
+	public void addScreenshot(String link, BugImage screenshot) {
 		imageMap.put(link, screenshot);
 	}
 	
@@ -127,7 +139,7 @@ public class BugItem {
 		String links = "-";
 		if( imageMap != null && !imageMap.isEmpty() ){
 			links = "";
-			for(Image i : imageMap.values()){
+			for(BugImage i : imageMap.values()){
 				links += "\n\t\t" + i;
 			}
 		}
@@ -135,8 +147,8 @@ public class BugItem {
 		String combinedTags = "-";
 		if( tags != null && !tags.isEmpty() ){
 			combinedTags = "";
-			for(String i : tags){
-				combinedTags += i + "  ";
+			for(Tag i : tags){
+				combinedTags += i.message + "  ";
 			}
 		}
 		

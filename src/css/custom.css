@@ -77,6 +77,12 @@
     -fx-font-family: "Microstyle Bold Extended ATT";
 }
 
+.serverLabel{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 10pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
 .tagstyle{
 	-fx-text-fill: #ECECEC;
 	-fx-font-size: 11pt;

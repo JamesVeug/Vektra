@@ -31,7 +31,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import vektra.BugImage;
 import vektra.BugItem;
+import vektra.Tag;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
 
@@ -48,8 +50,8 @@ public class ModifyReport {
 	
 	protected static TextField enterLink;
 	protected static HBox screenshotList;
-	private static Map<String,Image> images;
-	private static Map<Image,String> links;
+	private static Map<String,BugImage> images;
+	private static Map<BugImage,String> links;
 	
 	protected static ToggleGroup priorityGroup;
 	protected static RadioButton LOW;
@@ -143,8 +145,8 @@ public class ModifyReport {
 			optionPane.addColumn(7, BREAKING);
 			optionPane.addColumn(8, BREAKINGLabel);
 			
-			images = new HashMap<String,Image>();
-			links = new HashMap<Image,String>();
+			images = new HashMap<String,BugImage>();
+			links = new HashMap<BugImage,String>();
 			GridPane screenShotPane  = new GridPane();
 			screenShotPane.setVgap(5); //vertical gap in pixels
 			screenShotPane.setPadding(new Insets(10, 10, 10, 10)); //margins around the whole grid
@@ -247,7 +249,7 @@ public class ModifyReport {
 			PopupError.show("Could not proceed", "Please enter a message for the bug!");
 			return false;
 		}
-		else if( getSelectedTags().isEmpty() ){
+		else if( getSelectedTags(bugID).isEmpty() ){
 			PopupError.show("Could not proceed", "Please select a valid tag related to the message!");
 			return false;
 		}
@@ -260,11 +262,11 @@ public class ModifyReport {
 		return true;
 	}
 	
-	protected static void addImage(String link, Image image){
+	protected static void addImage(String link, BugImage image){
 		images.put(link, image);
 		links.put(image, link);
 		
-		ImageView v = new ImageView(image);
+		ImageView v = new ImageView(image.getImage());
 		v.setOnMouseClicked(new ImageClickedListener());
 		v.setFitWidth(100);
 		v.setFitHeight(100);
@@ -280,12 +282,12 @@ public class ModifyReport {
 	}
 
 	protected static BugItem getBug(){
-		return new BugItem(bugID, getSelectedTags(), getPriority(), statusSelection.getValue(), null, text.getText(), null, images);
+		return new BugItem(bugID, getSelectedTags(bugID), getPriority(), statusSelection.getValue(), null, text.getText(), null, images);
 	}
 
 	
-	protected static void addImages(Map<String, Image> imageMap) {
-		for(Entry<String, Image> p : imageMap.entrySet()){
+	protected static void addImages(Map<String, BugImage> imageMap) {
+		for(Entry<String, BugImage> p : imageMap.entrySet()){
 			addImage(p.getKey(),p.getValue());
 		}
 	}
@@ -310,20 +312,20 @@ public class ModifyReport {
 		return "UNSELECTED";
 	}
 
-	protected static Set<String> getSelectedTags() {
-		Set<String> tags = new HashSet<String>();
+	protected static Set<Tag> getSelectedTags(int bugid) {
+		Set<Tag> tags = new HashSet<Tag>();
 		
 		if( GAMEPLAY.isSelected() ){
-			tags.add("GAMEPLAY");
+			tags.add(new Tag(-1,bugid,"GAMEPLAY"));
 		}
 		if( VISUAL.isSelected() ){
-			tags.add("VISUAL");
+			tags.add(new Tag(-2,bugid,"VISUAL"));
 		}
 		if( AUDIO.isSelected() ){
-			tags.add("AUDIO");
+			tags.add(new Tag(-3,bugid,"AUDIO"));
 		}
 		if( BREAKING.isSelected() ){
-			tags.add("BREAKING");
+			tags.add(new Tag(-4,bugid,"BREAKING"));
 		}
 		
 		
@@ -357,7 +359,7 @@ public class ModifyReport {
 			}
 			
 			try{
-				Image image = new Image(link);
+				BugImage image = BugImage.createImage(link);
 				addImage(link,image);
 				enterLink.setText("");
 			}catch(IllegalArgumentException e){

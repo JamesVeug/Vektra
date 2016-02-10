@@ -48,15 +48,22 @@ import vektra.extrawindows.EditReport;
  *
  */
 public class Vektra extends Application{
+	
 	@SuppressWarnings("unused")
 	private Stage primaryStage;
 	
 	private ObservableList<BugItem> importedData;
 	private BugItem selectedBug;
 	
+	private Button createReport;
+	private Button editReport;
+	private Button deleteReport;
+	private Button openID;
 	private Button refresh;
-	private Label loggedInLabel;
+	
 	private Label loggedInName;
+	private Label loggedInCurrentDate;
+	private Label loggedInPing;
 	private TableView<BugItem> bugs;
 	private Label reportID;
 	private Label tags;
@@ -70,11 +77,16 @@ public class Vektra extends Application{
 	private TextArea message;
 	private Label whoLogged;
 	private Label loggedDate;
+	private Label whoUpdated;
+	private Label updatedDate;
 	private MenuItem loginMenuItem;
 	private MenuItem signoutMenuItem;
 	
 	private RefreshThread refreshThread;
 	private WindowCloseRequest closeRequest;
+	
+	//TODO TEST updated recordings log works.
+	//TODO FIX screenshot covering logged section.
 	
 	/**
 	 * Starting method that creates the main window and loads the primary font.
@@ -111,26 +123,29 @@ public class Vektra extends Application{
 		buttonGrid.setPadding(new Insets(5,5,5,5));
 		buttonGrid.setVgap(5);
 		
-		Button createReport = new Button("CREATE\nREPORT");
+		createReport = new Button("CREATE\nREPORT");
 		createReport.setTextAlignment(TextAlignment.CENTER);
 		createReport.setOnAction(new MenuItemCreateReport());
 		createReport.getStyleClass().add("button_create");
 		createReport.setPrefWidth(85);
 		createReport.setPrefHeight(65);
+		createReport.setDisable(true);
 		
-		Button editReport = new Button("EDIT\nREPORT");
+		editReport = new Button("EDIT\nREPORT");
 		editReport.setTextAlignment(TextAlignment.CENTER);
 		editReport.setOnAction(new EditReportButtonPressed());
 		editReport.getStyleClass().add("button_edit");
 		editReport.setPrefWidth(85);
 		editReport.setPrefHeight(50);
+		editReport.setDisable(true);
 		
-		Button deleteReport = new Button("DELETE\nREPORT");
+		deleteReport = new Button("DELETE\nREPORT");
 		deleteReport.setTextAlignment(TextAlignment.CENTER);
 		deleteReport.setOnAction(new DeleteReport());
 		deleteReport.getStyleClass().add("button_delete");
 		deleteReport.setPrefWidth(85);
 		deleteReport.setPrefHeight(50);
+		deleteReport.setDisable(true);
 		
 		buttonGrid.addRow(0, createReport);
 		buttonGrid.addRow(1, editReport);
@@ -141,16 +156,18 @@ public class Vektra extends Application{
 		extraButtonGrid.setPadding(new Insets(5,5,5,0));
 		extraButtonGrid.setVgap(5);
 		
-		Button openID = new Button("OPEN ID");
+		openID = new Button("OPEN ID");
 		openID.setOnAction(new OpenID());
 		openID.getStyleClass().add("button_extra");
 		openID.setPrefWidth(150);
 		openID.setPrefHeight(50);
+		openID.setDisable(true);
 		refresh = new Button("REFRESH");
 		refresh.setOnAction(new Refresh());
 		refresh.getStyleClass().add("button_extra");
 		refresh.setPrefWidth(150);
 		refresh.setPrefHeight(50);
+		refresh.setDisable(true);
 		
 		extraButtonGrid.addRow(0, openID);
 		extraButtonGrid.addRow(1, refresh);
@@ -158,12 +175,26 @@ public class Vektra extends Application{
 		
 		GridPane loggedGrid = new GridPane();
 		loggedGrid.alignmentProperty().set(Pos.TOP_RIGHT);
-			loggedInLabel = new Label("User: ");
+			Label loggedInLabel = new Label("User: ");
 			loggedInLabel.getStyleClass().add("loggedLabel");
 			loggedInName = new Label("-");
 			loggedInName.getStyleClass().add("loggedLabel");
+			
+			Label loggedInPingLabel = new Label("Ping: ");
+			loggedInPingLabel.getStyleClass().add("serverLabel");
+			loggedInPing = new Label("-");
+			loggedInPing.getStyleClass().add("serverLabel");
+			
+			Label loggedInCurrentDateLabel = new Label("Current Date: ");
+			loggedInCurrentDateLabel.getStyleClass().add("serverLabel");
+			loggedInCurrentDate = new Label("-");
+			loggedInCurrentDate.getStyleClass().add("serverLabel");
 		loggedGrid.addRow(0, loggedInLabel);
 		loggedGrid.addColumn(1, loggedInName);
+		loggedGrid.addRow(1, loggedInCurrentDateLabel);
+		loggedGrid.addColumn(1, loggedInCurrentDate);
+		loggedGrid.addRow(2, loggedInPingLabel);
+		loggedGrid.addColumn(1, loggedInPing);
 		
 		
 		options.addColumn(0, buttonGrid);
@@ -267,24 +298,44 @@ public class Vektra extends Application{
 				extraInfoPane.setPadding(new Insets(0,0,0,10));
 				extraInfoPane.setStyle("-fx-background-color: #ECECEC;");
 				Label loggedByLabel = new Label("LOGGED BY:");
-				loggedByLabel.setPrefSize(120,50);
+				loggedByLabel.setPrefSize(120,25);
 				loggedByLabel.getStyleClass().add("extraMessageInfoHeaders");
 				
 				whoLogged = new Label("-");
-				whoLogged.setPrefSize(100,50);
+				whoLogged.setPrefSize(100,25);
 				whoLogged.getStyleClass().add("extraMessageInfo");
 				
 				Label dateLabel = new Label("DATE:");
-				dateLabel.setPrefSize(70,50);
+				dateLabel.setPrefSize(70,25);
 				dateLabel.getStyleClass().add("extraMessageInfoHeaders");
 				
 				loggedDate = new Label("-");
-				loggedDate.setPrefSize(200,50);
+				loggedDate.setPrefSize(200,25);
 				loggedDate.getStyleClass().add("extraMessageInfo");
-				extraInfoPane.addColumn(0, loggedByLabel);
-				extraInfoPane.addColumn(1, whoLogged);
-				extraInfoPane.addColumn(2, dateLabel);
+				
+				Label updatedByLabel = new Label("UPDATED BY:");
+				updatedByLabel.setPrefSize(150,25);
+				updatedByLabel.getStyleClass().add("extraMessageInfoHeaders");
+				
+				whoUpdated = new Label("-");
+				whoUpdated.setPrefSize(100,25);
+				whoUpdated.getStyleClass().add("extraMessageInfo");
+				
+				Label updatedDateLabel = new Label("DATE:");
+				updatedDateLabel.setPrefSize(100,25);
+				updatedDateLabel.getStyleClass().add("extraMessageInfoHeaders");
+				
+				updatedDate = new Label("-");
+				updatedDate.setPrefSize(200,50);
+				updatedDate.getStyleClass().add("extraMessageInfo");
+			extraInfoPane.addColumn(0, loggedByLabel);
+			extraInfoPane.addRow(1, updatedByLabel);
+			extraInfoPane.addColumn(1, whoLogged);
+			extraInfoPane.addRow(1, whoUpdated);
+			extraInfoPane.addColumn(2, dateLabel);
+			extraInfoPane.addRow(1, updatedDateLabel);
 			extraInfoPane.addColumn(3, loggedDate);
+			extraInfoPane.addRow(1, updatedDate);
 		messagePane.addRow(2, extraInfoPane);
 
 
@@ -386,22 +437,25 @@ public class Vektra extends Application{
 	 * @param length time taken to load the data
 	 * @param fullUpdate 
 	 */
-	public void refreshData(final ObservableList<BugItem> loadedData, long length, final boolean fullUpdate) {
+	public void refreshData(final ObservableList<BugItem> loadedData, final String currentTime, final long length, final boolean fullUpdate) {
 		System.out.println("Refresh Time: " + length);
-		
-		// Don't do anything if they are the same
-		if( loadedData == null || loadedData.isEmpty() ){
-			System.out.println("NO CHANGE");
-			return;
-		}
-		
-
 
 		
 		Thread t = new Thread(new Runnable(){
 
 			@Override
 			public void run() {
+
+				// Update Basic GUI
+				loggedInCurrentDate.setText(currentTime);
+				loggedInPing.setText(String.valueOf(length) + "ms");
+				
+				// Don't do anything if they are the same
+				if( loadedData == null || loadedData.isEmpty() ){
+					System.out.println("NO CHANGE");
+					return;
+				}
+				
 				setupTable();
 				
 				// Assign new values in the table
@@ -450,6 +504,7 @@ public class Vektra extends Application{
 						selectBug(selectedBug);
 					}
 				}
+				
 			}
 			
 		});
@@ -463,6 +518,9 @@ public class Vektra extends Application{
 	 * Deselects the current bug in the bug list
 	 */
 	protected void deselectBug() {
+		if( selectedBug == null ){
+			return;
+		}
 
     	screenshotList.getChildren().clear();
     	displayScreenshot.setImage(null);
@@ -485,8 +543,8 @@ public class Vektra extends Application{
             
             int i = 0;
             String tagString = "";
-            for(String tag : bug.tags){ 
-            	tagString += tag;
+            for(Tag tag : bug.tags){ 
+            	tagString += tag.message;
             	if( (++i) < bug.tags.size() ){
             		tagString += ", ";
             	}
@@ -497,6 +555,8 @@ public class Vektra extends Application{
             
             whoLogged.setText(bug.who);
             loggedDate.setText(bug.date);
+            whoUpdated.setText(bug.whoUpdated);
+            updatedDate.setText(bug.lastUpdate);
 
             // Clear images and add new ones if there are some
         	screenshotList.getChildren().clear();
@@ -505,10 +565,9 @@ public class Vektra extends Application{
 
             	i = 0;
             	ScreenShotListListener listener = new ScreenShotListListener();
-            	for( String link : bug.imageMap.keySet() ){
+            	for( BugImage bImage : bug.imageMap.values() ){
             		
-            		Image image = new Image(link);
-            		ImageView v = new ImageView(image);
+            		ImageView v = bImage.cloneView();
             		v.preserveRatioProperty();
             		v.setOnMouseClicked(listener);
             		screenshotList.getChildren().add(v);
@@ -613,13 +672,19 @@ public class Vektra extends Application{
 			SQLData.close();
 
 			// Tell the user we logged in!
-			PopupMessage.show("Sign Out","Logged Out Successfully!\nGood Bye" + SQLData.getUsername() + "!");
+			PopupMessage.show("Sign Out","Logged Out Successfully!\nGood Bye " + SQLData.getUsername() + "!");
 		}
 
 		// Change GUI
 		loginMenuItem.setVisible(true);
 		signoutMenuItem.setVisible(false);
 		loggedInName.setText("-");
+		
+		createReport.setDisable(true);
+		editReport.setDisable(true);
+		deleteReport.setDisable(true);
+		openID.setDisable(true);
+		refresh.setDisable(true);
 		
 	}
 
@@ -645,16 +710,9 @@ public class Vektra extends Application{
 		if( refreshThread != null ){
 			refreshThread.stopRunning();
 			while( refreshThread.isAlive() ){
-				
+				// Do nothing till it dies
 			}
 		}
-		
-		// Start thread
-		refreshThread = new RefreshThread();
-		refreshThread.start();
-		
-		// Change UI to reflect being logged in
-		closeRequest.setThread(refreshThread);
 		
 		//Platform.runLater(refreshThread);
 		//Platform.setImplicitExit(false);
@@ -662,6 +720,23 @@ public class Vektra extends Application{
 		loggedInName.setText(SQLData.getUsername());		
 		loginMenuItem.setVisible(false);
 		signoutMenuItem.setVisible(true);
+		createReport.setDisable(false);
+		editReport.setDisable(false);
+		deleteReport.setDisable(false);
+		openID.setDisable(false);
+		refresh.setDisable(false);
+		
+		deselectBug();
+		bugs.getItems().clear();
+		
+
+		
+		// Start thread
+		refreshThread = new RefreshThread();
+		refreshThread.start();
+		
+		// Change UI to reflect being logged in
+		closeRequest.setThread(refreshThread);
 		
 		// Tell the user we logged in!
 		PopupMessage.show("Login","Login Successful!\nWelcome " + SQLData.getUsername() + "!");
@@ -855,6 +930,7 @@ public class Vektra extends Application{
 				// Only check every so often
 				if( time < System.currentTimeMillis() ){
 					
+					
 					// Disable refresh button
 					Thread disable = new Thread(new Runnable(){
 
@@ -891,7 +967,7 @@ public class Vektra extends Application{
 					
 					
 					// Refresh the GUI
-					refreshData(loadedData,length, fullUpdate);
+					refreshData(loadedData, SQLData.retrieveCurrentTime(), length, fullUpdate);
 					
 					// Disable refresh button
 					while(disable != null && disable.isAlive() ){}

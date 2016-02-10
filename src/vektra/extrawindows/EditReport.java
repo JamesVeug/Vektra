@@ -31,10 +31,10 @@ public class EditReport extends ModifyReport{
 		HIGH.setSelected(bugToEdit.priority.equals("HIGH"));
 
 		
-		GAMEPLAY.setSelected(bugToEdit.tags.contains("GAMEPLAY"));
-		VISUAL.setSelected(bugToEdit.tags.contains("VISUAL"));
-		AUDIO.setSelected(bugToEdit.tags.contains("AUDIO"));
-		BREAKING.setSelected(bugToEdit.tags.contains("BREAKING"));
+		GAMEPLAY.setSelected(bugToEdit.getTagMessages().contains("GAMEPLAY"));
+		VISUAL.setSelected(bugToEdit.getTagMessages().contains("VISUAL"));
+		AUDIO.setSelected(bugToEdit.getTagMessages().contains("AUDIO"));
+		BREAKING.setSelected(bugToEdit.getTagMessages().contains("BREAKING"));
 
 		addImages(bug.imageMap);
 		
