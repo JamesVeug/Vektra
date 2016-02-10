@@ -11,7 +11,7 @@ import vektra.dialogs.PopupMessage;
 
 public class EditReport extends ModifyReport{
 	
-	
+	private static Button editReport;
 	private static BugItem bugToEdit;
 	
 	public static void display(BugItem bug) {
@@ -38,12 +38,17 @@ public class EditReport extends ModifyReport{
 
 		addImages(bug.imageMap);
 		
-		Button createReport = new Button("Update Bug");
-		createReport.setOnAction(new UpdateBugButtonPress());
-		setConfirmButton(createReport);
+		editReport = new Button("Update Bug");
+		editReport.setOnAction(new UpdateBugButtonPress());
+		setConfirmButton(editReport);
 	}
 
 	private static void ProcessEditBug(){
+		if( !ModifyReport.checkForErrors() ){
+			return;
+		}
+		
+		editReport.setDisable(true);
 		
 		
 		// UPDATE
@@ -51,6 +56,7 @@ public class EditReport extends ModifyReport{
 		boolean updated = SQLData.update(bugToEdit, bug);
 		if( !updated ){
 			PopupError.show("Failed to update Bug!", "Could not Update bug on server!.");
+			editReport.setDisable(false);
 		}
 		else{
 			primaryStage.close();

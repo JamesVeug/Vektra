@@ -282,10 +282,10 @@ public class SQLData {
 		return username;
 	}
 
-	public static boolean insert(BugItem bug) {
+	public static int insert(BugItem bug) {
 		if( !isConnected() ){
 			System.out.println("Not connected!");
-			return false;
+			return -1;
 		}
 		
 		String currentTime = retrieveCurrentTime();
@@ -294,7 +294,7 @@ public class SQLData {
 		boolean bugcommandConfirmation = submitQuery(bugcommand);
 		if( !bugcommandConfirmation ){
 			System.out.println("Did not submit bug!");
-			return false;
+			return -2;
 		}
 		
 		
@@ -305,14 +305,14 @@ public class SQLData {
 		boolean prioritycommandConfirmation = submitQuery(prioritycommand);
 		if( !prioritycommandConfirmation ){
 			System.out.println("Did not submit Priority!");
-			return false;
+			return -3;
 		}	
 		
 		String statuscommand = "INSERT INTO statuses (`status`, `bugid`) VALUES ('"+bug.status+"', '" + bugid + "')";
 		boolean statusstatusConfirmation = submitQuery(statuscommand);
 		if( !statusstatusConfirmation ){
 			System.out.println("Did not submit Status!");
-			return false;
+			return -4;
 		}
 		
 		String screenshotcommand;
@@ -325,21 +325,21 @@ public class SQLData {
 		boolean screenshotcommandConfirmation = submitQuery(screenshotcommand);
 		if( !screenshotcommandConfirmation ){
 			System.out.println("Did not submit Screenshots!");
-			return false;
+			return -5;
 		}
 		
 		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.tags, String.valueOf(bugid));
 		boolean tagcommandConfirmation = submitQuery(tagcommand);
 		if( !tagcommandConfirmation ){
 			System.out.println("Did not submit TAGS!!");
-			return false;
+			return -6;
 		}
 		
 		// Tell everyone this has been updated
 		updateBugsLastReportedDate(bug,currentTime);
 		System.out.println("Inserted bug with ID " + bugid);
 		
-		return true;
+		return bugid;
 	}
 
 	private static int getSubmittedBugID(String username, String message) {

@@ -11,31 +11,58 @@ import vektra.dialogs.PopupMessage;
 
 public class CreateReport extends ModifyReport{
 	
+	private static Button createReport;
+	
 	public static void display(int maxID) {
 		ModifyReport.display(maxID+1);
-		//MAXID = maxID;
+
+		
 		
 
 		LOW.setSelected(true);
 		GAMEPLAY.setSelected(true);
 
-		Button createReport = new Button("Create Bug");
+		createReport = new Button("Create Bug");
 		createReport.setOnAction(new CreateReportButtonPress());
 		setConfirmButton(createReport);
 	}
 
-	private static void ProcessCreatingReport(){		
+	private static void ProcessCreatingReport(){
+		if( !ModifyReport.checkForErrors() ){
+			return;
+		}
+		
+		createReport.setDisable(true);
 		
 		// Create
 		BugItem bug = getBug();
-		boolean inserted = SQLData.insert(bug);
-		if( !inserted ){
-			PopupError.show("Failed to insert new Report!", "Could not insert new Report.");
-		}
-		else{
+		int inserted = SQLData.insert(bug);
+		if( inserted > 0 ){
 			primaryStage.close();
-			PopupMessage.show("Success!", "Created new Report!");
+			PopupMessage.show("Success!", "Created a new Bug Report!\nBugID: " + inserted);
+			return;
 		}
+		if( inserted == -1 ){
+			PopupError.show("Failed to insert new Report!", "Not connected to database");
+		}
+		else if( inserted == -2 ){
+			PopupError.show("Failed to insert new Report!", "Could not insert new Bug.");
+		}
+		else if( inserted == -3 ){
+			PopupError.show("Failed to insert new Report!", "Could not insert new Priority.");
+		}
+		else if( inserted == -4 ){
+			PopupError.show("Failed to insert new Report!", "Could not insert new Status.");
+		}
+		else if( inserted == -5 ){
+			PopupError.show("Failed to insert new Report!", "Could not insert new Screenshot.");
+		}
+		else if( inserted == -6 ){
+			PopupError.show("Failed to insert new Report!", "Could not insert new Tag.");
+		}
+
+		// Only if failed!
+		createReport.setDisable(false);
 		
 	}
 

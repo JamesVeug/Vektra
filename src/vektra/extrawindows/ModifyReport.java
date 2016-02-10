@@ -241,6 +241,25 @@ public class ModifyReport {
 		primaryStage = stage;
 	}
 	
+	protected static boolean checkForErrors(){
+		
+		if( text.getText().isEmpty() ){
+			PopupError.show("Could not proceed", "Please enter a message for the bug!");
+			return false;
+		}
+		else if( getSelectedTags().isEmpty() ){
+			PopupError.show("Could not proceed", "Please select a valid tag related to the message!");
+			return false;
+		}
+		else if( getPriority().isEmpty() ){
+			PopupError.show("Could not proceed", "Please select a Priority related to the message!");
+			return false;
+		}
+		
+		// Acceptable
+		return true;
+	}
+	
 	protected static void addImage(String link, Image image){
 		images.put(link, image);
 		links.put(image, link);
