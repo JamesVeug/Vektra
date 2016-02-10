@@ -679,6 +679,9 @@ public class Vektra extends Application{
 		loginMenuItem.setVisible(true);
 		signoutMenuItem.setVisible(false);
 		loggedInName.setText("-");
+		loggedInPing.setText("-");
+		loggedInCurrentDate.setText("-");
+		bugs.getItems().clear();
 		
 		createReport.setDisable(true);
 		editReport.setDisable(true);
@@ -937,6 +940,7 @@ public class Vektra extends Application{
 						@Override
 						public void run() {
 							refresh.setDisable(true);
+							refresh.setText("REFRESHING...");
 						}
 						
 					});
@@ -976,6 +980,7 @@ public class Vektra extends Application{
 						@Override
 						public void run() {
 							refresh.setDisable(false);
+							refresh.setText("REFRESH");
 						}
 						
 					});
