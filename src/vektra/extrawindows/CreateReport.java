@@ -21,6 +21,7 @@ public class CreateReport extends ModifyReport{
 
 		LOW.setSelected(true);
 		GAMEPLAY.setSelected(true);
+		statusSelection.setValue("Pending");
 
 		createReport = new Button("Create Bug");
 		createReport.setOnAction(new CreateReportButtonPress());

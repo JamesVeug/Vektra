@@ -39,6 +39,7 @@
 	-fx-text-fill: #ECECEC;
 	-fx-font-size: 8pt;
     -fx-font-family: "Microstyle Bold Extended ATT";
+    -fx-prompt-text-fill: #2d3931;
 }
 
 .createReport_Message{

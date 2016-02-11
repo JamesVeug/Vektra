@@ -42,6 +42,8 @@ public class ModifyReport {
 	
 	protected static TextArea text;
 	protected static final String exampleText = "Type stuff in here";
+	protected static final String exampleVersion = "v0.11b";
+	protected static final String exampleLink = "http://tinyurl.com/ml7lv4o";
 
 	protected static CheckBox GAMEPLAY;
 	protected static CheckBox VISUAL;
@@ -58,7 +60,8 @@ public class ModifyReport {
 	protected static RadioButton MEDIUM;
 	protected static RadioButton HIGH;
 	
-	
+
+	protected static TextField version;
 	protected static ComboBox<String> statusSelection;
 	protected static GridPane bottomPane;
 	
@@ -174,6 +177,8 @@ public class ModifyReport {
 				
 				enterLink = new TextField();
 				enterLink.setPrefWidth(200);
+				enterLink.setPromptText(exampleLink);
+				enterLink.getStyleClass().add("createReport_Options_Text");
 				screenShotUploadPane.addColumn(3, enterLink);
 				
 				Button uploadScreenshotButton = new Button("UPLOAD");
@@ -219,9 +224,17 @@ public class ModifyReport {
 					statusSelection = new ComboBox<String>();
 					statusSelection.getItems().addAll("Pending","WIP","Fixed");
 					statusSelection.getStyleClass().add("createReport_Options_Text");
-					statusSelection.setValue("Pending");
 				statusInnerPane.getChildren().add(statusSelection);
-			statusPane.getChildren().add(0,statusInnerPane);			
+				
+				Label versionLabel = new Label("VERSION:");
+				versionLabel.getStyleClass().add("createReport_Options_Headers");
+			statusInnerPane.getChildren().add(versionLabel);
+				
+				version = new TextField();
+				version.getStyleClass().add("createReport_Options_Text");
+				version.setPromptText(exampleVersion);
+			statusInnerPane.getChildren().add(version);
+			statusPane.getChildren().add(statusInnerPane);			
 		bottomPane.addRow(1,statusInnerPane);
 		
 		
@@ -257,11 +270,19 @@ public class ModifyReport {
 			PopupError.show("Could not proceed", "Please select a Priority related to the message!");
 			return false;
 		}
+		else if( getVersion().isEmpty() ){
+			PopupError.show("Could not proceed", "Please select the Version of the game!");
+			return false;
+		}
 		
 		// Acceptable
 		return true;
 	}
 	
+	private static String getVersion() {
+		return version.getText();
+	}
+
 	protected static void addImage(String link, BugImage image){
 		images.put(link, image);
 		links.put(image, link);
@@ -282,7 +303,7 @@ public class ModifyReport {
 	}
 
 	protected static BugItem getBug(){
-		return new BugItem(bugID, getSelectedTags(bugID), getPriority(), statusSelection.getValue(), null, text.getText(), null, images);
+		return new BugItem(bugID, getSelectedTags(bugID), getPriority(), statusSelection.getValue(), null, text.getText(), null, getVersion(), images);
 	}
 
 	

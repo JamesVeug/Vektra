@@ -35,6 +35,9 @@ public class EditReport extends ModifyReport{
 		VISUAL.setSelected(bugToEdit.getTagMessages().contains("VISUAL"));
 		AUDIO.setSelected(bugToEdit.getTagMessages().contains("AUDIO"));
 		BREAKING.setSelected(bugToEdit.getTagMessages().contains("BREAKING"));
+		
+		statusSelection.setValue(bug.getStatus());
+		version.setText(bug.version);
 
 		addImages(bug.imageMap);
 		

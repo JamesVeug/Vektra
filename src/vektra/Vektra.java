@@ -68,6 +68,7 @@ public class Vektra extends Application{
 	private Label reportID;
 	private Label tags;
 	private Label priority;
+	private Label version;
 	private StackPane screenshotPane;
 	private ImageView displayScreenshot;
 	private Image logo;
@@ -85,7 +86,6 @@ public class Vektra extends Application{
 	private RefreshThread refreshThread;
 	private WindowCloseRequest closeRequest;
 	
-	//TODO TEST updated recordings log works.
 	//TODO FIX screenshot covering logged section.
 	
 	/**
@@ -118,6 +118,7 @@ public class Vektra extends Application{
 		GridPane options = new GridPane();
 		options.setStyle("-fx-border-width: 1, 1; -fx-border-color: #FFFFFF");
 		options.setPrefHeight(100);
+		options.setMaxHeight(130);
 		
 		GridPane buttonGrid = new GridPane();
 		buttonGrid.setPadding(new Insets(5,5,5,5));
@@ -131,7 +132,7 @@ public class Vektra extends Application{
 		createReport.setPrefHeight(65);
 		createReport.setDisable(true);
 		
-		editReport = new Button("EDIT\nREPORT");
+		editReport = new Button("EDIT");
 		editReport.setTextAlignment(TextAlignment.CENTER);
 		editReport.setOnAction(new EditReportButtonPressed());
 		editReport.getStyleClass().add("button_edit");
@@ -139,7 +140,7 @@ public class Vektra extends Application{
 		editReport.setPrefHeight(50);
 		editReport.setDisable(true);
 		
-		deleteReport = new Button("DELETE\nREPORT");
+		deleteReport = new Button("DELETE");
 		deleteReport.setTextAlignment(TextAlignment.CENTER);
 		deleteReport.setOnAction(new DeleteReport());
 		deleteReport.getStyleClass().add("button_delete");
@@ -224,24 +225,34 @@ public class Vektra extends Application{
 		screenshotinfo.addColumn(1, reportID);
 		
 		Label tagLabel = new Label("TAGS:");
-		tagLabel.setPrefHeight(30);
+		tagLabel.setPrefHeight(15);
 		tagLabel.getStyleClass().add("tagstyle");
 		screenshotinfo.addRow(1, tagLabel);
 		
 		tags = new Label("-");
-		tags.setPrefHeight(30);
+		tags.setPrefHeight(15);
 		tags.getStyleClass().add("tagstyle");
 		screenshotinfo.addColumn(1, tags);
 		
-		Label PriorityLabel = new Label("PRIORITY:");
-		PriorityLabel.setPrefHeight(30);
-		PriorityLabel.getStyleClass().add("tagstyle");
-		screenshotinfo.addRow(2, PriorityLabel);
+		Label priorityLabel = new Label("PRIORITY:");
+		priorityLabel.setPrefHeight(30);
+		priorityLabel.getStyleClass().add("tagstyle");
+		screenshotinfo.addRow(2, priorityLabel);
 		
 		priority = new Label("-");
-		priority.setPrefHeight(30);
+		priority.setPrefHeight(15);
 		priority.getStyleClass().add("tagstyle");
 		screenshotinfo.addColumn(1, priority);
+		
+		Label versionLabel = new Label("Version:");
+		versionLabel.setPrefHeight(15);
+		versionLabel.getStyleClass().add("tagstyle");
+		screenshotinfo.addRow(3, versionLabel);
+		
+		version = new Label("-");
+		version.setPrefHeight(15);
+		version.getStyleClass().add("tagstyle");
+		screenshotinfo.addColumn(1, version);
 		
 		
 		screenshotPane = new StackPane();
@@ -553,10 +564,11 @@ public class Vektra extends Application{
             tags.setText(tagString);
             priority.setText(bug.priority);
             
-            whoLogged.setText(bug.who);
-            loggedDate.setText(bug.date);
-            whoUpdated.setText(bug.whoUpdated);
-            updatedDate.setText(bug.lastUpdate);
+            whoLogged.setText(bug.who == null ? "-" : bug.who);
+            loggedDate.setText(bug.date == null ? "-" : bug.date);
+            whoUpdated.setText(bug.whoUpdated == null ? "-" : bug.whoUpdated);
+            updatedDate.setText(bug.lastUpdate == null ? "-" : bug.lastUpdate);
+            version.setText(bug.version == null ? "-" : bug.version);
 
             // Clear images and add new ones if there are some
         	screenshotList.getChildren().clear();
@@ -915,7 +927,7 @@ public class Vektra extends Application{
 	private class RefreshThread extends Thread {
 		
 		// Time in between refreshes
-		private static final int REFRESHDELAY = 5000;
+		private static final int REFRESHDELAY = 10000;
 		
 		// Amoutn of times we have refreshed
 		private int refreshCount = 0;

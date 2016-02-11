@@ -25,6 +25,7 @@ public class BugItem {
 	public String who;
 	public String message;
 	public String date;
+	public String version;
 	
 	// Will be modified
 	public Set<Tag> tags;
@@ -44,7 +45,7 @@ public class BugItem {
 	 * @param images Images mapped from their link to the image which visually representing the bug
 	 */
 	public BugItem(int iD, Set<Tag> tags, String priority, String status,
-			String who, String message, String date, Map<String,BugImage> images){
+			String who, String message, String date, String version, Map<String,BugImage> images){
 
 		ID = iD;
 		this.tags = tags;
@@ -53,6 +54,7 @@ public class BugItem {
 		this.who = who;
 		this.message = message;
 		this.date = date;
+		this.version = version;
 		
 		this.imageMap = new HashMap<String, BugImage>();
 		this.imageMap.putAll(images);
@@ -71,8 +73,8 @@ public class BugItem {
 	 * @param image Image that visually represents the bug
 	 */
 	public BugItem(int iD, Tag tag, String priority, String status,
-			String who, String message, String date, String link, BugImage image) {
-		this(iD, toTagSet(tag), priority, status, who, message, date, toMap(link,image));
+			String who, String message, String date, String version, String link, BugImage image) {
+		this(iD, toTagSet(tag), priority, status, who, message, date, version, toMap(link,image));
 	}
 
 	/**
@@ -155,6 +157,7 @@ public class BugItem {
 		return String.valueOf(ID) + "\n"
 				+ "\tPriority: " + priority + "\n"
 				+ "\tStatus: " + status + "\n"
+				+ "\tVersion: " + version + "\n"
 				+ "\tWho: " + who + "\n"
 				+ "\tDate: " + date + "\n"
 				+ "\tTags: " + combinedTags + "\n"

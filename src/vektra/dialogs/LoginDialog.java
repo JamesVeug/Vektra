@@ -49,6 +49,9 @@ public class LoginDialog {
 		username.setPromptText("Username");
 		final PasswordField password = new PasswordField();
 		password.setPromptText("Password");
+		
+
+		
 
 		grid.add(new Label("Server:"), 0, 0);
 		grid.add(table, 1, 0);
@@ -60,6 +63,11 @@ public class LoginDialog {
 		// Enable/Disable login button depending on whether a username was entered.
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
+		
+		table.setText("stardrop_test");
+		username.setText("idonotexist");
+		password.setText("source");
+		loginButton.setDisable(false);
 
 		// Do some validation (using the Java 8 lambda syntax).
 		username.textProperty().addListener(new ChangeListener<String>(){

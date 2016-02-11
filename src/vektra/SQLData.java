@@ -55,18 +55,32 @@ public class SQLData {
 			// Get all the bugid's that have been updated since the last time we updated
 			String dateQuery = "(SELECT * FROM `bugdates` WHERE `lastupdated` >= '" + previousDate + "')";
 			System.out.println("Date Query: '" + dateQuery + "'");
-			
 
-//			ObservableList<BugItem> bugst = FXCollections.observableArrayList();
-//			ResultSet results = st.executeQuery(dateQuery);
-//			// Get all the bugs that we queried
-//			processResults(results, bugst);
-//			System.out.println("DATE QUERY: " + bugst.size());
 			
-			String selectionQuery = "SELECT b.bugid, d.whoupdated, d.lastupdated, date, message,poster, priority, status, tag, tagid, link FROM "
+			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, version " 
+									+ "FROM "
+									+ dateQuery + " AS dates "
+									+ "LEFT JOIN `bugs`  "
+									+ "ON dates.bugid = bugs.bugid " 
+									+ "LEFT JOIN `bugdates` "
+									+ "ON dates.bugid = bugdates.bugid " 
+									+ "LEFT JOIN `priorities` "
+									+ "ON dates.bugid = priorities.bugid " 
+									+ "LEFT JOIN `versions` "
+									+ "ON dates.bugid = versions.bugid " 
+									+ "LEFT JOIN `statuses` "
+									+ "ON dates.bugid = statuses.bugid " 
+									+ "LEFT JOIN `tags` "
+									+ "ON dates.bugid = tags.bugid " 
+									+ "LEFT JOIN `screenshots` "
+									+ "ON dates.bugid = screenshots.bugid " 
+									+ "ORDER BY dates.bugid;";
+									
+			
+			/*String selectionQuery = "SELECT b.bugid, d.whoupdated, d.lastupdated, date, message,poster, priority, status, tag, tagid, link FROM "
 									+ "bugs b, priorities p, statuses s , tags t, screenshots h, " + dateQuery + " AS d "
 									+ "WHERE "
-									+ "d.bugid = b.bugid AND d.bugid = p.bugid AND d.bugid = s.bugid AND d.bugid = t.bugid AND d.bugid = h.bugid;";
+									+ "d.bugid = b.bugid AND d.bugid = p.bugid AND d.bugid = s.bugid AND d.bugid = t.bugid AND d.bugid = h.bugid;";*/
 			//System.out.println("Selection Query: \n'" + selectionQuery + "'"); 
 							
 			// Get all the information
@@ -108,17 +122,14 @@ public class SQLData {
 				String poster = result.getString("poster");
 				String priority = result.getString("priority");
 				String status = result.getString("status");
+				String version = result.getString("version");
 				
-				String whoUpdated = "-";
-				String lastUpdated = "-";
-				try{
-					String temp = result.getString("whoupdated");
-					whoUpdated = temp;
-				}catch(Exception e ){};
-				try{
-					String temp = result.getString("lastupdated");
-					lastUpdated = temp;
-				}catch(Exception e ){};
+				//System.out.println("Status: " + status);
+
+				//System.out.println("ID: " + id);
+				String whoUpdated = result.getString("whoupdated");
+				String lastUpdated = result.getString("lastupdated");
+
 				
 				// Multiple entries
 				String tag = result.getString("tag");
@@ -131,8 +142,6 @@ public class SQLData {
 				
 				if( bugMapping.containsKey(id) ){
 					BugItem saved = bugMapping.get(id);
-					saved.whoUpdated = whoUpdated;
-					saved.lastUpdate = lastUpdated;
 					
 					// Add another tag
 					if( tag != null ){
@@ -143,11 +152,23 @@ public class SQLData {
 					if( screenshot != null ){
 						saved.addScreenshot(link, screenshot);
 					}
+					
+					if( priority != null ){
+						saved.priority = priority;
+					}
+					
+					if( status != null ){
+						saved.status = status;
+					}
 				}
 				else{
-					BugItem bug = new BugItem(id, tagItem,priority, status, poster,message,date, screenshot != null ? link : null, screenshot != null ? screenshot : null);
+					BugItem bug = new BugItem(id, tagItem,priority, status, poster,message,date, version, screenshot != null ? link : null, screenshot != null ? screenshot : null);
 					bugs.add(bug);
 					bugMapping.put(id, bug);
+					bug.whoUpdated = whoUpdated;
+					bug.lastUpdate = lastUpdated;
+					//System.out.println("\tWhoUpdated: " + bug.whoUpdated);
+					//System.out.println("\tLastUpdate: " + bug.lastUpdate);
 				}
 			}
 			
@@ -171,15 +192,27 @@ public class SQLData {
 			
 			// Get current time
 			lastUpdate = retrieveCurrentTime();
+			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, version "
+							+"FROM `bugs` "
+							+"LEFT JOIN `bugdates` "
+							+"ON bugs.bugid = bugdates.bugid "
+							+"LEFT JOIN `priorities` "
+							+"ON bugs.bugid = priorities.bugid "
+							+"LEFT JOIN `versions` "
+							+"ON bugs.bugid = versions.bugid "
+							+"LEFT JOIN `statuses` "
+							+"ON bugs.bugid = statuses.bugid "
+							+"LEFT JOIN `tags` "
+							+"ON bugs.bugid = tags.bugid "
+							+"LEFT JOIN `screenshots` "
+							+"ON bugs.bugid = screenshots.bugid "
+							
+							+"ORDER BY bugs.bugid;";
 			
+			System.out.println(query);
 			
-			Statement st = con.createStatement();			
-			ResultSet result = st.executeQuery("SELECT b.bugid, date, message,poster, priority, status, tag, tagid, link FROM "
-												+ "bugs b, priorities p, statuses s , tags t, screenshots h WHERE "
-												+ "b.bugid = p.bugid AND b.bugid = s.bugid AND b.bugid = t.bugid AND b.bugid = h.bugid;");
-						
-					
-			
+			Statement st = con.createStatement();	
+			ResultSet result = st.executeQuery(query);
 			processResults(result, bugs);
 			
 			return bugs;
@@ -325,24 +358,32 @@ public class SQLData {
 			return -4;
 		}
 		
-		String screenshotcommand;
-		if( bug.imageMap != null && !bug.imageMap.isEmpty() ){
-			screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES " + listToMultipleValues(bug.imageMap.keySet(), String.valueOf(bugid));
-		}
-		else{
-			screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES ('" + "NULL" + "', '" + bugid + "');";
-		}
-		boolean screenshotcommandConfirmation = submitQuery(screenshotcommand);
-		if( !screenshotcommandConfirmation ){
-			System.out.println("Did not submit Screenshots!");
+		String versioncommand = "INSERT INTO versions (`version`, `bugid`) VALUES ('"+bug.version+"', '" + bugid + "')";
+		boolean versionConfirmation = submitQuery(versioncommand);
+		if( !versionConfirmation ){
+			System.out.println("Did not submit Version!");
 			return -5;
 		}
+		
+		//String screenshotcommand;
+		if( bug.imageMap != null && !bug.imageMap.isEmpty() ){
+			String screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES " + listToMultipleValues(bug.imageMap.keySet(), String.valueOf(bugid));
+			boolean screenshotcommandConfirmation = submitQuery(screenshotcommand);
+			if( !screenshotcommandConfirmation ){
+				System.out.println("Did not submit Screenshots!");
+				return -6;
+			}
+		}
+//		else{
+//			screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES ('" + "NULL" + "', '" + bugid + "');";
+//		}
+		
 		
 		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.getTagMessages(), String.valueOf(bugid));
 		boolean tagcommandConfirmation = submitQuery(tagcommand);
 		if( !tagcommandConfirmation ){
 			System.out.println("Did not submit TAGS!!");
-			return -6;
+			return -7;
 		}
 		
 		// Tell everyone this has been updated
@@ -474,7 +515,7 @@ public class SQLData {
 				// TODO should only delete what is in the delete list to avoid conflict!
 				// Delete everything from screenshots and add a NULL
 				queries.add("Delete from screenshots where bugid = " + ID);
-				queries.add("INSERT INTO screenshots (`link`, `bugid`) VALUES ('NULL', '" + ID + "')");
+				//queries.add("INSERT INTO screenshots (`link`, `bugid`) VALUES ('NULL', '" + ID + "')");
 			}
 			else{
 				System.out.println("More new bugs");
@@ -524,6 +565,15 @@ public class SQLData {
 			queries.add("UPDATE statuses SET status = '" + newBug.status + "' WHERE BugId = " + ID + "; ");
 		}
 		
+		// Version has changed
+		System.out.println(newBug.version);
+		if( newBug.version != null && oldBug.version == null ){
+			// insert new version!
+			queries.add("INSERT INTO versions (`version`,`bugid`) VALUES ('" + newBug.version + "', '"+ID+"');");
+		}
+		else if( oldBug != null && !oldBug.version.equals(newBug.version) ){
+			queries.add("UPDATE versions SET version = '" + newBug.version + "' WHERE BugId = " + ID + "; ");
+		}
 
 		// Tags have changed
 		List<String> tagQueries = getModifiedTags(oldBug,newBug);
