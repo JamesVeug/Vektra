@@ -22,11 +22,16 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
@@ -69,6 +74,7 @@ public class Vektra extends Application{
 	private Label loggedInCurrentDate;
 	private Label loggedInPing;
 	private TableView<BugItem> bugs;
+	private Rectangle priorityIndicator;
 	private Label reportID;
 	private Label tags;
 	private Label priority;
@@ -90,8 +96,6 @@ public class Vektra extends Application{
 	private RefreshThread refreshThread;
 	private WindowCloseRequest closeRequest;
 	
-	//TODO FIX screenshot covering logged section.
-	
 	/**
 	 * Starting method that creates the main window and loads the primary font.
 	 */
@@ -111,13 +115,10 @@ public class Vektra extends Application{
 		
 		BorderPane mainLayout = new BorderPane();
 		mainLayout.getStylesheets().add("css/custom.css");
-		//mainLayout.setBackground(black);
 
 		
 		GridPane layout = new GridPane();
 		
-		//layout.setVgap(10);
-		//layout.setPadding(new Insets(0, 10, 0, 10));
 		
 		// Top
 		GridPane options = new GridPane();
@@ -220,14 +221,25 @@ public class Vektra extends Application{
 		screenshotinfo.setHgap(20);
 		//screenshotinfo.setPrefHeight(150);
 		
+		priorityIndicator = new Rectangle();
+		priorityIndicator.setFill(Color.BLACK);
+		priorityIndicator.setStroke(Color.BLACK);
+		priorityIndicator.setWidth(10);
+		priorityIndicator.setHeight(10);
+		//screenshotinfo.setPadding(new Insets(1));
+
+		screenshotinfo.addColumn(0, priorityIndicator);
+		screenshotinfo.addRow(1, new Label());
+		screenshotinfo.addRow(2, new Label());
+		screenshotinfo.addRow(3, new Label());
 		
 		Label reportIDLabel = new Label("REPORT ID:");
 		reportIDLabel.getStyleClass().add("reportidheader");
-		screenshotinfo.addColumn(0, reportIDLabel);
+		screenshotinfo.addColumn(1, reportIDLabel);
 		
 		reportID = new Label("-");
 		reportID.getStyleClass().add("reportid");
-		screenshotinfo.addColumn(1, reportID);
+		screenshotinfo.addColumn(2, reportID);
 		
 		Label tagLabel = new Label("TAGS:");
 		tagLabel.setPrefHeight(15);
@@ -237,7 +249,7 @@ public class Vektra extends Application{
 		tags = new Label("-");
 		tags.setPrefHeight(15);
 		tags.getStyleClass().add("tagstyle");
-		screenshotinfo.addColumn(1, tags);
+		screenshotinfo.addColumn(2, tags);
 		
 		Label priorityLabel = new Label("PRIORITY:");
 		priorityLabel.setPrefHeight(30);
@@ -247,7 +259,7 @@ public class Vektra extends Application{
 		priority = new Label("-");
 		priority.setPrefHeight(15);
 		priority.getStyleClass().add("tagstyle");
-		screenshotinfo.addColumn(1, priority);
+		screenshotinfo.addColumn(2, priority);
 		
 		Label versionLabel = new Label("Version:");
 		versionLabel.setPrefHeight(15);
@@ -257,7 +269,7 @@ public class Vektra extends Application{
 		version = new Label("-");
 		version.setPrefHeight(15);
 		version.getStyleClass().add("tagstyle");
-		screenshotinfo.addColumn(1, version);
+		screenshotinfo.addColumn(2, version);
 		
 		
 		screenshotPane = new StackPane();
@@ -390,9 +402,43 @@ public class Vektra extends Application{
 	 */
 	private void setupTable() {
 		
-		if( !bugs.getColumns().isEmpty() ){
-			bugs.sort();
-		}
+		// Bottom Left ( BUG LIST )
+		TableColumn<BugItem, String> priorityColumn = new TableColumn<BugItem, String>("P");
+		priorityColumn.setMinWidth(20);
+		priorityColumn.setMaxWidth(20);
+		priorityColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("priority"));
+		priorityColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
+	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
+	            return new TableCell<BugItem, String>() {
+
+	                @Override
+	                public void updateItem(String priority, boolean empty) {
+	                    super.updateItem(priority, empty);
+	                    if (!isEmpty()) {
+	                        this.getStylesheets().add("css/buglist.css");
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
+	                        
+	                        if( priority.equals("LOW") ){
+		                        setBackground(new Background(new BackgroundFill(Color.YELLOW, new CornerRadii(0), new Insets(5))));
+	                        	
+	                        }
+	                        else if( priority.equals("MEDIUM") ){
+		                        setBackground(new Background(new BackgroundFill(Color.ORANGE, new CornerRadii(0), new Insets(5))));
+	                        	
+	                        }
+	                        else if( priority.equals("HIGH") ){
+		                        setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+	                        	
+	                        }
+	                        else{
+		                        setBackground(new Background(new BackgroundFill(Color.PINK, new CornerRadii(0), new Insets(5))));
+	                        	
+	                        }
+	                    }
+	                }
+	            };
+	        }
+	    });
 		
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("REPORT ID");
@@ -440,12 +486,10 @@ public class Vektra extends Application{
 		
 		//bugs = new TableView<BugItem>();
 		bugs.getColumns().clear();
-		bugs.getColumns().addAll(idColumn, statusColumn);		
+		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn);		
 		bugs.setPrefHeight(400);
 		bugs.setPrefWidth(320);
 		bugs.getStylesheets().add("css/buglist.css");
-		bugs.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
-		bugs.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
 		bugs.sort();
 	}
 
@@ -573,6 +617,19 @@ public class Vektra extends Application{
             
             tags.setText(tagString);
             priority.setText(bug.priority);
+            
+            if( priority.getText().equals("LOW") ){
+            	priorityIndicator.setFill(Color.YELLOW);
+            }
+            else if( priority.getText().equals("MEDIUM") ){
+            	priorityIndicator.setFill(Color.ORANGE);
+            }
+            else if( priority.getText().equals("HIGH") ){
+            	priorityIndicator.setFill(Color.RED);
+            }
+            else{
+            	priorityIndicator.setFill(Color.PINK);
+            }
             
             whoLogged.setText(bug.who == null ? "-" : bug.who);
             loggedDate.setText(bug.date == null ? "-" : bug.date);

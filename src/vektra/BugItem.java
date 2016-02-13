@@ -211,4 +211,11 @@ public class BugItem {
 		return status;
 	}
 
+	/**
+	 * @return the priority
+	 */
+	public String getPriority() {
+		return priority;
+	}
+
 }
