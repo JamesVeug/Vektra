@@ -1,5 +1,5 @@
 package vektra;
-import com.sun.javafx.scene.control.skin.TableViewSkinBase;
+import javax.swing.GroupLayout.Alignment;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -123,7 +123,7 @@ public class Vektra extends Application{
 		// Top
 		GridPane options = new GridPane();
 		options.setStyle("-fx-border-width: 1, 1; -fx-border-color: #FFFFFF");
-		options.setPrefHeight(100);
+		options.setPrefHeight(105);
 		options.setMaxHeight(130);
 		
 		GridPane buttonGrid = new GridPane();
@@ -210,7 +210,10 @@ public class Vektra extends Application{
 		
 
 		bugs = new TableView<BugItem>();
-		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);	
+		bugs.setPrefHeight(400);
+		bugs.setPrefWidth(320);
+		bugs.getStylesheets().add("css/buglist.css");
 		setupTable();
 		
 		
@@ -400,6 +403,7 @@ public class Vektra extends Application{
 	 * HACK HACK HACK
 	 * Recreates all the columns
 	 */
+	@SuppressWarnings("unchecked")
 	private void setupTable() {
 		
 		// Bottom Left ( BUG LIST )
@@ -414,11 +418,20 @@ public class Vektra extends Application{
 	                @Override
 	                public void updateItem(String priority, boolean empty) {
 	                    super.updateItem(priority, empty);
+	                    
 	                    if (!isEmpty()) {
+
+		                    int index = getIndex();
+		            		BugItem item = importedData.get(index);
+		            		
 	                        this.getStylesheets().add("css/buglist.css");
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
 	                        
-	                        if( priority.equals("LOW") ){
+	                        if( item.getStatus().equalsIgnoreCase("FIXED") ){
+		                        setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5))));
+	                        	
+	                        }
+	                        else if( priority.equals("LOW") ){
 		                        setBackground(new Background(new BackgroundFill(Color.YELLOW, new CornerRadii(0), new Insets(5))));
 	                        	
 	                        }
@@ -431,8 +444,7 @@ public class Vektra extends Application{
 	                        	
 	                        }
 	                        else{
-		                        setBackground(new Background(new BackgroundFill(Color.PINK, new CornerRadii(0), new Insets(5))));
-	                        	
+		                        setBackground(new Background(new BackgroundFill(Color.PINK, new CornerRadii(0), new Insets(5))));	
 	                        }
 	                    }
 	                }
@@ -475,6 +487,7 @@ public class Vektra extends Application{
 	                        this.getStylesheets().add("css/buglist.css");
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
 	                        setText(item);
+	                        
 	                    }
 	                }
 	            };
@@ -486,10 +499,7 @@ public class Vektra extends Application{
 		
 		//bugs = new TableView<BugItem>();
 		bugs.getColumns().clear();
-		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn);		
-		bugs.setPrefHeight(400);
-		bugs.setPrefWidth(320);
-		bugs.getStylesheets().add("css/buglist.css");
+		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn);	
 		bugs.sort();
 	}
 
@@ -618,7 +628,10 @@ public class Vektra extends Application{
             tags.setText(tagString);
             priority.setText(bug.priority);
             
-            if( priority.getText().equals("LOW") ){
+            if( bug.getStatus().equalsIgnoreCase("FIXED") ){
+            	priorityIndicator.setFill(Color.GREEN);
+            }
+            else if( priority.getText().equals("LOW") ){
             	priorityIndicator.setFill(Color.YELLOW);
             }
             else if( priority.getText().equals("MEDIUM") ){
