@@ -14,7 +14,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Pair;
 import vektra.SQLData;
@@ -28,10 +30,11 @@ public class LoginDialog {
 		// Create the custom dialog.
 		Dialog<Pair<String, String>> dialog = new Dialog<Pair<String, String>>();
 		dialog.setTitle("Login Dialog");
-		dialog.setHeaderText("Please enter your login details!");
+		dialog.setHeaderText("Please enter your login details.");
 
-		// Set the icon (must be included in the project).
-		//dialog.setGraphic(new ImageView(this.getClass().getResource("login.png").toString()));
+		// Change Icon
+		Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+		stage.getIcons().add(new Image("v.jpg"));
 
 		// Set the button types.
 		final ButtonType loginButtonType = new ButtonType("Login", ButtonData.OK_DONE);
@@ -63,11 +66,6 @@ public class LoginDialog {
 		// Enable/Disable login button depending on whether a username was entered.
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
-		
-		table.setText("stardrop_test");
-		username.setText("idonotexist");
-		password.setText("source");
-		loginButton.setDisable(false);
 
 		// Do some validation (using the Java 8 lambda syntax).
 		username.textProperty().addListener(new ChangeListener<String>(){
