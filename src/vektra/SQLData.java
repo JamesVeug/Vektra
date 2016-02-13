@@ -486,66 +486,6 @@ public class SQLData {
 		
 		// Add everything to a single query to make sure it works
 		List<String> queries = new ArrayList<String>();
-
-		// Images have changed
-		if( oldBug.imageMap.values().size() != newBug.imageMap.values().size() ){
-			System.out.println("Different sizes");
-			
-			List<String> newImages = new ArrayList<String>();
-			List<String> deleted = new ArrayList<String>();
-			
-			// Check for what is new in the new bugs images
-			for(String newLink : newBug.imageMap.keySet()){
-				if( !oldBug.imageMap.keySet().contains(newLink) ){
-					newImages.add(newLink);
-				}
-			}
-			
-			// Check for what has been deleted
-			for(String oldLink : oldBug.imageMap.keySet()){
-				if( !newBug.imageMap.keySet().contains(oldLink) ){
-					deleted.add(oldLink);
-				}
-			}
-			
-			// Make sure we have at least 1 image!
-			if( newImages.isEmpty() ){
-				System.out.println("No Images in new bug");
-				
-				// TODO should only delete what is in the delete list to avoid conflict!
-				// Delete everything from screenshots and add a NULL
-				queries.add("Delete from screenshots where bugid = " + ID);
-				//queries.add("INSERT INTO screenshots (`link`, `bugid`) VALUES ('NULL', '" + ID + "')");
-			}
-			else{
-				System.out.println("More new bugs");
-				
-				
-				// Delete removed images
-				if( !deleted.isEmpty() ){
-					System.out.println("Deleteing bugs");
-					String seperated = "";
-					
-					int i = 0;
-					for(String s : deleted ){
-						seperated += "'" + s + "'";
-						if( ++i < deleted.size() ){
-							 seperated += ", ";
-						}
-					}
-					
-					queries.add("Delete * from screenshots where bugid = " + ID + " AND link IN (" + seperated + ")");					
-					
-				}
-				
-				// Add the new images
-				if( !newImages.isEmpty() ){
-					System.out.println("Adding new bugs");
-
-					queries.add("INSERT INTO screenshots (`link`, `bugid`) VALUES " + listToMultipleValues(newImages, ID));
-				}
-			}
-		}
 		
 		// Get the date off the server
 		String currentTime = retrieveCurrentTime();
@@ -644,6 +584,8 @@ public class SQLData {
 	private static List<String> getModifiedTags(BugItem oldBug, BugItem newBug) {
 		
 		List<String> queries = new ArrayList<String>();
+		System.out.println("OldTags: " + oldBug.tags);
+		System.out.println("NewTags: " + newBug.tags);
 		
 		// Step through each tag in oldBug
 		for( Tag tag : oldBug.tags ){
@@ -678,6 +620,10 @@ public class SQLData {
 	private static List<String> getModifiedScreenshots(BugItem oldBug, BugItem newBug) {
 		
 		List<String> queries = new ArrayList<String>();
+		System.out.println("Old " + oldBug.ID);
+		System.out.println("New " + newBug.ID);
+		System.out.println("OldLinks: " + oldBug.imageMap.hashCode() + " " + oldBug.imageMap.keySet());
+		System.out.println("NewLinks: " + newBug.imageMap.hashCode() + " " + newBug.imageMap.keySet());
 		
 		// Step through each tag in oldBug
 		for( String link : oldBug.imageMap.keySet() ){
@@ -688,7 +634,7 @@ public class SQLData {
 				// No?
 					
 				// Delete Tag Screenshot DB
-				queries.add("DELETE FROM `screenshots` WHERE `bugid` = '" + newBug.ID + "' AND `link` = '"+ link +"');");
+				queries.add("DELETE FROM `screenshots` WHERE `bugid` = '" + newBug.ID + "' AND `link` = '"+ link +"';");
 			}
 		}
 		

@@ -60,6 +60,12 @@
     -fx-padding: 0;
 }
 
+.aboutinfo{
+	-fx-text-fill: #ECECEC;
+	-fx-font-size: 10pt;
+    -fx-font-family: "Microstyle Bold Extended ATT";
+}
+
 .reportid{
 	-fx-text-fill: #ECECEC;
 	-fx-font-size: 13pt;

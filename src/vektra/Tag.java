@@ -11,6 +11,11 @@ public class Tag {
 		this.tagid = tagid;
 		this.bugid = bugid;
 	}
+	
+	@Override
+	public String toString(){
+		return ("(" + tagid + " : " + bugid + " : " + message + ")");
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -19,7 +24,7 @@ public class Tag {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + tagid;
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
 		return result;
 	}
 
@@ -35,8 +40,12 @@ public class Tag {
 		if (!(obj instanceof Tag))
 			return false;
 		Tag other = (Tag) obj;
-		if (tagid != other.tagid)
+		if (message == null) {
+			if (other.message != null)
+				return false;
+		} else if (!message.equals(other.message))
 			return false;
 		return true;
 	}
+
 }

@@ -36,6 +36,7 @@ import vektra.dialogs.LoginDialog;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
+import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.EditReport;
 
@@ -48,6 +49,9 @@ import vektra.extrawindows.EditReport;
  *
  */
 public class Vektra extends Application{
+	
+	public static Application APPLICATION;
+	public static final String VERSION = "0.03";
 	
 	@SuppressWarnings("unused")
 	private Stage primaryStage;
@@ -92,6 +96,7 @@ public class Vektra extends Application{
 	 * Starting method that creates the main window and loads the primary font.
 	 */
 	public void start(Stage primaryStage) throws Exception {
+		APPLICATION = this;
 		
 		// Required in order to be able to use it in css's
 		@SuppressWarnings("unused")
@@ -385,6 +390,10 @@ public class Vektra extends Application{
 	 */
 	private void setupTable() {
 		
+		if( !bugs.getColumns().isEmpty() ){
+			bugs.sort();
+		}
+		
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("REPORT ID");
 		idColumn.setPrefWidth(60);
@@ -437,6 +446,7 @@ public class Vektra extends Application{
 		bugs.getStylesheets().add("css/buglist.css");
 		bugs.getProperties().put(TableViewSkinBase.REFRESH, Boolean.TRUE);
 		bugs.getProperties().put(TableViewSkinBase.RECREATE, Boolean.TRUE);
+		bugs.sort();
 	}
 
 
@@ -661,10 +671,21 @@ public class Vektra extends Application{
 			
 		});
 		
+		Menu help = new Menu("Help");
+		MenuItem about = new MenuItem("About");
+		help.getItems().add(about);
+		about.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent arg0) {
+				AboutWindow.show();
+			}
+			
+		});
+		
 		menuBar.getMenus().add(file);
 		//menuBar.getMenus().add(edit);
 		//menuBar.getMenus().add(view);
 		menuBar.getMenus().add(report);
+		menuBar.getMenus().add(help);
 
 		mainLayout.setTop(menuBar);
 		

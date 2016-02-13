@@ -8,8 +8,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.stage.Stage;
 
 public class PopupException {
 
@@ -18,6 +20,10 @@ public class PopupException {
 		alert.setTitle("Exception Dialog");
 		alert.setHeaderText("An error has occured with the database!");
 		alert.setContentText(text);
+
+		// Change Icon
+		Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+		stage.getIcons().add(new Image("v.jpg"));
 
 
 		// Create expandable Exception.

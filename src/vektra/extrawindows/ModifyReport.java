@@ -52,8 +52,8 @@ public class ModifyReport {
 	
 	protected static TextField enterLink;
 	protected static HBox screenshotList;
-	private static Map<String,BugImage> images;
-	private static Map<BugImage,String> links;
+	private static Map<String,BugImage> bugimages;
+	private static Map<Image,String> images;
 	
 	protected static ToggleGroup priorityGroup;
 	protected static RadioButton LOW;
@@ -148,8 +148,8 @@ public class ModifyReport {
 			optionPane.addColumn(7, BREAKING);
 			optionPane.addColumn(8, BREAKINGLabel);
 			
-			images = new HashMap<String,BugImage>();
-			links = new HashMap<BugImage,String>();
+			bugimages = new HashMap<String,BugImage>();
+			images = new HashMap<Image,String>();
 			GridPane screenShotPane  = new GridPane();
 			screenShotPane.setVgap(5); //vertical gap in pixels
 			screenShotPane.setPadding(new Insets(10, 10, 10, 10)); //margins around the whole grid
@@ -270,7 +270,7 @@ public class ModifyReport {
 			PopupError.show("Could not proceed", "Please select a Priority related to the message!");
 			return false;
 		}
-		else if( getVersion().isEmpty() ){
+		else if( getVersion() == null ){
 			PopupError.show("Could not proceed", "Please select the Version of the game!");
 			return false;
 		}
@@ -284,8 +284,8 @@ public class ModifyReport {
 	}
 
 	protected static void addImage(String link, BugImage image){
-		images.put(link, image);
-		links.put(image, link);
+		bugimages.put(link, image);
+		images.put(image.getImage(), link);
 		
 		ImageView v = new ImageView(image.getImage());
 		v.setOnMouseClicked(new ImageClickedListener());
@@ -296,14 +296,17 @@ public class ModifyReport {
 	
 	protected static void removeImage(ImageView view){
 		// Finishe remove so removing via mosue click works
-		String link = links.get(view.getImage());
-		images.remove(link);
-		links.remove(view.getImage());
+		String removedLink = images.remove(view.getImage());
+		BugImage removedImage = bugimages.remove(removedLink);
+		
+		System.out.println("RemovedImage: " + removedImage);
+		System.out.println("RemovedLink: " + removedLink);
+		
 		screenshotList.getChildren().remove(view);
 	}
 
 	protected static BugItem getBug(){
-		return new BugItem(bugID, getSelectedTags(bugID), getPriority(), statusSelection.getValue(), null, text.getText(), null, getVersion(), images);
+		return new BugItem(bugID, getSelectedTags(bugID), getPriority(), statusSelection.getValue(), null, text.getText(), null, getVersion(), bugimages);
 	}
 
 	
@@ -374,7 +377,7 @@ public class ModifyReport {
 			String link = enterLink.getText();	
 			System.out.println("Link: " + link);
 			
-			if( images.keySet().contains(link) ){
+			if( bugimages.keySet().contains(link) ){
 				PopupError.show("Can not upload image", "Link already uploaded!");
 				return;
 			}
