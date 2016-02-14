@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javafx.scene.image.Image;
-
 /**
  * Contains all information about a single bug that has been reported, or will be reported.
  * All fields are public due to never requiring being changed.
@@ -20,7 +18,7 @@ public class BugItem {
 
 	// Final
 	public int ID;
-	public String priority;
+	public Priority priority;
 	public String status;
 	public String who;
 	public String message;
@@ -44,7 +42,7 @@ public class BugItem {
 	 * @param date When was this bug created?
 	 * @param images Images mapped from their link to the image which visually representing the bug
 	 */
-	public BugItem(int iD, Set<Tag> tags, String priority, String status,
+	public BugItem(int iD, Set<Tag> tags, Priority priority, String status,
 			String who, String message, String date, String version, Map<String,BugImage> images){
 
 		ID = iD;
@@ -72,7 +70,7 @@ public class BugItem {
 	 * @param link Link for the image to be downloaded from later. 
 	 * @param image Image that visually represents the bug
 	 */
-	public BugItem(int iD, Tag tag, String priority, String status,
+	public BugItem(int iD, Tag tag, Priority priority, String status,
 			String who, String message, String date, String version, String link, BugImage image) {
 		this(iD, toTagSet(tag), priority, status, who, message, date, version, toMap(link,image));
 	}
@@ -214,7 +212,7 @@ public class BugItem {
 	/**
 	 * @return the priority
 	 */
-	public String getPriority() {
+	public Priority getPriority() {
 		return priority;
 	}
 

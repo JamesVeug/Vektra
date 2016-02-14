@@ -33,6 +33,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import vektra.BugImage;
 import vektra.BugItem;
+import vektra.Priority;
 import vektra.Tag;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
@@ -266,7 +267,7 @@ public class ModifyReport {
 			PopupError.show("Could not proceed", "Please select a valid tag related to the message!");
 			return false;
 		}
-		else if( getPriority().isEmpty() ){
+		else if( getPriority() == Priority.NULL ){
 			PopupError.show("Could not proceed", "Please select a Priority related to the message!");
 			return false;
 		}
@@ -323,17 +324,17 @@ public class ModifyReport {
 		GridPane.setValignment(createReport, VPos.CENTER);
 	}
 	
-	protected static String getPriority() {
+	protected static Priority getPriority() {
 		if( priorityGroup.getSelectedToggle() == LOW ){
-			return "LOW";
+			return Priority.get("LOW");
 		}
 		else if( priorityGroup.getSelectedToggle() == MEDIUM ){
-			return "MEDIUM";
+			return Priority.get("MEDIUM");
 		}
 		else if( priorityGroup.getSelectedToggle() == HIGH ){
-			return "HIGH";
+			return Priority.get("HIGH");
 		}
-		return "UNSELECTED";
+		return Priority.get("UNKNOWN");
 	}
 
 	protected static Set<Tag> getSelectedTags(int bugid) {

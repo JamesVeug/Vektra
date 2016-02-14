@@ -1,5 +1,5 @@
 package vektra;
-import javax.swing.GroupLayout.Alignment;
+import java.awt.GraphicsEnvironment;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -405,18 +405,20 @@ public class Vektra extends Application{
 	 */
 	@SuppressWarnings("unchecked")
 	private void setupTable() {
+    	final Background GreenBackground = new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5)));
 		
 		// Bottom Left ( BUG LIST )
-		TableColumn<BugItem, String> priorityColumn = new TableColumn<BugItem, String>("P");
+		TableColumn<BugItem, Priority> priorityColumn = new TableColumn<BugItem, Priority>("P");
 		priorityColumn.setMinWidth(20);
 		priorityColumn.setMaxWidth(20);
-		priorityColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("priority"));
-		priorityColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
-	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
-	            return new TableCell<BugItem, String>() {
+		priorityColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Priority>("priority"));
+		priorityColumn.setCellFactory(new Callback<TableColumn<BugItem, Priority>, TableCell<BugItem, Priority>>() {
+	        public TableCell<BugItem, Priority> call(TableColumn<BugItem, Priority> param) {
+	            return new TableCell<BugItem, Priority>() {
+	            	
 
 	                @Override
-	                public void updateItem(String priority, boolean empty) {
+	                public void updateItem(Priority priority, boolean empty) {
 	                    super.updateItem(priority, empty);
 	                    
 	                    if (!isEmpty()) {
@@ -428,23 +430,12 @@ public class Vektra extends Application{
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
 	                        
 	                        if( item.getStatus().equalsIgnoreCase("FIXED") ){
-		                        setBackground(new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5))));
-	                        	
-	                        }
-	                        else if( priority.equals("LOW") ){
-		                        setBackground(new Background(new BackgroundFill(Color.YELLOW, new CornerRadii(0), new Insets(5))));
-	                        	
-	                        }
-	                        else if( priority.equals("MEDIUM") ){
-		                        setBackground(new Background(new BackgroundFill(Color.ORANGE, new CornerRadii(0), new Insets(5))));
-	                        	
-	                        }
-	                        else if( priority.equals("HIGH") ){
-		                        setBackground(new Background(new BackgroundFill(Color.RED, new CornerRadii(0), new Insets(5))));
+		                        setBackground(GreenBackground);
 	                        	
 	                        }
 	                        else{
-		                        setBackground(new Background(new BackgroundFill(Color.PINK, new CornerRadii(0), new Insets(5))));	
+		                        setBackground(new Background(new BackgroundFill(priority.getColor(), new CornerRadii(0), new Insets(5))));
+	                        	
 	                        }
 	                    }
 	                }
@@ -626,22 +617,14 @@ public class Vektra extends Application{
             }
             
             tags.setText(tagString);
-            priority.setText(bug.priority);
+            priority.setText(bug.getPriority().toString());
+            
             
             if( bug.getStatus().equalsIgnoreCase("FIXED") ){
             	priorityIndicator.setFill(Color.GREEN);
             }
-            else if( priority.getText().equals("LOW") ){
-            	priorityIndicator.setFill(Color.YELLOW);
-            }
-            else if( priority.getText().equals("MEDIUM") ){
-            	priorityIndicator.setFill(Color.ORANGE);
-            }
-            else if( priority.getText().equals("HIGH") ){
-            	priorityIndicator.setFill(Color.RED);
-            }
             else{
-            	priorityIndicator.setFill(Color.PINK);
+            	priorityIndicator.setFill(bug.priority.getColor());
             }
             
             whoLogged.setText(bug.who == null ? "-" : bug.who);

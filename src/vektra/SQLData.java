@@ -154,7 +154,7 @@ public class SQLData {
 					}
 					
 					if( priority != null ){
-						saved.priority = priority;
+						saved.priority = Priority.get(priority);
 					}
 					
 					if( status != null ){
@@ -162,7 +162,7 @@ public class SQLData {
 					}
 				}
 				else{
-					BugItem bug = new BugItem(id, tagItem,priority, status, poster,message,date, version, screenshot != null ? link : null, screenshot != null ? screenshot : null);
+					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), status, poster,message,date, version, screenshot != null ? link : null, screenshot != null ? screenshot : null);
 					bugs.add(bug);
 					bugMapping.put(id, bug);
 					bug.whoUpdated = whoUpdated;
