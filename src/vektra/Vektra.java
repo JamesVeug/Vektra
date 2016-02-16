@@ -44,6 +44,7 @@ import vektra.dialogs.PopupMessage;
 import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.EditReport;
+import vektra.resources.LocalResources;
 
 
 /**
@@ -1048,6 +1049,9 @@ public class Vektra extends Application{
 					else{
 						loadedData = SQLData.getUpdatedData();
 					}
+					
+					// Save local images
+					LocalResources.synchronizeLocalImages();
 					
 					// Get the end time
 					long end = System.currentTimeMillis();

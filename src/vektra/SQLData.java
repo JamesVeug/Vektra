@@ -15,6 +15,7 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import vektra.dialogs.PopupError;
+import vektra.resources.R;
 
 public class SQLData {
 	private static Connection con;
@@ -57,7 +58,7 @@ public class SQLData {
 			System.out.println("Date Query: '" + dateQuery + "'");
 
 			
-			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, version " 
+			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version " 
 									+ "FROM "
 									+ dateQuery + " AS dates "
 									+ "LEFT JOIN `bugs`  "
@@ -123,10 +124,8 @@ public class SQLData {
 				String priority = result.getString("priority");
 				String status = result.getString("status");
 				String version = result.getString("version");
-				
-				//System.out.println("Status: " + status);
 
-				//System.out.println("ID: " + id);
+				// Updated Info
 				String whoUpdated = result.getString("whoupdated");
 				String lastUpdated = result.getString("lastupdated");
 
@@ -134,10 +133,13 @@ public class SQLData {
 				// Multiple entries
 				String tag = result.getString("tag");
 				int tagid = result.getInt("tagid");
+				
+				// Screensots
 				String link = result.getString("link");
+				int screenshotid = result.getInt("screenshotid");
 	
 				// Get screenshots
-				BugImage screenshot = getScreenshot(link);
+				BugImage screenshot = getScreenshot(screenshotid, link);
 				Tag tagItem = new Tag(tagid, id, tag);
 				
 				if( bugMapping.containsKey(id) ){
@@ -183,7 +185,6 @@ public class SQLData {
 	public static ObservableList<BugItem> getData(){
 		connect();
 		if( !isConnected() ){
-			System.out.println("Disconnected");
 			return null;
 		}
 		
@@ -192,7 +193,7 @@ public class SQLData {
 			
 			// Get current time
 			lastUpdate = retrieveCurrentTime();
-			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, version "
+			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version "
 							+"FROM `bugs` "
 							+"LEFT JOIN `bugdates` "
 							+"ON bugs.bugid = bugdates.bugid "
@@ -249,12 +250,13 @@ public class SQLData {
 
 
 
-	private static BugImage getScreenshot(String link) {
+	private static BugImage getScreenshot(int screenshotid, String link) {
 		//System.out.println("Link: " + link);
 		if( link != null && !link.isEmpty() ){
 			try{
-				BugImage image = BugImage.createImage(link, 400, 300);
-				//System.out.println("Loaded image: '" + link + "'");
+				System.out.println("Screenshotid " + screenshotid);
+				BugImage image = R.getImage(link, 400, 300, screenshotid);
+				image.screenshotID = screenshotid;
 				return image;
 			}catch( IllegalArgumentException e ){
 				//popupException("Can not load image: '" + link + "'", e);

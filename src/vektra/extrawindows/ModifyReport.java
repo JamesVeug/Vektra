@@ -37,6 +37,7 @@ import vektra.Priority;
 import vektra.Tag;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
+import vektra.resources.OnlineResources;
 
 public class ModifyReport {
 	protected static Stage primaryStage;
@@ -384,7 +385,7 @@ public class ModifyReport {
 			}
 			
 			try{
-				BugImage image = BugImage.createImage(link);
+				BugImage image = OnlineResources.getImage(link);
 				addImage(link,image);
 				enterLink.setText("");
 			}catch(IllegalArgumentException e){
