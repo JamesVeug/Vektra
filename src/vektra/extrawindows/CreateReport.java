@@ -14,7 +14,7 @@ public class CreateReport extends ModifyReport{
 	private static Button createReport;
 	
 	public static void display(int maxID) {
-		ModifyReport.display(maxID+1);
+		ModifyReport.display("Create Report", maxID+1);
 
 		
 		

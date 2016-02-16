@@ -69,10 +69,10 @@ public class ModifyReport {
 	
 	protected static int bugID;
 
-	public static void display(int maxID) {
+	public static void display(String title, int maxID) {
 		bugID = maxID;
 		Stage stage = new Stage();
-		stage.setTitle("Create Report");
+		stage.setTitle(title);
 		stage.setWidth(800);
 		stage.setHeight(600);
 		stage.getIcons().add(new Image("v.jpg"));

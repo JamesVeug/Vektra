@@ -1,5 +1,7 @@
 package vektra.resources;
 
+import java.util.List;
+
 import vektra.BugImage;
 
 public class R {
@@ -36,4 +38,20 @@ public class R {
 		
 		return null;
 	}
+
+	public static void removeImagesViaID(List<Integer> removedImages) {
+		
+		// Only need to remove from local storage
+		LocalResources.removeImagesViaID(removedImages);
+		
+	}
 }
+
+
+
+
+
+
+
+
+

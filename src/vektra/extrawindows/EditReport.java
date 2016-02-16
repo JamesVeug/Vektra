@@ -1,13 +1,19 @@
 package vektra.extrawindows;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
+import vektra.BugImage;
 import vektra.BugItem;
+import vektra.Priority;
 import vektra.SQLData;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
+import vektra.resources.R;
 
 public class EditReport extends ModifyReport{
 	
@@ -22,13 +28,13 @@ public class EditReport extends ModifyReport{
 		
 		bugToEdit = bug;
 		
-		ModifyReport.display(bug.ID);
+		ModifyReport.display("Edit Report", bug.ID);
 		
 		text.setText(bug.message);
 
-		LOW.setSelected(bugToEdit.priority.equals("LOW"));
-		MEDIUM.setSelected(bugToEdit.priority.equals("MEDIUM"));
-		HIGH.setSelected(bugToEdit.priority.equals("HIGH"));
+		LOW.setSelected(bugToEdit.priority == Priority.LOW);
+		MEDIUM.setSelected(bugToEdit.priority == Priority.MEDIUM);
+		HIGH.setSelected(bugToEdit.priority == Priority.HIGH);
 
 		
 		GAMEPLAY.setSelected(bugToEdit.getTagMessages().contains("GAMEPLAY"));
@@ -63,6 +69,23 @@ public class EditReport extends ModifyReport{
 		}
 		else{
 			primaryStage.close();
+			
+			// Get the images we removed
+			List<Integer> removedImages = new ArrayList<Integer>();
+			for(BugImage oldBugImage : bugToEdit.imageMap.values()){
+				
+				if( !bug.imageMap.containsValue(oldBugImage) ){
+					removedImages.add(oldBugImage.screenshotID);
+				}
+			}
+			
+			// Save locally
+			System.out.println("Deleting local images " + removedImages.size());
+			if( !removedImages.isEmpty() ){
+				R.removeImagesViaID(removedImages);
+			}
+			
+			
 			PopupMessage.show("Success!", "Modified Bug correctly!");
 		}
 		

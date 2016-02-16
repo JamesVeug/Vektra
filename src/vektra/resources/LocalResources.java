@@ -13,9 +13,9 @@ import javax.imageio.ImageIO;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import vektra.BugImage;
+import vektra.SQLData;
 import vektra.dialogs.PopupError;
 
 public class LocalResources {
@@ -24,15 +24,16 @@ public class LocalResources {
 //	private static final String LINK = "LINK";
 //	private static final String ID = "ID";
 	
-	private static final String LOCALRESOURCEFILE_IMAGES_DIRECTORY = "resources/images/";
 //	private static final String LOCALRESOURCEFILE_NAME = "local.info";
 //	private static InputStream localResourceFile;
 	
 	// All images we have downloaded online
-	public static Map<String, String> imageLinkToName = new HashMap<String, String>();
+//	public static Map<String, String> imageLinkToName = new HashMap<String, String>();
 	public static Map<String, Image> imageLinkToImage = new HashMap<String, Image>();
+	public static Map<Integer, String> imageNameToLink = new HashMap<Integer, String>();
 	
-	public static Map<String, BugImage> toSync = new HashMap<String,BugImage>();
+	public static List<SyncData> toSync = new ArrayList<SyncData>();
+	public static List<SyncData> toRemove = new ArrayList<SyncData>();
 	
 	
 	public static Map<Integer, Image> screenshotIDToImage = new HashMap<Integer,Image>();
@@ -75,13 +76,12 @@ public class LocalResources {
 	private static BugImage getLocalImage(String link, double w, double h, int screenshotid) {
 		
 		// Load local images
-		if( screenshotIDToImage.isEmpty() ){
-			loadLocalImages();
-		}
+		loadLocalImages();
 		
 
 		Image imageViaLink = imageLinkToImage.get(link);
 		if( imageViaLink != null ){
+			System.out.println("Via link");
 			
 			if( w == -1 ){
 				w = imageViaLink.getWidth();
@@ -97,7 +97,14 @@ public class LocalResources {
 		
 		Image imageViaID = screenshotIDToImage.get(screenshotid);
 		if( imageViaID != null ){
+			System.out.println("Via ID");
 			imageLinkToImage.put(link, imageViaID);
+			imageNameToLink.put(new Integer(screenshotid), link);
+			
+			System.out.println("Name to Links:");
+			for(int i : imageNameToLink.keySet()){
+				System.out.println("\t" + i);
+			}
 			
 			if( w == -1 ){
 				w = imageViaID.getWidth();
@@ -120,10 +127,10 @@ public class LocalResources {
 	private static void loadLocalImages() {
 		System.out.println("LOCAL: Loading local images");
 		
-		File imagesDirectory = new File(LOCALRESOURCEFILE_IMAGES_DIRECTORY);
+		File imagesDirectory = new File(getImageDirectory());
 		
 		if( !imagesDirectory.exists() || !imagesDirectory.isDirectory() ){
-			PopupError.show("Could not load local images", "Can not file directory '" + LOCALRESOURCEFILE_IMAGES_DIRECTORY + "'.");
+			PopupError.show("Could not load local images", "Can not file directory '" + getImageDirectory() + "'.");
 			return;
 		}
 
@@ -162,11 +169,11 @@ public class LocalResources {
 	public static void synchronizeLocalImages(){
 		System.out.println("Syncing " + toSync.size());
 		
-		List<String> toRemove = new ArrayList<String>();
+		List<SyncData> toRemove = new ArrayList<SyncData>();
 		
-		for(Entry<String,BugImage> entry : toSync.entrySet()){
-			String name = entry.getKey();
-			BugImage onlineImage = entry.getValue();
+		for(SyncData data: toSync){
+			String name = data.name;
+			BugImage onlineImage = data.image;
 			System.out.println("Syncing '" + name + "'");
 			
 			System.out.println("Saving local file ");
@@ -183,37 +190,82 @@ public class LocalResources {
 			System.out.println("File: " + filename);
 			
 			
-			File file = new File(LOCALRESOURCEFILE_IMAGES_DIRECTORY + filename);
+			File file = new File(getImageDirectory() + filename);
 			BufferedImage image = toBufferedImage(onlineImage.getImage());
 			try {
 			   ImageIO.write(image, ext, file);  // ignore returned boolean
-			   toRemove.add(name);
+			   toRemove.add(data);
 			} catch(IOException e) {
 				System.out.println("Write error for " + file.getPath() + ": " + e.getMessage());
 			}
 		}
 
 		// Clear both lists
-		for(String name : toRemove){
-			toSync.remove(name);
+		for(SyncData data : toRemove){
+			toSync.remove(data);
 		}
 		toSync.clear();
 		System.out.println("Finished Syncing");
 
 	}
+	
+	public static void removeImagesViaID(List<Integer> ids){
+		System.out.println("Removing local images (" + ids.size() + ")");
+		
+		for(Integer id : ids){
+			System.out.println("\tID: " + id);
+			String link = imageNameToLink.get(new Integer(id));
+			if( link == null ){
+				System.out.println("\tNo link supplied");
+				
+				for(Integer s : imageNameToLink.keySet()){
+					System.out.println("\t\t" + s);
+				}
+				continue;
+			}
+			
+			imageNameToLink.remove(id);
+			imageLinkToImage.remove(link);
+			screenshotIDToImage.remove(id);
+			
+			String ext = link.substring(link.lastIndexOf("."));
+			if( ext.contains("?") ){
+				ext = ext.substring(0, ext.indexOf("?"));
+			}
+			
+			// delete from directory
+			String filename = getImageDirectory() + id + ext;
+			File file = new File(filename);
+			if( file != null && file.exists() ){
+				file.delete();
+				System.out.println("\tDeleted");
+			}
+			else{
+				System.out.println("\tCould not delete file '" + filename + "'");
+			}
+		}
+		
+	}
+
+	private static String getImageDirectory() {
+		return "resources/" + SQLData.getServer() + "/images/";
+	}
 
 	public static void saveLocalFile(String link, BugImage onlineImage, int screenshotid) {
 
-		System.out.println("Recorded local file '" + link + "'");
+		System.out.println("Recording local file '" + link + "'");
 		
-		String name = screenshotid + link.substring(link.indexOf("."));
+		String name = screenshotid + link.substring(link.lastIndexOf("."));
 		if( name.contains("?") ){
 			name = name.substring(0,name.indexOf("?"));
 		}
 		
-		toSync.put(name, onlineImage);
+		System.out.println("Record Name " + name);
+		toSync.add(new LocalResources().new SyncData(name, link, onlineImage));
 		
-		imageLinkToName.put(link, name);
+		// Uncomment this to reduce harddrive space
+		// But this will confuse people when looking in the folder!
+		imageNameToLink.put(screenshotid, link);
 		imageLinkToImage.put(link, onlineImage.getImage());
 	}
 	
@@ -234,6 +286,59 @@ public class LocalResources {
 
 	    // Return the buffered image
 	    return image;
+	}
+	
+	
+	private class SyncData{
+		
+		public final String name;
+		public final String link;
+		public final BugImage image;
+
+		public SyncData(String name, String link, BugImage image){
+			this.name = name;
+			this.link = link;
+			this.image = image;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (!(obj instanceof SyncData))
+				return false;
+			SyncData other = (SyncData) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (name == null) {
+				if (other.name != null)
+					return false;
+			} else if (!name.equals(other.name))
+				return false;
+			return true;
+		}
+
+		private LocalResources getOuterType() {
+			return LocalResources.this;
+		}
+		
 	}
 }
 
