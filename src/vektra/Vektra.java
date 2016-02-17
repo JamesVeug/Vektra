@@ -533,18 +533,30 @@ public class Vektra extends Application{
 					importedData = loadedData;
 				}
 				else{
+					System.out.println("PARTIAL update");
+					
 					// Modify the data in the currently save
 					for(BugItem i : loadedData){
 						int index = importedData.indexOf(i);
 						System.out.println("Index " + index);
+						System.out.println("BUG INFO" + i.toString());
 						if( index == -1 ){
 							System.out.println("Adding bug " + i.ID);
 							
 							// Add new item to bug
 							importedData.add(0,i);
 						}
+						else if( i.message == null ){
+							if( selectedBug.equals(i) ){
+								deselectBug();
+								selectedBug = null;
+							}
+							System.out.println("Deleting bug");
+							importedData.remove(index);
+							
+						}
 						else{
-							System.out.println("Setting bug " + i);
+							System.out.println("Updating bug " + i);
 							
 							// Replace bug
 							importedData.set(index,i);
@@ -879,12 +891,13 @@ public class Vektra extends Application{
 		//
 		
 		boolean isDeleted = SQLData.delete(item);
-		if( isDeleted ){
-			PopupMessage.show("Delete Compelted", "Successfully deleted Bug with ID '" + item.ID + "'");
-		}
-		else{
+		if( !isDeleted ){
 			PopupError.show("Delete Failed", "Could not delete the Bug with ID '" + item.ID + "'");
 		}
+		
+		// Delete properly
+		deselectBug();
+		PopupMessage.show("Delete Completed", "Successfully deleted Bug with ID '" + item.ID + "'");
 	}
 
 	/**

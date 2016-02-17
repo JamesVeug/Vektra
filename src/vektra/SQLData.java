@@ -461,6 +461,9 @@ public class SQLData {
 			return false;
 		}
 
+		// Get currentTime
+		String currentTime = retrieveCurrentTime();
+		
 		System.out.println("Bug ID: " + item.ID);
 		boolean deleted = submitQuery("DELETE FROM bugs where bugid = " + item.ID);
 		if( !deleted ){
@@ -468,6 +471,8 @@ public class SQLData {
 			return false;
 		}	
 		
+		// Report update
+		updateBugsLastReportedDate(item, currentTime);
 		
 		System.out.println("Finished Deleting");
 		return true;
