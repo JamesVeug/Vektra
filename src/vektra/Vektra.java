@@ -216,7 +216,7 @@ public class Vektra extends Application{
 		bugs = new TableView<BugItem>();
 		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);	
 		bugs.setPrefHeight(400);
-		bugs.setPrefWidth(320);
+		bugs.setPrefWidth(410);
 		bugs.getStylesheets().add("css/buglist.css");
 		setupTable();
 		
@@ -453,8 +453,9 @@ public class Vektra extends Application{
 		}
 		
 		// Bottom Left ( BUG LIST )
-		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("REPORT ID");
-		idColumn.setPrefWidth(60);
+		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("ID");
+		idColumn.setMinWidth(40);
+		idColumn.setMaxWidth(40);
 		idColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Integer>("ID"));
 		idColumn.setCellFactory(new Callback<TableColumn<BugItem, Integer>, TableCell<BugItem, Integer>>() {
 	        public TableCell<BugItem, Integer> call(TableColumn<BugItem, Integer> param) {
@@ -477,7 +478,8 @@ public class Vektra extends Application{
 		}
 		
 		TableColumn<BugItem, String> statusColumn = new TableColumn<BugItem, String>("STATUS");
-		statusColumn.setPrefWidth(70);
+		statusColumn.setMinWidth(50);
+		statusColumn.setMaxWidth(50);
 		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("status"));
 		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
 	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
@@ -500,6 +502,49 @@ public class Vektra extends Application{
 			statusColumn.setSortType(bugs.getColumns().get(2).getSortType());
 		}
 		
+		TableColumn<BugItem, String> updateColumn = new TableColumn<BugItem, String>("UPDATED");
+		updateColumn.setPrefWidth(110);
+		updateColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("lastUpdate"));
+		updateColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
+	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
+	            return new TableCell<BugItem, String>() {
+
+	                @Override
+	                public void updateItem(String item, boolean empty) {
+	                    super.updateItem(item, empty);
+	                    if (!isEmpty()) {
+	                        this.getStylesheets().add("css/buglist.css");
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
+	                        
+	                        String[] date = item.split("\\s|[-/:]");
+	                        String year = date[0];
+	                        String month = date[1];
+	                        String day = date[2];
+	                        String hour = date[3];
+	                        String minute = date[4];
+	                        String second = date[5];
+	                        if( second.contains(".") ){
+	                        	second = second.substring(0, second.indexOf("."));
+	                        }
+	                        
+//	                        System.out.println("SPLIT DATE: " + item);
+//	                        for(String s : date){
+//	                        	System.out.println("\t"+s);
+//	                        }
+	                        
+	                        String displayDate = month + "-" + day + " " + hour + ":" + minute + ":" + second;
+	                        
+	                        setText(displayDate);
+	                        
+	                    }
+	                }
+	            };
+	        }
+	    });
+		if( !bugs.getColumns().isEmpty() ){
+			updateColumn.setSortType(bugs.getColumns().get(3).getSortType());
+		}
+		
 		// TODO Need to copy over SortType FROM the columns 
 		@SuppressWarnings("rawtypes")
 		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
@@ -515,9 +560,12 @@ public class Vektra extends Application{
 		else if( sorting == bugs.getColumns().get(2) ){
 			bugs.getSortOrder().set(0, statusColumn);
 		}
+		else if( sorting == bugs.getColumns().get(2) ){
+			bugs.getSortOrder().set(0, updateColumn);
+		}
 		
 		bugs.getColumns().clear();
-		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn);	
+		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn,updateColumn);	
 		bugs.sort();
 	}
 

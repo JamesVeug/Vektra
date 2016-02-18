@@ -216,4 +216,25 @@ public class BugItem {
 		return priority;
 	}
 
+	/**
+	 * @return the date
+	 */
+	public String getDate() {
+		return date;
+	}
+
+	/**
+	 * @return the whoUpdated
+	 */
+	public String getWhoUpdated() {
+		return whoUpdated;
+	}
+
+	/**
+	 * @return the lastUpdate
+	 */
+	public String getLastUpdate() {
+		return lastUpdate;
+	}
+
 }
