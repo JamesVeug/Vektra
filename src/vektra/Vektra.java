@@ -19,7 +19,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -435,7 +434,7 @@ public class Vektra extends Application{
 	                        this.getStylesheets().add("css/buglist.css");
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
 	                        
-	                        if( item.getStatus().equalsIgnoreCase("FIXED") ){
+	                        if( item.getStatus() == Status.FIXED ){
 		                        setBackground(GreenBackground);
 	                        	
 	                        }
@@ -477,21 +476,23 @@ public class Vektra extends Application{
 			idColumn.setSortType(bugs.getColumns().get(1).getSortType());
 		}
 		
-		TableColumn<BugItem, String> statusColumn = new TableColumn<BugItem, String>("STATUS");
+		TableColumn<BugItem, Status> statusColumn = new TableColumn<BugItem, Status>("STATUS");
 		statusColumn.setMinWidth(50);
 		statusColumn.setMaxWidth(50);
-		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("status"));
-		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
-	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
-	            return new TableCell<BugItem, String>() {
+		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Status>("status"));
+		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, Status>, TableCell<BugItem, Status>>() {
+	        public TableCell<BugItem, Status> call(TableColumn<BugItem, Status> param) {
+	            return new TableCell<BugItem, Status>() {
 
 	                @Override
-	                public void updateItem(String item, boolean empty) {
+	                public void updateItem(Status item, boolean empty) {
 	                    super.updateItem(item, empty);
 	                    if (!isEmpty()) {
 	                        this.getStylesheets().add("css/buglist.css");
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
-	                        setText(item);
+	                        
+	                        
+	                        setText(item.toString());
 	                        
 	                    }
 	                }
@@ -726,7 +727,7 @@ public class Vektra extends Application{
             priority.setText(bug.getPriority().toString());
             
             
-            if( bug.getStatus().equalsIgnoreCase("FIXED") ){
+            if( bug.getStatus() == Status.FIXED ){
             	priorityIndicator.setFill(Color.GREEN);
             }
             else{
@@ -737,7 +738,7 @@ public class Vektra extends Application{
             loggedDate.setText(bug.date == null ? "-" : bug.date);
             whoUpdated.setText(bug.whoUpdated == null ? "-" : bug.whoUpdated);
             updatedDate.setText(bug.lastUpdate == null ? "-" : bug.lastUpdate);
-            version.setText(bug.version == null ? "-" : bug.version);
+            version.setText(bug.version == null ? "-" : bug.version.stage + " " + bug.version.version);
 
             // Clear images and add new ones if there are some
         	screenshotList.getChildren().clear();

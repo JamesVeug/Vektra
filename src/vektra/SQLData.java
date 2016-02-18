@@ -58,7 +58,7 @@ public class SQLData {
 			System.out.println("Date Query: '" + dateQuery + "'");
 
 			
-			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version " 
+			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage " 
 									+ "FROM "
 									+ dateQuery + " AS dates "
 									+ "LEFT JOIN `bugs`  "
@@ -124,6 +124,7 @@ public class SQLData {
 				String priority = result.getString("priority");
 				String status = result.getString("status");
 				String version = result.getString("version");
+				String stage = result.getString("stage");
 
 				// Updated Info
 				String whoUpdated = result.getString("whoupdated");
@@ -160,11 +161,11 @@ public class SQLData {
 					}
 					
 					if( status != null ){
-						saved.status = status;
+						saved.status = Status.get(status);
 					}
 				}
 				else{
-					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), status, poster,message,date, version, screenshot != null ? link : null, screenshot != null ? screenshot : null);
+					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), Status.get(status), poster,message,date, new Version(version,Stage.get(stage)), screenshot != null ? link : null, screenshot != null ? screenshot : null);
 					bugs.add(bug);
 					bugMapping.put(id, bug);
 					bug.whoUpdated = whoUpdated;
@@ -193,7 +194,7 @@ public class SQLData {
 			
 			// Get current time
 			lastUpdate = retrieveCurrentTime();
-			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version "
+			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage "
 							+"FROM `bugs` "
 							+"LEFT JOIN `bugdates` "
 							+"ON bugs.bugid = bugdates.bugid "

@@ -6,6 +6,8 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import vektra.BugItem;
 import vektra.SQLData;
+import vektra.Stage;
+import vektra.Status;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
 
@@ -21,7 +23,8 @@ public class CreateReport extends ModifyReport{
 
 		LOW.setSelected(true);
 		GAMEPLAY.setSelected(true);
-		statusSelection.setValue("Pending");
+		statusSelection.setValue(Status.PENDING);
+		stageVersion.setValue(Stage.ALPHA);
 
 		createReport = new Button("Create Bug");
 		createReport.setOnAction(new CreateReportButtonPress());

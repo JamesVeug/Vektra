@@ -19,11 +19,11 @@ public class BugItem {
 	// Final
 	public int ID;
 	public Priority priority;
-	public String status;
+	public Status status;
 	public String who;
 	public String message;
 	public String date;
-	public String version;
+	public Version version;
 	
 	// Will be modified
 	public Set<Tag> tags;
@@ -42,8 +42,8 @@ public class BugItem {
 	 * @param date When was this bug created?
 	 * @param images Images mapped from their link to the image which visually representing the bug
 	 */
-	public BugItem(int iD, Set<Tag> tags, Priority priority, String status,
-			String who, String message, String date, String version, Map<String,BugImage> images){
+	public BugItem(int iD, Set<Tag> tags, Priority priority, Status status,
+			String who, String message, String date, Version version, Map<String,BugImage> images){
 
 		ID = iD;
 		this.tags = tags;
@@ -70,8 +70,8 @@ public class BugItem {
 	 * @param link Link for the image to be downloaded from later. 
 	 * @param image Image that visually represents the bug
 	 */
-	public BugItem(int iD, Tag tag, Priority priority, String status,
-			String who, String message, String date, String version, String link, BugImage image) {
+	public BugItem(int iD, Tag tag, Priority priority, Status status,
+			String who, String message, String date, Version version, String link, BugImage image) {
 		this(iD, toTagSet(tag), priority, status, who, message, date, version, toMap(link,image));
 	}
 
@@ -205,7 +205,7 @@ public class BugItem {
 	 * Required Method for the table in the Vektra class to be used
 	 * @return the status
 	 */
-	public String getStatus() {
+	public Status getStatus() {
 		return status;
 	}
 

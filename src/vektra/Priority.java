@@ -13,11 +13,16 @@ public class Priority {
 	public static final Priority LOW = new Priority("LOW", Color.YELLOW);
 	public static final Priority MEDIUM = new Priority("MEDIUM", Color.ORANGE);
 	public static final Priority HIGH = new Priority("HIGH", Color.RED);
+	public static final List<String> priorityListStrings = new ArrayList<String>();
 	public static final List<Priority> priorityList = new ArrayList<Priority>(); 
 	static{
 		priorityList.add(LOW);
 		priorityList.add(MEDIUM);
 		priorityList.add(HIGH);
+		
+		for(Priority p : priorityList){
+			priorityListStrings.add(p.label);
+		}
 	}
 
 
@@ -50,5 +55,9 @@ public class Priority {
 			}
 		}
 		return NULL;
+	}
+	
+	public static List<String> getStrings(){
+		return priorityListStrings;
 	}
 }

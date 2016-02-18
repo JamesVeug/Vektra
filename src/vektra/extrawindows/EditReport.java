@@ -1,19 +1,14 @@
 package vektra.extrawindows;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
-import vektra.BugImage;
 import vektra.BugItem;
 import vektra.Priority;
 import vektra.SQLData;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
-import vektra.resources.R;
 
 public class EditReport extends ModifyReport{
 	
@@ -43,7 +38,8 @@ public class EditReport extends ModifyReport{
 		BREAKING.setSelected(bugToEdit.getTagMessages().contains("BREAKING"));
 		
 		statusSelection.setValue(bug.getStatus());
-		version.setText(bug.version);
+		stageVersion.setValue(bug.version.stage);
+		version.setText(bug.version.version);
 
 		addImages(bug.imageMap);
 		

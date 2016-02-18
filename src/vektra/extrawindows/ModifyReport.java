@@ -34,7 +34,9 @@ import javafx.stage.Stage;
 import vektra.BugImage;
 import vektra.BugItem;
 import vektra.Priority;
+import vektra.Status;
 import vektra.Tag;
+import vektra.Version;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
 import vektra.resources.OnlineResources;
@@ -63,8 +65,9 @@ public class ModifyReport {
 	protected static RadioButton HIGH;
 	
 
+	protected static ComboBox<vektra.Stage> stageVersion;
 	protected static TextField version;
-	protected static ComboBox<String> statusSelection;
+	protected static ComboBox<Status> statusSelection;
 	protected static GridPane bottomPane;
 	
 	protected static int bugID;
@@ -223,8 +226,8 @@ public class ModifyReport {
 					statusLabel.getStyleClass().add("createReport_Options_Headers");
 				statusInnerPane.getChildren().add(statusLabel);
 					
-					statusSelection = new ComboBox<String>();
-					statusSelection.getItems().addAll("Pending","WIP","Fixed");
+					statusSelection = new ComboBox<Status>();
+					statusSelection.getItems().addAll(Status.statusList);
 					statusSelection.getStyleClass().add("createReport_Options_Text");
 				statusInnerPane.getChildren().add(statusSelection);
 				
@@ -232,6 +235,10 @@ public class ModifyReport {
 				versionLabel.getStyleClass().add("createReport_Options_Headers");
 			statusInnerPane.getChildren().add(versionLabel);
 				
+				stageVersion = new ComboBox<vektra.Stage>();
+				stageVersion.getItems().addAll(vektra.Stage.stageList);
+				stageVersion.getStyleClass().add("createReport_Options_Text");
+			
 				version = new TextField();
 				version.getStyleClass().add("createReport_Options_Text");
 				version.setPromptText(exampleVersion);
@@ -281,8 +288,8 @@ public class ModifyReport {
 		return true;
 	}
 	
-	private static String getVersion() {
-		return version.getText();
+	private static Version getVersion() {
+		return new Version(version.getText(), stageVersion.getValue());
 	}
 
 	protected static void addImage(String link, BugImage image){
