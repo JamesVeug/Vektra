@@ -69,23 +69,6 @@ public class EditReport extends ModifyReport{
 		}
 		else{
 			primaryStage.close();
-			
-			// Get the images we removed
-			List<Integer> removedImages = new ArrayList<Integer>();
-			for(BugImage oldBugImage : bugToEdit.imageMap.values()){
-				
-				if( !bug.imageMap.containsValue(oldBugImage) ){
-					removedImages.add(oldBugImage.screenshotID);
-				}
-			}
-			
-			// Save locally
-			System.out.println("Deleting local images " + removedImages.size());
-			if( !removedImages.isEmpty() ){
-				R.removeImagesViaID(removedImages);
-			}
-			
-			
 			PopupMessage.show("Success!", "Modified Bug correctly!");
 		}
 		

@@ -1,8 +1,11 @@
 package vektra.resources;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import vektra.BugImage;
+import vektra.BugItem;
 
 public class R {
 
@@ -16,7 +19,7 @@ public class R {
 		
 		BugImage onlineImage = OnlineResources.getImage(link);
 		if( onlineImage != null ){
-			LocalResources.saveLocalFile(link,onlineImage, screenshotid);
+			//LocalResources.saveLocalFile(link,onlineImage, screenshotid);
 			return onlineImage;
 		}
 		
@@ -32,7 +35,7 @@ public class R {
 		
 		BugImage onlineImage = OnlineResources.getImage(link, w, h);
 		if( onlineImage != null ){
-			LocalResources.saveLocalFile(link,onlineImage, screenshotid);
+			//LocalResources.saveLocalFile(link,onlineImage, screenshotid);
 			return onlineImage;
 		}
 		
@@ -44,6 +47,20 @@ public class R {
 		// Only need to remove from local storage
 		LocalResources.removeImagesViaID(removedImages);
 		
+	}
+
+	public static void removeImages(Collection<BugImage> images) {
+		List<Integer> ids = new ArrayList<Integer>();
+		for(BugImage i : images){
+			ids.add(i.screenshotID);
+		}
+		removeImagesViaID(ids);
+	}
+
+	public static void addImages(Collection<BugImage> images) {
+
+		// Only need to add to local storage
+		LocalResources.addImages(images);
 	}
 }
 

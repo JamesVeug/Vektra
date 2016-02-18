@@ -1,5 +1,6 @@
 package vektra;
-import java.awt.GraphicsEnvironment;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -45,6 +46,7 @@ import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.EditReport;
 import vektra.resources.LocalResources;
+import vektra.resources.R;
 
 
 /**
@@ -392,6 +394,7 @@ public class Vektra extends Application{
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		
+		
 		// Ask to log in!
 		login();
 		
@@ -536,30 +539,50 @@ public class Vektra extends Application{
 					System.out.println("PARTIAL update");
 					
 					// Modify the data in the currently save
-					for(BugItem i : loadedData){
-						int index = importedData.indexOf(i);
+					for(BugItem newBug : loadedData){
+						int index = importedData.indexOf(newBug);
 						System.out.println("Index " + index);
-						System.out.println("BUG INFO" + i.toString());
+						System.out.println("BUG INFO" + newBug.toString());
 						if( index == -1 ){
-							System.out.println("Adding bug " + i.ID);
+							System.out.println("Adding bug " + newBug.ID);
 							
 							// Add new item to bug
-							importedData.add(0,i);
+							importedData.add(0,newBug);
+							
+							// Add local images
+							R.addImages(newBug.getImages());
 						}
-						else if( i.message == null ){
-							if( selectedBug.equals(i) ){
+						else if( newBug.message == null ){
+							System.out.println("Deleting bug");
+							if( selectedBug.equals(newBug) ){
+								System.out.println("Deselecting bug");
 								deselectBug();
 								selectedBug = null;
 							}
-							System.out.println("Deleting bug");
-							importedData.remove(index);
+							
+							// Remove from list
+							BugItem removed = importedData.remove(index);
+							
+							// Delete local images
+							R.removeImages(removed.getImages());
 							
 						}
 						else{
-							System.out.println("Updating bug " + i);
+							System.out.println("Updating bug " + newBug);
 							
 							// Replace bug
-							importedData.set(index,i);
+							BugItem oldBug = importedData.set(index,newBug);
+							
+							// Get images that were deleted
+							List<BugImage> deletedImages = new ArrayList<BugImage>(oldBug.getImages());
+							deletedImages.removeAll(newBug.getImages());
+							
+							// Get images that were added
+							List<BugImage> addedImages = new ArrayList<BugImage>(newBug.getImages());
+							addedImages.removeAll(oldBug.getImages());
+							
+							R.removeImages(deletedImages);
+							R.addImages(addedImages);
 						}
 					}
 				}
@@ -1028,6 +1051,10 @@ public class Vektra extends Application{
 		
 		@Override
 		public void run() {
+			
+			// When we first start refreshing
+			// Load all the local resources!
+			LocalResources.loadLocalImages();
 			while(running){
 				
 				// Only check every so often
@@ -1058,13 +1085,16 @@ public class Vektra extends Application{
 					ObservableList<BugItem> loadedData;
 					if( fullUpdate ){
 						loadedData = SQLData.getData();
+						
+						// Save local images
+						LocalResources.synchronizeLocalImages(loadedData);
 					}
 					else{
 						loadedData = SQLData.getUpdatedData();
+						
+						// Do not need to synchronizeLocalImages here as it's done in the refreshData method
 					}
 					
-					// Save local images
-					LocalResources.synchronizeLocalImages();
 					
 					// Get the end time
 					long end = System.currentTimeMillis();
