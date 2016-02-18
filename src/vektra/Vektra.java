@@ -19,6 +19,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -267,7 +268,7 @@ public class Vektra extends Application{
 		priority.getStyleClass().add("tagstyle");
 		screenshotinfo.addColumn(2, priority);
 		
-		Label versionLabel = new Label("Version:");
+		Label versionLabel = new Label("VERSION:");
 		versionLabel.setPrefHeight(15);
 		versionLabel.getStyleClass().add("tagstyle");
 		screenshotinfo.addRow(3, versionLabel);
@@ -410,7 +411,8 @@ public class Vektra extends Application{
 	@SuppressWarnings("unchecked")
 	private void setupTable() {
     	final Background GreenBackground = new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5)));
-		
+    	
+    	
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Priority> priorityColumn = new TableColumn<BugItem, Priority>("P");
 		priorityColumn.setMinWidth(20);
@@ -446,6 +448,9 @@ public class Vektra extends Application{
 	            };
 	        }
 	    });
+		if( !bugs.getColumns().isEmpty() ){
+			priorityColumn.setSortType(bugs.getColumns().get(0).getSortType());
+		}
 		
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("REPORT ID");
@@ -467,6 +472,9 @@ public class Vektra extends Application{
 	            };
 	        }
 	    });
+		if( !bugs.getColumns().isEmpty() ){
+			idColumn.setSortType(bugs.getColumns().get(1).getSortType());
+		}
 		
 		TableColumn<BugItem, String> statusColumn = new TableColumn<BugItem, String>("STATUS");
 		statusColumn.setPrefWidth(70);
@@ -488,11 +496,26 @@ public class Vektra extends Application{
 	            };
 	        }
 	    });
+		if( !bugs.getColumns().isEmpty() ){
+			statusColumn.setSortType(bugs.getColumns().get(2).getSortType());
+		}
 		
+		// TODO Need to copy over SortType FROM the columns 
+		@SuppressWarnings("rawtypes")
+		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
+		if( sorting == null ){
+			// Ignore
+		}
+		else if( sorting == bugs.getColumns().get(0) ){
+			bugs.getSortOrder().set(0, priorityColumn);
+		}
+		else if( sorting == bugs.getColumns().get(1) ){
+			bugs.getSortOrder().set(0, idColumn);
+		}
+		else if( sorting == bugs.getColumns().get(2) ){
+			bugs.getSortOrder().set(0, statusColumn);
+		}
 		
-		//statusColumn.get.setStyle("-fx-text-fill: red; ");
-		
-		//bugs = new TableView<BugItem>();
 		bugs.getColumns().clear();
 		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn);	
 		bugs.sort();
@@ -525,8 +548,6 @@ public class Vektra extends Application{
 					System.out.println("NO CHANGE");
 					return;
 				}
-				
-				setupTable();
 				
 				// Assign new values in the table
 				if( fullUpdate ){
@@ -586,7 +607,8 @@ public class Vektra extends Application{
 						}
 					}
 				}
-
+				
+				setupTable();
 				
 				// Reselect
 				deselectBug();
