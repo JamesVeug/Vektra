@@ -59,7 +59,7 @@ import vektra.resources.R;
 public class Vektra extends Application{
 	
 	public static Application APPLICATION;
-	public static final String VERSION = "0.03";
+	public static final String VERSION = "0.1";
 	
 	@SuppressWarnings("unused")
 	private Stage primaryStage;

@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 
 import vektra.BugImage;
-import vektra.BugItem;
 
 public class R {
 
@@ -19,7 +18,6 @@ public class R {
 		
 		BugImage onlineImage = OnlineResources.getImage(link);
 		if( onlineImage != null ){
-			//LocalResources.saveLocalFile(link,onlineImage, screenshotid);
 			return onlineImage;
 		}
 		
@@ -35,7 +33,6 @@ public class R {
 		
 		BugImage onlineImage = OnlineResources.getImage(link, w, h);
 		if( onlineImage != null ){
-			//LocalResources.saveLocalFile(link,onlineImage, screenshotid);
 			return onlineImage;
 		}
 		
