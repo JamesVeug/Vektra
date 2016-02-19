@@ -28,6 +28,7 @@ public class BugItem {
 	// Will be modified
 	public Set<Tag> tags;
 	public Map<String, BugImage> imageMap;
+	public Set<Comment> comments;
 	public String whoUpdated;
 	public String lastUpdate;
 	
@@ -56,6 +57,8 @@ public class BugItem {
 		
 		this.imageMap = new HashMap<String, BugImage>();
 		this.imageMap.putAll(images);
+		
+		comments = new HashSet<Comment>();
 	}
 	
 	/**
@@ -235,6 +238,19 @@ public class BugItem {
 	 */
 	public String getLastUpdate() {
 		return lastUpdate;
+	}
+
+	public void addComment(Comment comment) {
+		if( comment != null ){
+			comments.add(comment);
+		}
+	}
+
+	/**
+	 * @return the comments
+	 */
+	public Set<Comment> getComments() {
+		return comments;
 	}
 
 }

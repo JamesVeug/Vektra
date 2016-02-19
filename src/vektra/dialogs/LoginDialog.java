@@ -71,6 +71,11 @@ public class LoginDialog {
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
 		
+		
+		database.setText("stardrop_test");
+		username.setText("idonotexist");
+		password.setText("source");
+		loginButton.setDisable(false);
 
 		// Do some validation (using the Java 8 lambda syntax).
 		username.textProperty().addListener(new ChangeListener<String>(){
@@ -124,7 +129,7 @@ public class LoginDialog {
 					// Didn't connect
 					//
 					System.out.println("FAILED!");
-					PopupError.show("Login","Login Failed!\nPlease double check your login information.");
+					//PopupError.show("Login","Login Failed!\nPlease double check your login information.");
 					
 				}
 			}

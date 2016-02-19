@@ -1,9 +1,11 @@
 package vektra;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -15,10 +17,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -30,11 +34,13 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
@@ -89,6 +95,10 @@ public class Vektra extends Application{
 	private ImageView selectedListImage;
 	private Label openScreenshots;
 	private TextArea message;
+	private TableView<Comment> comments;
+	private ScrollPane commentScroll;
+	private Button submitComment;
+	private TextField enterComment;
 	private Label whoLogged;
 	private Label loggedDate;
 	private Label whoUpdated;
@@ -225,14 +235,12 @@ public class Vektra extends Application{
 		screenshotinfo.setPadding(new Insets(10,0,0,10));
 		screenshotinfo.getStylesheets().add("css/custom.css");
 		screenshotinfo.setHgap(20);
-		//screenshotinfo.setPrefHeight(150);
 		
 		priorityIndicator = new Rectangle();
 		priorityIndicator.setFill(Color.BLACK);
 		priorityIndicator.setStroke(Color.BLACK);
 		priorityIndicator.setWidth(10);
 		priorityIndicator.setHeight(10);
-		//screenshotinfo.setPadding(new Insets(1));
 
 		screenshotinfo.addColumn(0, priorityIndicator);
 		screenshotinfo.addRow(1, new Label());
@@ -293,17 +301,16 @@ public class Vektra extends Application{
 		GridPane screenshotListPane = new GridPane();
 		screenshotListPane.setPrefWidth(600);
 		screenshotListPane.setPrefHeight(200);
-		
-		openScreenshots = new Label("Open Screenshots(0)");
-		openScreenshots.getStyleClass().add("openScreenShots");
+			
+			openScreenshots = new Label("Open Screenshots(0)");
+			openScreenshots.getStyleClass().add("openScreenShots");
 		screenshotListPane.addRow(0, openScreenshots);
-
-		// List of Screenshots to be displayed 
-		screenshotList = new FlowPane();
-		screenshotList.setPrefHeight(400);
-		screenshotList.setVgap(8);
-		screenshotList.setHgap(4);
-		//screenshotList.setOnMouseClicked(new ScreenShotListListener());
+	
+			// List of Screenshots to be displayed 
+			screenshotList = new FlowPane();
+			screenshotList.setPrefHeight(400);
+			screenshotList.setVgap(8);
+			screenshotList.setHgap(4);
 		screenshotListPane.addRow(1, screenshotList);
 
 		GridPane screenshotlayout = new GridPane();
@@ -322,12 +329,42 @@ public class Vektra extends Application{
 			messagePane.addRow(0, label);
 			
 			message = new TextArea("No Text Here");
-			message.setPrefHeight(575);
+			message.setPrefHeight(400);
 			message.setEditable(false);
 			message.setWrapText(true);
 			messagePane.addRow(1, message);
 			messagePane.setPrefHeight(200);
 			
+			VBox commentPane = new VBox();
+				comments = new TableView<Comment>();
+				comments.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+				comments.getStylesheets().add("css/buglist.css");
+				
+				commentScroll = new ScrollPane(comments);
+				setupComments(FXCollections.observableArrayList());
+				
+				
+				GridPane commentOptions = new GridPane();
+					submitComment = new Button("Send");
+					submitComment.setOnAction(new SubmitCommentButtonPressed());
+					
+					enterComment = new TextField();
+					enterComment.setPromptText("Enter a response here");
+					enterComment.setOnAction(new SubmitCommentButtonPressed());
+					enterComment.getStyleClass().add("createReport_Options_Text");
+					enterComment.setPrefWidth(357);
+					enterComment.setPrefHeight(100);	
+					
+				commentOptions.addColumn(0,submitComment);
+				commentOptions.addColumn(1,enterComment);
+				
+				
+			commentPane.getChildren().add(commentScroll);
+			commentPane.getChildren().add(commentOptions);
+			
+			
+			messagePane.addRow(2, commentPane);
+
 			GridPane extraInfoPane = new GridPane();
 				extraInfoPane.setPadding(new Insets(0,0,0,10));
 				extraInfoPane.setStyle("-fx-background-color: #ECECEC;");
@@ -370,10 +407,9 @@ public class Vektra extends Application{
 			extraInfoPane.addRow(1, updatedDateLabel);
 			extraInfoPane.addColumn(3, loggedDate);
 			extraInfoPane.addRow(1, updatedDate);
-		messagePane.addRow(2, extraInfoPane);
 
-
-		//layout.addRow(0,options);
+		messagePane.addRow(3, extraInfoPane);
+			
 		layout.addColumn(0,bugs);
 		layout.addColumn(1,screenshotlayout);
 		layout.addColumn(2,messagePane);
@@ -383,12 +419,7 @@ public class Vektra extends Application{
 		Scene scene = new Scene(mainLayout,Paint.valueOf("green"));
 
 		closeRequest = new WindowCloseRequest();
-		primaryStage.setOnCloseRequest(closeRequest);/*new EventHandler<WindowEvent>(){
-			@Override public void handle(WindowEvent arg0) { 
-				closeRequest.
-				SQLData.close();
-			}	
-		});*/
+		primaryStage.setOnCloseRequest(closeRequest);
 		
 		setupMenu(mainLayout, primaryStage);
 		primaryStage.setScene(scene);
@@ -397,10 +428,147 @@ public class Vektra extends Application{
 		
 		// Ask to log in!
 		login();
-		
-		//popupLoading("Loading:", "Uploading Report");
 	}
 	
+
+	@SuppressWarnings("unchecked")
+	private void setupComments(Collection<Comment> currentComments) {
+		
+		comments.getItems().clear();
+		if( !currentComments.isEmpty() ){
+			ObservableList<Comment> list = FXCollections.observableArrayList(currentComments);
+			comments.setItems(list);
+		}
+		
+		
+		//comments.setItems(currentComments);
+		
+		TableColumn<Comment, String> commenterColumn = new TableColumn<Comment,String>("POSTER");
+		commenterColumn.setSortable(false);
+		commenterColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("poster"));
+		commenterColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
+	        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
+	            return new TableCell<Comment, String>() {
+
+	                @Override
+	                public void updateItem(String item, boolean empty) {
+	                    super.updateItem(item, empty);
+	                    if (!isEmpty()) {
+	                        this.getStylesheets().add("css/buglist.css");
+	                        //this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
+	                        
+	                        setText(item);
+	                        
+	                    }
+	                }
+	            };
+	        }
+	    });
+		if( !comments.getColumns().isEmpty() ){
+			commenterColumn.setSortType(comments.getColumns().get(0).getSortType());
+		}
+		
+		TableColumn<Comment, String> messageColumn = new TableColumn<Comment, String>("MESSAGE");
+		messageColumn.setSortable(false);
+		messageColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("message"));
+		messageColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
+	        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
+	            return new TableCell<Comment, String>() {
+
+	                @Override
+	                public void updateItem(String item, boolean empty) {
+	                    super.updateItem(item, empty);
+	                    if (!isEmpty()) {
+	                        this.getStylesheets().add("css/buglist.css");
+	                        
+	                        
+	                        // Since we have a table. We want to squeeze the entire message into the cell to we don't need to scroll
+	                        // This code adds breaks every 70 characters
+	                        
+	                        // Max characters before we add a break
+	                        final int characterInt = 60;
+	                        
+	                        
+	                        int nextCharacterInt = characterInt;
+	                        int lastSpace = -1;
+	                        
+	                        int nextSpace = item.indexOf(" ");
+	                        while( nextSpace != -1 ){
+	                        	
+	                        	if( nextSpace > nextCharacterInt ){
+	                        		
+	                        		int whereToSpaceBreak = nextSpace;
+	                        		if( lastSpace == -1 ){
+	                        			
+	                        			// Add at the break
+	                        			whereToSpaceBreak = nextCharacterInt;
+	                        		}
+	                        		
+	                        		lastSpace = nextSpace;
+	                        		
+	                        		// Save string with break
+		                        	item = item.substring(0,whereToSpaceBreak) + "\n" + item.substring(whereToSpaceBreak);
+	                        		
+	                        		// Increase
+	                        		nextCharacterInt += characterInt+2;
+	                        	}
+	                        	
+	                        	nextSpace = item.indexOf(" ",nextSpace+2);
+	                        }
+	                        
+	                        System.out.println("Item:");
+	                        System.out.println(item);
+	                        
+	                        setText(item);
+	                        
+	                    }
+	                }
+	            };
+	        }
+	    });
+		if( !comments.getColumns().isEmpty() ){
+			messageColumn.setSortType(comments.getColumns().get(1).getSortType());
+		}
+		
+		@SuppressWarnings("rawtypes")
+		TableColumn sorting = comments.getSortOrder().isEmpty() ? null : comments.getSortOrder().get(0);
+		if( sorting == null ){
+			// Ignore
+		}
+		else if( sorting == comments.getColumns().get(2) ){
+			comments.getSortOrder().set(0, commenterColumn);
+		}
+		else if( sorting == comments.getColumns().get(2) ){
+			comments.getSortOrder().set(0, messageColumn);
+		}
+		
+		comments.getColumns().clear();
+		comments.getColumns().addAll(commenterColumn,messageColumn);	
+		comments.sort();
+		
+		messageColumn.setPrefWidth(320);
+		//messageColumn.minWidthProperty().bind(commentScroll.widthProperty());
+	}
+
+
+	/**
+	 * Creates mock comments to test the comment system
+	 * @return Premade list of comments
+	 */
+	private ObservableList<Comment> getMockComments() {
+		
+		ObservableList<Comment> mockComments = FXCollections.observableArrayList();
+		
+		mockComments.add(new Comment("Joure","2016-02-13","I think we need a new comment system."));
+		mockComments.add(new Comment("Mapster","2016-02-13","Will this include updates? Because I don't need this new line stuff because sometimes you need a really really really REALLY long message just to see how long it will take to get past the screen."));
+		mockComments.add(new Comment("Sensi","2016-02-13","This would be helpful."));
+		mockComments.add(new Comment("Joure","2016-02-13","No. Just like the one off steam"));
+		mockComments.add(new Comment("Mapster","2016-02-13","Ah yeah just a simple one"));
+		mockComments.add(new Comment("Joure","2016-02-13","Yeah just to help us with tracking comments"));
+		
+		return mockComments;
+	}
+
 
 	/**
 	 * Sets up the table with all the bugs we currently have sorted
@@ -504,7 +672,6 @@ public class Vektra extends Application{
 		}
 		
 		TableColumn<BugItem, String> updateColumn = new TableColumn<BugItem, String>("UPDATED");
-		updateColumn.setPrefWidth(110);
 		updateColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("lastUpdate"));
 		updateColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
 	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
@@ -518,7 +685,9 @@ public class Vektra extends Application{
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
 	                        
 	                        String[] date = item.split("\\s|[-/:]");
-	                        String year = date[0];
+	                        
+	                        @SuppressWarnings("unused")
+							String year = date[0];
 	                        String month = date[1];
 	                        String day = date[2];
 	                        String hour = date[3];
@@ -546,7 +715,6 @@ public class Vektra extends Application{
 			updateColumn.setSortType(bugs.getColumns().get(3).getSortType());
 		}
 		
-		// TODO Need to copy over SortType FROM the columns 
 		@SuppressWarnings("rawtypes")
 		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
 		if( sorting == null ){
@@ -761,6 +929,9 @@ public class Vektra extends Application{
             		}
             	}
             }
+            
+            // Apply comments
+            setupComments(bug.getComments());
 		}
 	}
 
@@ -1075,8 +1246,36 @@ public class Vektra extends Application{
 			ImageView v = (ImageView)arg0.getSource();
 			selectImage(v);
 		}
-		
-		
+	}
+	
+	/**
+	 * The user pressed the "Send" button in the comments section. 
+	 * So we should attempt sending the bug
+	 * @author James
+	 *
+	 */
+	private class SubmitCommentButtonPressed implements EventHandler<ActionEvent> {
+
+
+		@Override
+		public void handle(ActionEvent arg0) {
+			System.out.println("Submitting comment!");
+			String text = enterComment.getText();
+			if( text.isEmpty() ){
+				return;
+			}
+			else if( submitComment.isDisabled() ){
+				return;
+			}
+			
+			boolean submitted = SQLData.submitComment(text,selectedBug);
+			if( submitted ){
+				enterComment.setText("");
+			}
+			else{
+				PopupError.show("Submit Commeny", "Could not submit comment");
+			}
+		}
 	}
 	
 	/**
@@ -1138,6 +1337,7 @@ public class Vektra extends Application{
 						@Override
 						public void run() {
 							refresh.setDisable(true);
+							submitComment.setDisable(true);
 							refresh.setText("REFRESHING...");
 						}
 						
@@ -1184,6 +1384,7 @@ public class Vektra extends Application{
 						@Override
 						public void run() {
 							refresh.setDisable(false);
+							submitComment.setDisable(false);
 							refresh.setText("REFRESH");
 						}
 						

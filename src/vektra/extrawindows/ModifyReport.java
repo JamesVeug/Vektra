@@ -393,7 +393,13 @@ public class ModifyReport {
 			
 			try{
 				BugImage image = OnlineResources.getImage(link);
-				addImage(link,image);
+				if( image == null || image.getImage() == null ){
+					PopupError.show("Upload Image", "Unable to download image!");
+					return;
+				}
+				else{
+					addImage(link,image);
+				}
 				enterLink.setText("");
 			}catch(IllegalArgumentException e){
 				PopupError.show("Could not load image", "The provided link can not be converted to an image!");

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.mysql.jdbc.exceptions.MySQLSyntaxErrorException;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import javafx.collections.FXCollections;
@@ -70,7 +71,7 @@ public class SQLData {
 			System.out.println("Date Query: '" + dateQuery + "'");
 
 			// Select all the bugs that have been updated since we last checked the database
-			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage " 
+			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage, comment, commentid, whocommented, datecommented " 
 									+ "FROM "
 									+ dateQuery + " AS dates "
 									+ "LEFT JOIN `bugs`  "
@@ -87,6 +88,9 @@ public class SQLData {
 									+ "ON dates.bugid = tags.bugid " 
 									+ "LEFT JOIN `screenshots` "
 									+ "ON dates.bugid = screenshots.bugid " 
+									+ "LEFT JOIN `comments` "
+									+ "ON dates.bugid = comments.bugid " 
+									
 									+ "ORDER BY dates.bugid;";
 									
 							
@@ -133,7 +137,7 @@ public class SQLData {
 				String status = result.getString("status");
 				String version = result.getString("version");
 				String stage = result.getString("stage");
-
+				
 				// Updated Info
 				String whoUpdated = result.getString("whoupdated");
 				String lastUpdated = result.getString("lastupdated");
@@ -142,6 +146,12 @@ public class SQLData {
 				//
 				// Multiple entries
 				//
+				
+				// Comments
+				String comment = result.getString("comment");
+				Integer commentid = result.getInt("commentid");
+				String whocommented = result.getString("whocommented");
+				String datecommented = result.getString("datecommented");
 				
 				// Tags
 				String tag = result.getString("tag");
@@ -161,6 +171,10 @@ public class SQLData {
 					bugMapping.put(id, bug);
 					bug.whoUpdated = whoUpdated;
 					bug.lastUpdate = lastUpdated;
+					
+					if( comment != null ){
+						bug.addComment(new Comment(comment, commentid, whocommented, datecommented));
+					}
 				}
 				else{
 					// Already saved this bug. So we must have additional entries for the bug
@@ -177,6 +191,11 @@ public class SQLData {
 					// Add another screenshot
 					if( screenshot != null ){
 						saved.addScreenshot(link, screenshot);
+					}
+					
+					// Add another comment
+					if( comment != null ){
+						saved.addComment(new Comment(comment, commentid, whocommented, datecommented));
 					}
 				}
 			}	
@@ -205,7 +224,7 @@ public class SQLData {
 			lastUpdate = retrieveCurrentTime();
 			
 			// Select all bugs, tags, screenshots and order them by BugID.
-			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage "
+			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage, comment, commentid, whocommented, datecommented "
 							+"FROM `bugs` "
 							+"LEFT JOIN `bugdates` "
 							+"ON bugs.bugid = bugdates.bugid "
@@ -219,6 +238,8 @@ public class SQLData {
 							+"ON bugs.bugid = tags.bugid "
 							+"LEFT JOIN `screenshots` "
 							+"ON bugs.bugid = screenshots.bugid "
+							+"LEFT JOIN `comments` "
+							+"ON bugs.bugid = comments.bugid "
 							
 							+"ORDER BY bugs.bugid;";
 			
@@ -316,6 +337,8 @@ public class SQLData {
 
 		} catch (SQLException e) {
 			e.printStackTrace();
+			
+			PopupError.show("Could not Connect", e.getMessage());
 		}
 	}
 	
@@ -640,7 +663,7 @@ public class SQLData {
 			queries.add("INSERT INTO versions (`version`, `stage`, `bugid`) VALUES ('" + newBug.version.version + "', '" + newBug.version.stage + "', '" + ID +"');");
 		}
 		else if( oldBug != null && !oldBug.version.equals(newBug.version) ){
-			queries.add("UPDATE versions SET version = '" + newBug.version + "' WHERE BugId = " + ID + "; ");
+			queries.add("UPDATE versions SET version = '" + newBug.version.version + "' WHERE BugId = " + ID + "; ");
 		}
 
 		// Tags have changed
@@ -712,6 +735,10 @@ public class SQLData {
 		return false;
 	}
 
+	public static List<Comment> getComments(BugItem bug){
+		return null;
+	}
+	
 	/**
 	 * Creates queries that require editing the database related to the Tags of the oldBug and the newBug
 	 * @param oldBug Oldbug that was pulled from the database
@@ -865,6 +892,19 @@ public class SQLData {
 	 */
 	public static String getDatabase() {
 		return database;
+	}
+
+	public static boolean submitComment(String text, BugItem selectedBug) {
+		
+		String currentTime = retrieveCurrentTime();
+		
+		String query = "INSERT INTO `comments`(`comment`, `whocommented`, `bugid`) VALUES ('"+text+"','"+username+"','"+selectedBug.ID+"')";
+		boolean commentedSubmitted = submitQuery(query);
+		if( commentedSubmitted ){
+			updateBugsLastReportedDate(selectedBug, currentTime);
+		}
+		
+		return commentedSubmitted;		
 	}
 }
 
