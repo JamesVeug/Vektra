@@ -1,20 +1,24 @@
 package vektra;
 
+/**
+ * Each Bug that gets reporter is required to have a Tag which explains what type of problem is being reporter.
+ * Each Tag can display a Visual, Audio, Breaking... etc problem.
+ * @author James
+ *
+ */
 public class Tag {
-	final String message;
-	final int tagid;
-	final int bugid;
+	final String message; // Visual representation of the problem (Visual, Audio etc...)
+	final int tagid; // Used to distinguish this Tag from any other Tag with the same Message.
 	
-	public Tag(int tagid, int bugid, String message) {
+	public Tag(int tagid, String message) {
 		super();
 		this.message = message;
 		this.tagid = tagid;
-		this.bugid = bugid;
 	}
 	
 	@Override
 	public String toString(){
-		return ("(" + tagid + " : " + bugid + " : " + message + ")");
+		return ("(" + tagid + " : " + message + ")");
 	}
 
 	/* (non-Javadoc)

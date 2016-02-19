@@ -265,7 +265,7 @@ public class LocalResources {
 	}
 
 	private static String getImageDirectory() {
-		return "resources/" + SQLData.getServer() + "/images/";
+		return "resources/" + SQLData.getDatabase() + "/images/";
 	}
 	
 	/**

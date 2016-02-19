@@ -349,16 +349,16 @@ public class ModifyReport {
 		Set<Tag> tags = new HashSet<Tag>();
 		
 		if( GAMEPLAY.isSelected() ){
-			tags.add(new Tag(-1,bugid,"GAMEPLAY"));
+			tags.add(new Tag(-1,"GAMEPLAY"));
 		}
 		if( VISUAL.isSelected() ){
-			tags.add(new Tag(-2,bugid,"VISUAL"));
+			tags.add(new Tag(-2,"VISUAL"));
 		}
 		if( AUDIO.isSelected() ){
-			tags.add(new Tag(-3,bugid,"AUDIO"));
+			tags.add(new Tag(-3,"AUDIO"));
 		}
 		if( BREAKING.isSelected() ){
-			tags.add(new Tag(-4,bugid,"BREAKING"));
+			tags.add(new Tag(-4,"BREAKING"));
 		}
 		
 		

@@ -17,25 +17,40 @@ import javafx.collections.ObservableList;
 import vektra.dialogs.PopupError;
 import vektra.resources.R;
 
+/**
+ * SQLData class contains all SQL related queries to and from the Database 
+ * @author James
+ *
+ */
 public class SQLData {
+	
+	// Connection to the database if there is one 
 	private static Connection con;
 		
+	// Information that connects to the server
 	private static String username = "-";
 	private static String password = "-";
-	private static String server = "mathparser.com";
-	private static String table = "-";
+	private static String server = "-";
+	private static String database = "-";
 
+	// Last update time performed to check for new data
 	private static String lastUpdate = "";
 
-	
+	/**
+	 * Performs a check against the database to see if any new updates to the database have been performed.
+	 * If we do not have a connection to the database. This will attempt to reconnect. If it it's still not connected, it will then return null.
+	 * @return new ObservableList containing the complete BugItems that have been updated in the database.
+	 */
 	public static ObservableList<BugItem> getUpdatedData(){
+		
+		// Connect if we aren't connected yet.
 		connect();
 		
+		// If we still aren't connected. return null
 		if( !isConnected() ){
 			return null;
 		}
 		
-		System.out.println("Getting updated data");
 
 		try {
 
@@ -45,19 +60,16 @@ public class SQLData {
 			// Get all the updates from the last time we performed a select
 			String previousDate = lastUpdate;
 			
-			System.out.println("Current:  " + currentDate);
-			System.out.println("Previous: " + previousDate);
-			
 			
 			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
 			
-			Statement st = con.createStatement();// createStatement();
+			Statement st = con.createStatement();
 			
 			// Get all the bugid's that have been updated since the last time we updated
 			String dateQuery = "(SELECT * FROM `bugdates` WHERE `lastupdated` >= '" + previousDate + "')";
 			System.out.println("Date Query: '" + dateQuery + "'");
 
-			
+			// Select all the bugs that have been updated since we last checked the database
 			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage " 
 									+ "FROM "
 									+ dateQuery + " AS dates "
@@ -77,12 +89,6 @@ public class SQLData {
 									+ "ON dates.bugid = screenshots.bugid " 
 									+ "ORDER BY dates.bugid;";
 									
-			
-			/*String selectionQuery = "SELECT b.bugid, d.whoupdated, d.lastupdated, date, message,poster, priority, status, tag, tagid, link FROM "
-									+ "bugs b, priorities p, statuses s , tags t, screenshots h, " + dateQuery + " AS d "
-									+ "WHERE "
-									+ "d.bugid = b.bugid AND d.bugid = p.bugid AND d.bugid = s.bugid AND d.bugid = t.bugid AND d.bugid = h.bugid;";*/
-			//System.out.println("Selection Query: \n'" + selectionQuery + "'"); 
 							
 			// Get all the information
 			ResultSet result = st.executeQuery(selectionQuery);
@@ -91,17 +97,19 @@ public class SQLData {
 			processResults(result, bugs);
 			
 			
-			// Save lastUpdate as currentDate so we can get the next load of date!
+			// If we received an update. Record the time
 			if( !bugs.isEmpty() ){
 				lastUpdate = currentDate;
-				System.out.println("Size: " + bugs);
 			}
 			
+			// Finished getting update
 			return bugs;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		// An error occured. Just return null
 		return null;
 	}
 
@@ -131,19 +139,34 @@ public class SQLData {
 				String lastUpdated = result.getString("lastupdated");
 
 				
+				//
 				// Multiple entries
+				//
+				
+				// Tags
 				String tag = result.getString("tag");
 				int tagid = result.getInt("tagid");
+				Tag tagItem = new Tag(tagid, tag);
 				
 				// Screensots
 				String link = result.getString("link");
 				int screenshotid = result.getInt("screenshotid");
-	
-				// Get screenshots
 				BugImage screenshot = getScreenshot(screenshotid, link);
-				Tag tagItem = new Tag(tagid, id, tag);
 				
-				if( bugMapping.containsKey(id) ){
+				
+				// If we haven't recorded this bug yet. Save it as a new entry 
+				if( !bugMapping.containsKey(id) ){
+					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), Status.get(status), poster,message,date, new Version(version,Stage.get(stage)), screenshot != null ? link : null, screenshot != null ? screenshot : null);
+					bugs.add(bug);
+					bugMapping.put(id, bug);
+					bug.whoUpdated = whoUpdated;
+					bug.lastUpdate = lastUpdated;
+				}
+				else{
+					// Already saved this bug. So we must have additional entries for the bug
+					// that will be listed under the 'Multiple entries' comment, above.
+					
+					// Get bug that we have already saved
 					BugItem saved = bugMapping.get(id);
 					
 					// Add another tag
@@ -155,45 +178,33 @@ public class SQLData {
 					if( screenshot != null ){
 						saved.addScreenshot(link, screenshot);
 					}
-					
-					if( priority != null ){
-						saved.priority = Priority.get(priority);
-					}
-					
-					if( status != null ){
-						saved.status = Status.get(status);
-					}
 				}
-				else{
-					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), Status.get(status), poster,message,date, new Version(version,Stage.get(stage)), screenshot != null ? link : null, screenshot != null ? screenshot : null);
-					bugs.add(bug);
-					bugMapping.put(id, bug);
-					bug.whoUpdated = whoUpdated;
-					bug.lastUpdate = lastUpdated;
-					//System.out.println("\tWhoUpdated: " + bug.whoUpdated);
-					//System.out.println("\tLastUpdate: " + bug.lastUpdate);
-				}
-			}
-			
+			}	
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		//long endTime = System.currentTimeMillis();
-		//System.out.println("Time Taken to search: " + (endTime - startTime) + " " + bugs.size() + " bugs!");
 	}
 	
+	/**
+	 * Retrieves all data from the database and returns a new ObservableList that contains BugItems converted from the data that was pulled.
+	 * @return List of all BugItems from the database, otherwise null if we could not connect or an exception was called.
+	 */
 	public static ObservableList<BugItem> getData(){
+		
+		// Connect if required
 		connect();
+		
+		// Still not connected
 		if( !isConnected() ){
 			return null;
 		}
 		
 		try {
-			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
 			
 			// Get current time
 			lastUpdate = retrieveCurrentTime();
+			
+			// Select all bugs, tags, screenshots and order them by BugID.
 			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage "
 							+"FROM `bugs` "
 							+"LEFT JOIN `bugdates` "
@@ -211,25 +222,29 @@ public class SQLData {
 							
 							+"ORDER BY bugs.bugid;";
 			
-			System.out.println(query);
-			
+			// Perform the query
 			Statement st = con.createStatement();	
 			ResultSet result = st.executeQuery(query);
+
+			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
+			
+			// Convert data into BugItems, and store them in list above.
 			processResults(result, bugs);
 			
+			// Return entire list of bugs
 			return bugs;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
-		
+		// An error occured
 		return null;
 	}
 
 	/**
 	 * Gets the current time off the database
-	 * @return
+	 * @return String representation of the current date and time that is on the database
 	 */
 	public static String retrieveCurrentTime() {
 		
@@ -249,163 +264,221 @@ public class SQLData {
 		return null;
 	}
 
-
-
+	/**
+	 * Gets the Image from the given link.
+	 * @param screenshotid ID to apply to a valid BugImage.
+	 * @param link Where to get the image from ( online link )
+	 * @return BugImage that stores the link and screenshotid if it's valid. Otherwise null
+	 */
 	private static BugImage getScreenshot(int screenshotid, String link) {
-		//System.out.println("Link: " + link);
+		
+		// Check to make sure we have a valid link from the database
 		if( link != null && !link.isEmpty() ){
-			try{
-				System.out.println("Screenshotid " + screenshotid);
-				BugImage image = R.getImage(link, 400, 300, screenshotid);
-				image.screenshotID = screenshotid;
-				return image;
-			}catch( IllegalArgumentException e ){
-				//popupException("Can not load image: '" + link + "'", e);
-				//System.err.println("Can not load image: '" + link + "'");
-				//System.err.println(e.message);
-				//e.printStackTrace();
-			}
+				
+			// Get it from our database
+			// Either from our computer, or download off the internet
+			BugImage image = R.getImage(link, 400, 300, screenshotid);
+			image.screenshotID = screenshotid;
+			
+			// Return BugImage
+			return image;
 		}
 		
+		// Could not get the image
 		return null;
 	}
 
+	/**
+	 * Attempts to reconnect to the database using the currently assigned database values
+	 */
 	private static void connect() {
+		
 		try {
+			
+			// Check to make sure we don't already have a valid connection
 			if( con != null && !con.isClosed() ){
 				return;
 			}
 			
+			//System.out.println("SQL Connecting to Server (" + server + ", " + database + ", " + username + ", " + password + ")");
 			
+			// Set up a new DataSource on where we are connecting to
 			MysqlDataSource dataSource = new MysqlDataSource();
 			dataSource.setUser(username);
 			dataSource.setPassword(password);
 			dataSource.setServerName(server);
-			dataSource.setDatabaseName(table);
+			dataSource.setDatabaseName(database);
 			dataSource.setPort(3306);			
+			
+			// Attempt to connect
 			con = dataSource.getConnection();
 			
 
-			System.out.println("SQL Connect Try Finished");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		System.out.println("SQL Connect Finished");
 	}
 	
+	/**
+	 * Close the connection to the database 
+	 */
 	public static void close(){
-		System.out.println("SQLDATA WARNING: CLOSING");
 		try {
+			
+			// Make sure we are connected
 			if( con != null && !con.isClosed() ){
+				// Stop the connection
 				con.close();
 			}
-			System.out.println("SQLDATA WARNING: CLOSED");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static boolean connect(String server, String name, String pass){
-		table = server;
-		username = name;
-		password = pass;
+	/**
+	 * Assigns new connection info for our database to connect to
+	 * Starts a new connection  
+	 * @param server Public domain on where we are connecting to
+	 * @param database Table of which we will pull information from
+	 * @param name Username of person connecting
+	 * @param pass Password of account
+	 * @return If we are connected or not
+	 */
+	public static boolean connect(String server, String database, String name, String pass){
 		
+		// Assign new server information
+		SQLData.server = server;
+		SQLData.database = database;
+		SQLData.username = name;
+		SQLData.password = pass;
+		
+		// Connect to database
 		connect();
 		
+		// Return if we are connected or not.
 		return isConnected();
 	}
 
+	/**
+	 * Check if the Database is currently connected
+	 * @return True if we are connected. False if not
+	 */
 	public static boolean isConnected() {
+		
 		try {
+			// Check for valid connection
 			return con != null && !con.isClosed();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
+		} catch (SQLException e) {}
+		
+		// Not connected
+		return false;
 	}
 
+	/**
+	 * Gets current Username of person that is connected to the database
+	 * @return String of username
+	 */
 	public static String getUsername() {
 		return username;
 	}
 
-	public static int insert(BugItem bug) {
+	/**
+	 * Insert a new bug into the database
+	 * @param bug What to insert into the database
+	 * @return Integer value is the bug was inserted or not. Negative if failed. Otherwise returns the BugID that was inserted
+	 */
+	public static List<Integer> insert(BugItem bug) {
+		List<Integer> errors = new ArrayList<Integer>();
+		
+		// Attempt to insert the bug!
 		if( !isConnected() ){
-			System.out.println("Not connected!");
-			return -1;
+			errors.add(-1);
+			return errors;
 		}
 		
+		// Get the current time
 		String currentTime = retrieveCurrentTime();
 			
+		// Attempt inserting the bug
 		String bugcommand = "INSERT INTO bugs (`poster`, `message`) VALUES ('" + username + "', '" + fix(bug.message) + "')";
 		boolean bugcommandConfirmation = submitQuery(bugcommand);
 		if( !bugcommandConfirmation ){
-			System.out.println("Did not submit bug!");
-			return -2;
+			errors.add(-2);
+			
+			// Could not report the bug. Do not process anything else
+			return errors;
 		}
 		
-		
 		// Get the bug we just added		
-		int bugid = getSubmittedBugID(username, bug.message );
+		int bugid = getSubmittedBugID(bug.message );
 		bug.ID = bugid;
+		
+		// Save the bugid in the errors
+		errors.add(bug.ID);
+		
+		// Submit the priority
 		String prioritycommand = "INSERT INTO priorities (`priority`, `bugid`) VALUES ('" + bug.priority + "', '" + bugid + "')";
 		boolean prioritycommandConfirmation = submitQuery(prioritycommand);
 		if( !prioritycommandConfirmation ){
-			System.out.println("Did not submit Priority!");
-			return -3;
+			errors.add(-3);
+			return errors;
 		}	
 		
+		// Submit the Status
 		String statuscommand = "INSERT INTO statuses (`status`, `bugid`) VALUES ('"+bug.status+"', '" + bugid + "')";
 		boolean statusstatusConfirmation = submitQuery(statuscommand);
 		if( !statusstatusConfirmation ){
-			System.out.println("Did not submit Status!");
-			return -4;
+			errors.add(-4);
 		}
 		
-		String versioncommand = "INSERT INTO versions (`version`, `bugid`) VALUES ('"+bug.version+"', '" + bugid + "')";
+		// Submit the version
+		String versioncommand = "INSERT INTO versions (`version`, `stage`, `bugid`) VALUES ('" + bug.version.version + "', '" + bug.version.stage + "', '" + bugid + "')";
 		boolean versionConfirmation = submitQuery(versioncommand);
 		if( !versionConfirmation ){
-			System.out.println("Did not submit Version!");
-			return -5;
+			errors.add(-5);
 		}
 		
-		//String screenshotcommand;
+		// Submit the Screenshots
 		if( bug.imageMap != null && !bug.imageMap.isEmpty() ){
 			String screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES " + listToMultipleValues(bug.imageMap.keySet(), String.valueOf(bugid));
 			boolean screenshotcommandConfirmation = submitQuery(screenshotcommand);
 			if( !screenshotcommandConfirmation ){
-				System.out.println("Did not submit Screenshots!");
-				return -6;
+				errors.add(-6);
 			}
 		}
-//		else{
-//			screenshotcommand = "INSERT INTO screenshots (`link`, `bugid`) VALUES ('" + "NULL" + "', '" + bugid + "');";
-//		}
 		
-		
+		// Submit the Tags
 		String tagcommand = "INSERT INTO tags (`tag`, `bugid`) VALUES " + listToMultipleValues(bug.getTagMessages(), String.valueOf(bugid));
 		boolean tagcommandConfirmation = submitQuery(tagcommand);
 		if( !tagcommandConfirmation ){
-			System.out.println("Did not submit TAGS!!");
-			return -7;
+			errors.add(-7);
 		}
 		
-		// Tell everyone this has been updated
+		// Create a record that this bug has been inserted
 		updateBugsLastReportedDate(bug,currentTime);
-		System.out.println("Inserted bug with ID " + bugid);
-		
-		return bugid;
+				
+		// Return the results
+		return errors;
 	}
 
-	private static int getSubmittedBugID(String username, String message) {
-		System.out.println("Looking for Submitted bugs's ID!");
-		Statement st;
+	/**
+	 * Gets the BugId of the recently submitted bug
+	 * This method uses the username in the database to get the person that just submitted the bug
+	 * @param message Message of the bug reported
+	 * @return int value of the bugid that was submitted. Otherwise -1 if failed.
+	 */
+	private static int getSubmittedBugID(String message) {
+		
 		try {
-			st = con.createStatement();
+			
+			// Create selection to get the BugID by getting the last bug submitted by the person with the SQLData's username.
+			Statement st = con.createStatement();
 			String selection = "SELECT bugid FROM (select bugid,date FROM bugs WHERE poster = '" + username + "' order by convert(date, datetime) DESC LIMIT 1) as TEMP";
 			ResultSet result = st.executeQuery(selection);
 			while( result.next() ){
+				
+				// Get the ID. Convert to an int and return it
 				int id = result.getInt("bugid");
-				System.out.println("\tRecieved: " + id);
 				return id;
 			}
 		} catch (SQLException e) {
@@ -413,37 +486,71 @@ public class SQLData {
 		}
 		
 		
-		System.out.println("Couldn't find ID!");
+		// Could not get BugID
 		return -1;
 	}
 
-	private static boolean submitQuery(String bugcommand) {
-		System.out.println("Submitting Query: '" + bugcommand + "'");
-		Statement st;
+	/**
+	 * Submits the given command to the database and returns true if the submission was successfuly
+	 * @param query Query to send to the database
+	 * @return True if submission was successfuly
+	 */
+	private static boolean submitQuery(String query) {
+		
 		try {
-			st = con.createStatement();
-			boolean result = st.execute(bugcommand);
+			// Submit query
+			Statement st = con.createStatement();
 			
-			System.out.println("Finished Submitting Query: '" + result + "'");
+			@SuppressWarnings("unused")
+			boolean result = st.execute(query);
+			
+			// No errors occured.
+			// Submission was successuly
 			return true;
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
+		
+		// An error occured.
+		// Did not submit successfully
 		return false;
 	}
 
-	private static String listToMultipleValues(Collection<String> list, String value){
-		if( list == null || list.isEmpty() ){
+	/**
+	 * Takes a list of keys and a single value to match them for a multiple value query.
+	 * 
+	 * Example:
+	 * Link  keys = (www.something.com/ef.jpg, www.where.au/picture.png)
+	 * BugID value = 42346
+	 * 
+	 * returns: ('www.something.com/ef.jpg', '42346'), ('www.where.au/picture.png', '42346')
+	 * 
+	 * 
+	 * @param keys Keys to match with the value
+	 * @param value To be matches to each of the keys
+	 * @return String combining each of the keys to the value as a entry.
+	 */
+	private static String listToMultipleValues(Collection<String> keys, String value){
+		if( keys == null || keys.isEmpty() ){
 			return null;
 		}
 		
+		
+		// Finished multiple string value
 		String string = "";
 		
 		
+		// Step through each of the strings
 		int i = 0;
-		for(String s : list){
+		for(String s : keys){
+			
+
+			// Wrap the key with the value
 			string += "( '" + s + "', '" + value + "')";
-			if( (++i) < list.size() ){
+			
+			// If we have another key in the list
+			// add a comma so we can combine them
+			if( (++i) < keys.size() ){
 				string += ",";
 			}
 		}
@@ -451,35 +558,47 @@ public class SQLData {
 		return string;
 	}
 
-	public static boolean delete(BugItem item) {
-		System.out.println("Deleting Bug " + item);
+	/**
+	 * Delete the given bug bug from the database
+	 * @param bugToDelete Bug that is in the database and needs to be deleted
+	 * @return True if deleting was successfuly
+	 */
+	public static boolean delete(BugItem bugToDelete) {
+		
+		// Make sure we are connected first
 		if( !isConnected() ){
-			System.out.println("Not connected");
 			return false;
 		}
-		else if( item == null ){
-			System.out.println("Given null bug");
+		else if( bugToDelete == null ){
+			
+			// Can not delete a null bug
 			return false;
 		}
 
 		// Get currentTime
 		String currentTime = retrieveCurrentTime();
 		
-		System.out.println("Bug ID: " + item.ID);
-		boolean deleted = submitQuery("DELETE FROM bugs where bugid = " + item.ID);
+		System.out.println("Bug ID: " + bugToDelete.ID);
+		boolean deleted = submitQuery("DELETE FROM bugs where bugid = " + bugToDelete.ID);
 		if( !deleted ){
 			System.out.println("Did not delete bug!");
 			return false;
 		}	
 		
 		// Report update
-		updateBugsLastReportedDate(item, currentTime);
+		updateBugsLastReportedDate(bugToDelete, currentTime);
 		
-		System.out.println("Finished Deleting");
+		// Successfully deleted
 		return true;
 	}
 
 
+	/**
+	 * Updates the bug that is already in the database with an improved version of the bug
+	 * @param oldBug Bug that has been pulled from the database
+	 * @param newBug Newly created from from the EditReport Dialog
+	 * @return True if updated correctly. Otherwise False
+	 */
 	public static boolean update(BugItem oldBug, BugItem newBug) {
 		System.out.println("Updating bug " + oldBug.ID);
 		
@@ -516,15 +635,16 @@ public class SQLData {
 		// Version has changed
 		System.out.println(newBug.version);
 		if( newBug.version != null && oldBug.version == null ){
+			
 			// insert new version!
-			queries.add("INSERT INTO versions (`version`,`bugid`) VALUES ('" + newBug.version + "', '"+ID+"');");
+			queries.add("INSERT INTO versions (`version`, `stage`, `bugid`) VALUES ('" + newBug.version.version + "', '" + newBug.version.stage + "', '" + ID +"');");
 		}
 		else if( oldBug != null && !oldBug.version.equals(newBug.version) ){
 			queries.add("UPDATE versions SET version = '" + newBug.version + "' WHERE BugId = " + ID + "; ");
 		}
 
 		// Tags have changed
-		List<String> tagQueries = getModifiedTags(oldBug,newBug);
+		List<String> tagQueries = getModifiedTagQueries(oldBug,newBug);
 		if( !tagQueries.isEmpty() ){
 			for(String s : tagQueries ){
 				queries.add(s);
@@ -532,7 +652,7 @@ public class SQLData {
 		}
 
 		// The person editing is not the same person that created the bug
-		List<String> screenshotQueries = getModifiedScreenshots(oldBug, newBug);
+		List<String> screenshotQueries = getModifiedScreenshotQueries(oldBug, newBug);
 		if( !screenshotQueries.isEmpty() ){
 			for(String s : screenshotQueries ){
 				queries.add(s);
@@ -552,44 +672,53 @@ public class SQLData {
 		updateBugsLastReportedDate(newBug, currentTime);
 
 		
-		
+		// Before we update. Make sure we are connected
 		connect();
 		
-		if( isConnected() ){
+		if( !isConnected() ){
+			return false;
+		}
 			
-			try{
-				System.out.println("Beginning Update with " + queries.size() + " queries.");
+		try{
+			System.out.println("Beginning Update with " + queries.size() + " queries.");
 
-				long start = System.currentTimeMillis();
-				for(int i = 0; i < queries.size(); i++){
-					String query = queries.get(i);
-					
-					System.out.println("\tUpdating with: \n\t\t'" + query + "'");
-					
-					long updateStart = System.currentTimeMillis();
-					Statement st = con.createStatement();
-					boolean result = st.execute(query);
-					long updateEnd = System.currentTimeMillis();
-					long updateTime = updateEnd-updateStart;
-					
-					
-					System.out.println("\t\tFinished Submitting Update Query: '" + result + "' " + updateTime + "ms.");
-				}
+			long start = System.currentTimeMillis();
+			for(int i = 0; i < queries.size(); i++){
+				String query = queries.get(i);
 				
-				long end = System.currentTimeMillis();
-				long time = end-start;
-				System.out.println("\tFinished Update: " + time + "ms.");
+				System.out.println("\tUpdating with: \n\t\t'" + query + "'");
 				
-				return true;
-			}catch(SQLException e){
-				e.printStackTrace();
+				long updateStart = System.currentTimeMillis();
+				Statement st = con.createStatement();
+				boolean result = st.execute(query);
+				long updateEnd = System.currentTimeMillis();
+				long updateTime = updateEnd-updateStart;
+				
+				
+				System.out.println("\t\tFinished Submitting Update Query: '" + result + "' " + updateTime + "ms.");
 			}
+			
+			long end = System.currentTimeMillis();
+			long time = end-start;
+			System.out.println("\tFinished Update: " + time + "ms.");
+			
+			// Updated without error
+			return true;
+		}catch(SQLException e){
+			e.printStackTrace();
 		}
 		
+		// An error occured
 		return false;
 	}
 
-	private static List<String> getModifiedTags(BugItem oldBug, BugItem newBug) {
+	/**
+	 * Creates queries that require editing the database related to the Tags of the oldBug and the newBug
+	 * @param oldBug Oldbug that was pulled from the database
+	 * @param newBug Newly created bug that was created in the EditReport dialog
+	 * @return List of queries required to update the Tags for the new bug
+	 */
+	private static List<String> getModifiedTagQueries(BugItem oldBug, BugItem newBug) {
 		
 		List<String> queries = new ArrayList<String>();
 		System.out.println("OldTags: " + oldBug.tags);
@@ -617,7 +746,7 @@ public class SQLData {
 				// No?
 					
 				// Insert Tag into DB
-				queries.add("INSERT INTO `tags` (`tag`, `bugid`) VALUES ('"+tag.message+"', '"+tag.bugid+"');");
+				queries.add("INSERT INTO `tags` (`tag`, `bugid`) VALUES ('"+tag.message+"', '"+newBug.ID+"');");
 			}
 		}
 		
@@ -625,13 +754,15 @@ public class SQLData {
 		return queries;
 	}
 	
-	private static List<String> getModifiedScreenshots(BugItem oldBug, BugItem newBug) {
+	/**
+	 * Gets all the queries in relation to the screenshots that need to be added or deleted by comparing the two bugs.
+	 * @param oldBug Oldbug that was pulled from the database
+	 * @param newBug Newly created bug that was created in the EditReport dialog
+	 * @return Queries that require deleting and updating the database to sync up to the newBugs screenshots.
+	 */
+	private static List<String> getModifiedScreenshotQueries(BugItem oldBug, BugItem newBug) {
 		
 		List<String> queries = new ArrayList<String>();
-		System.out.println("Old " + oldBug.ID);
-		System.out.println("New " + newBug.ID);
-		System.out.println("OldLinks: " + oldBug.imageMap.hashCode() + " " + oldBug.imageMap.keySet());
-		System.out.println("NewLinks: " + newBug.imageMap.hashCode() + " " + newBug.imageMap.keySet());
 		
 		// Step through each tag in oldBug
 		for( String link : oldBug.imageMap.keySet() ){
@@ -670,71 +801,71 @@ public class SQLData {
 	 */
 	private static String fix(String message) {
 		
+		// If we have a single ' in the message. Add another so it doesn't break the query. 
 		String quotes = message.replaceAll("'", "''");
 		
 		return quotes;
 	}
 
 	/**
-	 * 
-	 * @param newBug
+	 * Records an update for the given bug at the the current time so people can pull the change
+	 * @param newBug What bug we updated
+	 * @param currentTime When was this update performed
 	 */
 	private static void updateBugsLastReportedDate(BugItem bug, String currentTime) {
-
-		System.out.println("UPDATING BUG");
-		
-		// TODO Implement and TEST adding new rows to the bugdates Table!
-		// TODO Test Vektra method where the the updated items are selected and modify the current table
 		
 		// Attempt to update
 		String updateBug = "UPDATE `bugdates` SET `lastupdated` = '"+currentTime+"', `whoupdated` = '" + username + "' WHERE `bugid` = '"+bug.ID+"';";
 
 		try {
 		
+			// Attempt to update the database with the new bug
 			Statement st = con.createStatement();
-			
-			int b = st.executeUpdate(updateBug);
+			st.executeUpdate(updateBug);
 			int r = st.getUpdateCount();
 
-			System.out.println("UPDATED: " + r + " b " + b);
+			// Check we updated at least 1 row
 			if( r == 0 ){
+				
+				// Did not update anything. So insert a new update
 				String insertUpdate = "INSERT INTO `bugdates`(`bugid`, `lastupdated`, `whoupdated`) VALUES ('"+bug.ID+"', '"+currentTime+"', '" + username + "');";     
 				
 				Statement st2 = con.createStatement();
-				int inserted = st2.executeUpdate(insertUpdate);
-				System.out.println("INSERTED: " + inserted);
+				st2.executeUpdate(insertUpdate);
 			}
 			else if( r < 0 ){
-				throw new RuntimeException("Updating returned " + r);
+				PopupError.show("Error Recording Last update", "Could not record update for bug " + bug.ID + " with error " + r);
 			}
-		
-		
-		
-		// Else
-		
-		
-		
-		
-		// Insert
 		
 
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 	/**
-	 * @return the lastUpdate
+	 * Get the date of the last performed update that changed the database
+	 * @return The lastUpdate date and time
 	 */
 	public static String getLastUpdate() {
 		return lastUpdate;
 	}
 
+	/**
+	 * Get the server that we are connected/connecting to
+	 * @return server that the SQLData is using for connections 
+	 */
 	public static String getServer() {
-		return table;
+		return server;
 	}
-
+	
+	/**
+	 * Get the database that we are pulling bugs from
+	 * @return Database that we are connected to 
+	 */
+	public static String getDatabase() {
+		return database;
+	}
 }
 
 

@@ -46,8 +46,11 @@ public class LoginDialog {
 		grid.setVgap(10);
 		grid.setPadding(new Insets(20, 150, 10, 10));
 
-		final TextField table = new TextField();
-		table.setPromptText("Server");
+		final TextField server = new TextField();
+		server.setPromptText("Server");
+		server.setText("mathparser.com");
+		final TextField database = new TextField();
+		database.setPromptText("Table");
 		final TextField username = new TextField();
 		username.setPromptText("Username");
 		final PasswordField password = new PasswordField();
@@ -55,17 +58,19 @@ public class LoginDialog {
 		
 
 		
-
 		grid.add(new Label("Server:"), 0, 0);
-		grid.add(table, 1, 0);
-		grid.add(new Label("Username:"), 0, 1);
-		grid.add(username, 1, 1);
-		grid.add(new Label("Password:"), 0, 2);
-		grid.add(password, 1, 2);
+		grid.add(server, 1, 0);
+		grid.add(new Label("Database:"), 0, 1);
+		grid.add(database, 1, 1);
+		grid.add(new Label("Username:"), 0, 2);
+		grid.add(username, 1, 2);
+		grid.add(new Label("Password:"), 0, 3);
+		grid.add(password, 1, 3);
 
 		// Enable/Disable login button depending on whether a username was entered.
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
+		
 
 		// Do some validation (using the Java 8 lambda syntax).
 		username.textProperty().addListener(new ChangeListener<String>(){
@@ -84,7 +89,7 @@ public class LoginDialog {
 
 			@Override
 			public void run() {
-				table.requestFocus();
+				database.requestFocus();
 			}
 			
 		});
@@ -110,7 +115,7 @@ public class LoginDialog {
 
 			@Override
 			public void accept(Pair<String, String> pair) {
-				if( SQLData.connect(table.getText(), pair.getKey(), pair.getValue()) ){
+				if( SQLData.connect(server.getText(), database.getText(), pair.getKey(), pair.getValue()) ){
 					
 					hasConnected = true;
 				}
