@@ -1,21 +1,25 @@
 package vektra;
 
+import java.sql.Date;
+
 public class Comment {
 	final int id;
 	final String poster;
-	final String timePosted;
+	final Date timePosted;
 	final String message;
+	final int bugid;
 	
-	public Comment(String poster, String timePosted, String message) {
-		this(message, -1, poster, timePosted);
+	public Comment(String poster, Date timePosted, String message, int bugid) {
+		this(message, -1, poster, timePosted, bugid);
 	}
 	
-	public Comment(String comment, int commentid, String whocommented, String datecommented) {
+	public Comment(String comment, int commentid, String whocommented, Date datecommented, int bugid) {
 		super();
 		this.poster = whocommented;
 		this.timePosted = datecommented;
 		this.message = comment;
 		this.id = commentid;
+		this.bugid = bugid;
 	}
 	/**
 	 * @return the poster
@@ -26,7 +30,7 @@ public class Comment {
 	/**
 	 * @return the timePosted
 	 */
-	public String getTimePosted() {
+	public Date getTimePosted() {
 		return timePosted;
 	}
 	/**

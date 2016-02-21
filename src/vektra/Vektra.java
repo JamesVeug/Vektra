@@ -1,8 +1,9 @@
 package vektra;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -13,11 +14,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -26,6 +28,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -39,8 +43,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
-import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
@@ -48,6 +52,7 @@ import vektra.dialogs.LoginDialog;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
+import vektra.dialogs.PopupTextField;
 import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.EditReport;
@@ -67,7 +72,6 @@ public class Vektra extends Application{
 	public static Application APPLICATION;
 	public static final String VERSION = "0.1";
 	
-	@SuppressWarnings("unused")
 	private Stage primaryStage;
 	
 	private ObservableList<BugItem> importedData;
@@ -96,7 +100,7 @@ public class Vektra extends Application{
 	private Label openScreenshots;
 	private TextArea message;
 	private TableView<Comment> comments;
-	private ScrollPane commentScroll;
+	private Comment selectedComment;
 	private Button submitComment;
 	private TextField enterComment;
 	private Label whoLogged;
@@ -340,7 +344,7 @@ public class Vektra extends Application{
 				comments.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 				comments.getStylesheets().add("css/buglist.css");
 				
-				commentScroll = new ScrollPane(comments);
+				//commentScroll = new ScrollPane(comments);
 				setupComments(FXCollections.observableArrayList());
 				
 				
@@ -359,7 +363,7 @@ public class Vektra extends Application{
 				commentOptions.addColumn(1,enterComment);
 				
 				
-			commentPane.getChildren().add(commentScroll);
+			commentPane.getChildren().add(comments);
 			commentPane.getChildren().add(commentOptions);
 			
 			
@@ -438,13 +442,25 @@ public class Vektra extends Application{
 		if( !currentComments.isEmpty() ){
 			ObservableList<Comment> list = FXCollections.observableArrayList(currentComments);
 			comments.setItems(list);
+			
+			Collections.sort(list,new Comparator<Comment>(){
+
+				@Override
+				public int compare(Comment one, Comment two) {
+					return one.timePosted.compareTo(two.timePosted);
+				}
+				
+			});
 		}
 		
+		// Menu for when the user right clicks a comment
+		final ContextMenu contextMenu = getCommentPopupMenu();
 		
-		//comments.setItems(currentComments);
 		
 		TableColumn<Comment, String> commenterColumn = new TableColumn<Comment,String>("POSTER");
 		commenterColumn.setSortable(false);
+		commenterColumn.setMinWidth(80);
+		commenterColumn.setMaxWidth(80);
 		commenterColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("poster"));
 		commenterColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
 	        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
@@ -455,7 +471,8 @@ public class Vektra extends Application{
 	                    super.updateItem(item, empty);
 	                    if (!isEmpty()) {
 	                        this.getStylesheets().add("css/buglist.css");
-	                        //this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
+	                		this.setContextMenu(contextMenu);
 	                        
 	                        setText(item);
 	                        
@@ -472,60 +489,30 @@ public class Vektra extends Application{
 		messageColumn.setSortable(false);
 		messageColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("message"));
 		messageColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
-	        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
-	            return new TableCell<Comment, String>() {
 
-	                @Override
-	                public void updateItem(String item, boolean empty) {
-	                    super.updateItem(item, empty);
-	                    if (!isEmpty()) {
-	                        this.getStylesheets().add("css/buglist.css");
-	                        
-	                        
-	                        // Since we have a table. We want to squeeze the entire message into the cell to we don't need to scroll
-	                        // This code adds breaks every 70 characters
-	                        
-	                        // Max characters before we add a break
-	                        final int characterInt = 60;
-	                        
-	                        
-	                        int nextCharacterInt = characterInt;
-	                        int lastSpace = -1;
-	                        
-	                        int nextSpace = item.indexOf(" ");
-	                        while( nextSpace != -1 ){
-	                        	
-	                        	if( nextSpace > nextCharacterInt ){
-	                        		
-	                        		int whereToSpaceBreak = nextSpace;
-	                        		if( lastSpace == -1 ){
-	                        			
-	                        			// Add at the break
-	                        			whereToSpaceBreak = nextCharacterInt;
-	                        		}
-	                        		
-	                        		lastSpace = nextSpace;
-	                        		
-	                        		// Save string with break
-		                        	item = item.substring(0,whereToSpaceBreak) + "\n" + item.substring(whereToSpaceBreak);
-	                        		
-	                        		// Increase
-	                        		nextCharacterInt += characterInt+2;
-	                        	}
-	                        	
-	                        	nextSpace = item.indexOf(" ",nextSpace+2);
-	                        }
-	                        
-	                        System.out.println("Item:");
-	                        System.out.println(item);
-	                        
-	                        setText(item);
-	                        
-	                    }
-	                }
-	            };
-	        }
-	    });
+		        @Override
+		        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
+		            TableCell<Comment, String> cell = new TableCell<Comment, String>(){
+		            	@Override
+		                public void updateItem(String item, boolean empty) {
+		                    super.updateItem(item, empty);
+		                    if (!isEmpty()) {
+		                        setText(item);
+		                    }
+		                }
+		            };
+		            Text text = new Text();
+		            text.getStyleClass().add("table-cell");
+		            cell.setGraphic(text);
+		            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
+		            cell.getStylesheets().add("css/buglist.css");
+		            text.wrappingWidthProperty().bind(cell.widthProperty());
+		            text.textProperty().bind(cell.itemProperty());
+		            cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
+		            cell.setContextMenu(contextMenu);
+		            return cell ;
+		        }
+        });
 		if( !comments.getColumns().isEmpty() ){
 			messageColumn.setSortType(comments.getColumns().get(1).getSortType());
 		}
@@ -546,27 +533,74 @@ public class Vektra extends Application{
 		comments.getColumns().addAll(commenterColumn,messageColumn);	
 		comments.sort();
 		
-		messageColumn.setPrefWidth(320);
+//		messageColumn.setPrefWidth(320);
 		//messageColumn.minWidthProperty().bind(commentScroll.widthProperty());
 	}
 
 
-	/**
-	 * Creates mock comments to test the comment system
-	 * @return Premade list of comments
-	 */
-	private ObservableList<Comment> getMockComments() {
+	private ContextMenu getCommentPopupMenu() {
+		final ContextMenu contextMenu = new ContextMenu();
+		MenuItem copy = new MenuItem("Copy Text");
+		MenuItem edit = new MenuItem("Edit");
+		MenuItem delete = new MenuItem("Delete");
+		copy.setOnAction(new EventHandler<ActionEvent>() {
+		    @Override
+		    public void handle(ActionEvent event) {
+		    	final Clipboard clipboard = Clipboard.getSystemClipboard();
+		        final ClipboardContent content = new ClipboardContent();
+		        
+		        String commentCopy = selectedComment.getPoster() + ": " + selectedComment.message;
+		        content.putString(commentCopy);
+		        clipboard.setContent(content);
+		    }
+		});
 		
-		ObservableList<Comment> mockComments = FXCollections.observableArrayList();
+		edit.setOnAction(new EventHandler<ActionEvent>() {
+		    @Override
+		    public void handle(ActionEvent event) {
+		    	
+		    	String poster = selectedComment.poster;
+		        if( !poster.equalsIgnoreCase(SQLData.getUsername()) ){
+		        	PopupError.show("Edit Comment", "Can not edit comments not posted by you.");
+		        	return;
+		        }
+		    	
+		        String editedText = PopupTextField.show("Edit Comment","Please enter the text you wish to change the comment to.",selectedComment.getMessage());
+		        if( editedText != null ){
+		        	Comment newComment = new Comment(selectedComment.poster, selectedComment.timePosted, editedText, selectedComment.bugid);
+		        	if( !SQLData.update(selectedComment, newComment) ){
+		        		PopupError.show("Edit Comment", "Could not update comment!");;
+		        	}
+		        }
+		    }
+		});
 		
-		mockComments.add(new Comment("Joure","2016-02-13","I think we need a new comment system."));
-		mockComments.add(new Comment("Mapster","2016-02-13","Will this include updates? Because I don't need this new line stuff because sometimes you need a really really really REALLY long message just to see how long it will take to get past the screen."));
-		mockComments.add(new Comment("Sensi","2016-02-13","This would be helpful."));
-		mockComments.add(new Comment("Joure","2016-02-13","No. Just like the one off steam"));
-		mockComments.add(new Comment("Mapster","2016-02-13","Ah yeah just a simple one"));
-		mockComments.add(new Comment("Joure","2016-02-13","Yeah just to help us with tracking comments"));
+		delete.setOnAction(new EventHandler<ActionEvent>() {
+		    @Override
+		    public void handle(ActionEvent event) {
+		        String poster = selectedComment.poster;
+		        if( !poster.equalsIgnoreCase(SQLData.getUsername()) ){
+		        	PopupError.show("Delete Comment", "Can not delete comments not posted by you.");
+		        	return;
+		        }
+		        
+		        // Double check we want to delete this comment
+		        boolean confirm = PopupConfirmation.show("Delete Comment", "Are you sure you want to delete this comment?");
+		        if( !confirm ){
+		        	return;
+		        }
+		        
+		        boolean deleted = SQLData.delete(selectedComment);
+		        if( deleted ){
+		        	refreshThread.partialUpdate();
+		        }
+		        
+		    }
+		});
 		
-		return mockComments;
+
+		contextMenu.getItems().addAll(copy, edit, delete);
+		return contextMenu;
 	}
 
 
@@ -684,25 +718,14 @@ public class Vektra extends Application{
 	                        this.getStylesheets().add("css/buglist.css");
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
 	                        
-	                        String[] date = item.split("\\s|[-/:]");
-	                        
-	                        @SuppressWarnings("unused")
-							String year = date[0];
-	                        String month = date[1];
-	                        String day = date[2];
-	                        String hour = date[3];
-	                        String minute = date[4];
-	                        String second = date[5];
-	                        if( second.contains(".") ){
-	                        	second = second.substring(0, second.indexOf("."));
-	                        }
+	                        int[] date = splitDate(item);
 	                        
 //	                        System.out.println("SPLIT DATE: " + item);
 //	                        for(String s : date){
 //	                        	System.out.println("\t"+s);
 //	                        }
 	                        
-	                        String displayDate = month + "-" + day + " " + hour + ":" + minute + ":" + second;
+	                        String displayDate = date[1] + "-" + date[2] + " " + date[3] + ":" + date[4] + ":" + date[5];
 	                        
 	                        setText(displayDate);
 	                        
@@ -737,7 +760,36 @@ public class Vektra extends Application{
 		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn,updateColumn);	
 		bugs.sort();
 	}
-
+	
+	/**
+	 * Divides a timestamp into an array of integers
+	 * Year
+	 * Month
+	 * Day
+	 * Hour
+	 * Minute
+	 * Second
+	 * @param item Timestamp from the database to split
+	 * @return Array containing the entire timestamp
+	 */
+	private int[] splitDate(String item) {
+		String[] date = item.split("\\s|[-/:]");
+        
+		int[] numbered = new int[date.length];
+		numbered[0] = Integer.parseInt(date[0]); // year
+		numbered[1] = Integer.parseInt(date[1]); // Month
+		numbered[2] = Integer.parseInt(date[2]); // Day
+		numbered[3] = Integer.parseInt(date[3]); // Hour
+		numbered[4] = Integer.parseInt(date[4]); // Minute
+		
+		// Seconds sometimes have decimals. We want to remove them
+        if( date[5].contains(".") ){
+        	date[5] = date[5].substring(0, date[5].indexOf("."));
+        }
+		numbered[5] = Integer.parseInt(date[5]); // Second
+		
+		return numbered;
+	}
 
 	/**
 	 * Given an amount of data that was received from a database.
@@ -754,8 +806,16 @@ public class Vektra extends Application{
 		Thread t = new Thread(new Runnable(){
 
 			@Override
-			public void run() {
-
+			public void run() {				
+//				int[] date = splitDate(currentTime);
+//				Calendar c = new Calendar.Builder().setDate(date[0], date[1], date[2]).setTimeOfDay(date[3], date[4], date[5]).build();
+//
+//				String displayDate = c.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault()) + " " +
+//									c.getDisplayName(Calendar.DAY_OF_MONTH, Calendar.LONG, Locale.getDefault()) + " @ " +
+//									c.getDisplayName(Calendar.HOUR, Calendar.LONG, Locale.getDefault()) + ":" +
+//									c.getDisplayName(Calendar.MINUTE, Calendar.LONG, Locale.getDefault()) + ":" +
+//									c.getDisplayName(Calendar.SECOND, Calendar.LONG, Locale.getDefault());
+				
 				// Update Basic GUI
 				loggedInCurrentDate.setText(currentTime);
 				loggedInPing.setText(String.valueOf(length) + "ms");
@@ -1163,6 +1223,11 @@ public class Vektra extends Application{
 		// Delete properly
 		deselectBug();
 		PopupMessage.show("Delete Completed", "Successfully deleted Bug with ID '" + item.ID + "'");
+		refreshThread.partialUpdate();
+	}
+	
+	public void editCurrentBut() {
+		EditReport.display(selectedBug);
 	}
 
 	/**
@@ -1191,7 +1256,7 @@ public class Vektra extends Application{
 	 *
 	 */
 	private class EditReportButtonPressed implements EventHandler<ActionEvent> {
-		@Override public void handle(ActionEvent arg0) { EditReport.display(selectedBug);	}
+		@Override public void handle(ActionEvent arg0) { editCurrentBut(); }
 	}
 	
 	/**
@@ -1271,6 +1336,7 @@ public class Vektra extends Application{
 			boolean submitted = SQLData.submitComment(text,selectedBug);
 			if( submitted ){
 				enterComment.setText("");
+				refreshThread.partialUpdate();
 			}
 			else{
 				PopupError.show("Submit Commeny", "Could not submit comment");
@@ -1296,6 +1362,37 @@ public class Vektra extends Application{
             //System.out.println("index " + index);
     		BugItem item = importedData.get(index);
     		selectBug(item);
+		}
+
+	}
+	
+	/**
+	 * Listens for the user to click on a comment in the comment list
+	 * Displays a dropdown box with Edit and Delete for ONLY the persons own comments
+	 * @author James
+	 *
+	 */
+	private class CommentCellListener implements EventHandler<MouseEvent> {
+
+
+		@Override
+		public void handle(MouseEvent t) {
+
+			TableCell c = (TableCell) t.getSource();
+            int index = c.getIndex();
+            if( index > comments.getItems().size() ){
+            	selectedComment = null;
+            	return;
+            }
+            
+            // Select the comment
+    		selectedComment = comments.getItems().get(index);
+			System.out.println("selected Comment: " + selectedComment);
+			
+			System.out.println("Clicked");
+			if( t.isSecondaryButtonDown() ){
+				c.getContextMenu().show(primaryStage);
+			}
 		}
 
 	}
@@ -1399,6 +1496,10 @@ public class Vektra extends Application{
 			System.out.println("No longer refreshing!");
 		}
 		
+		public void partialUpdate() {
+			time = 0;
+		}
+
 		/**
 		 * Performs a full refresh on the data collecting everything
 		 */
@@ -1476,4 +1577,7 @@ public class Vektra extends Application{
 	public static void main(String[] args){
 		launch(args);
 	}
+
+
+	
 }

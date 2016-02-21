@@ -1,6 +1,7 @@
 package vektra;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -151,7 +152,7 @@ public class SQLData {
 				String comment = result.getString("comment");
 				Integer commentid = result.getInt("commentid");
 				String whocommented = result.getString("whocommented");
-				String datecommented = result.getString("datecommented");
+				Date datecommented = result.getDate("datecommented");
 				
 				// Tags
 				String tag = result.getString("tag");
@@ -173,7 +174,7 @@ public class SQLData {
 					bug.lastUpdate = lastUpdated;
 					
 					if( comment != null ){
-						bug.addComment(new Comment(comment, commentid, whocommented, datecommented));
+						bug.addComment(new Comment(comment, commentid, whocommented, datecommented, id));
 					}
 				}
 				else{
@@ -195,7 +196,7 @@ public class SQLData {
 					
 					// Add another comment
 					if( comment != null ){
-						saved.addComment(new Comment(comment, commentid, whocommented, datecommented));
+						saved.addComment(new Comment(comment, commentid, whocommented, datecommented, saved.ID));
 					}
 				}
 			}	
@@ -478,7 +479,7 @@ public class SQLData {
 		}
 		
 		// Create a record that this bug has been inserted
-		updateBugsLastReportedDate(bug,currentTime);
+		updateBugsLastReportedDate(bug.ID,currentTime);
 				
 		// Return the results
 		return errors;
@@ -609,7 +610,7 @@ public class SQLData {
 		}	
 		
 		// Report update
-		updateBugsLastReportedDate(bugToDelete, currentTime);
+		updateBugsLastReportedDate(bugToDelete.ID, currentTime);
 		
 		// Successfully deleted
 		return true;
@@ -692,7 +693,7 @@ public class SQLData {
 		
 		// Attempt updating
 		System.out.println("Updating with time: " + currentTime);
-		updateBugsLastReportedDate(newBug, currentTime);
+		updateBugsLastReportedDate(newBug.ID, currentTime);
 
 		
 		// Before we update. Make sure we are connected
@@ -839,10 +840,10 @@ public class SQLData {
 	 * @param newBug What bug we updated
 	 * @param currentTime When was this update performed
 	 */
-	private static void updateBugsLastReportedDate(BugItem bug, String currentTime) {
+	private static void updateBugsLastReportedDate(int bugid, String currentTime) {
 		
 		// Attempt to update
-		String updateBug = "UPDATE `bugdates` SET `lastupdated` = '"+currentTime+"', `whoupdated` = '" + username + "' WHERE `bugid` = '"+bug.ID+"';";
+		String updateBug = "UPDATE `bugdates` SET `lastupdated` = '"+currentTime+"', `whoupdated` = '" + username + "' WHERE `bugid` = '"+bugid+"';";
 
 		try {
 		
@@ -855,13 +856,13 @@ public class SQLData {
 			if( r == 0 ){
 				
 				// Did not update anything. So insert a new update
-				String insertUpdate = "INSERT INTO `bugdates`(`bugid`, `lastupdated`, `whoupdated`) VALUES ('"+bug.ID+"', '"+currentTime+"', '" + username + "');";     
+				String insertUpdate = "INSERT INTO `bugdates`(`bugid`, `lastupdated`, `whoupdated`) VALUES ('"+bugid+"', '"+currentTime+"', '" + username + "');";     
 				
 				Statement st2 = con.createStatement();
 				st2.executeUpdate(insertUpdate);
 			}
 			else if( r < 0 ){
-				PopupError.show("Error Recording Last update", "Could not record update for bug " + bug.ID + " with error " + r);
+				PopupError.show("Error Recording Last update", "Could not record update for bug " + bugid + " with error " + r);
 			}
 		
 
@@ -898,13 +899,65 @@ public class SQLData {
 		
 		String currentTime = retrieveCurrentTime();
 		
-		String query = "INSERT INTO `comments`(`comment`, `whocommented`, `bugid`) VALUES ('"+text+"','"+username+"','"+selectedBug.ID+"')";
+		String query = "INSERT INTO `comments`(`comment`, `whocommented`, `bugid`) VALUES ('"+fix(text)+"','"+username+"','"+selectedBug.ID+"')";
 		boolean commentedSubmitted = submitQuery(query);
 		if( commentedSubmitted ){
-			updateBugsLastReportedDate(selectedBug, currentTime);
+			updateBugsLastReportedDate(selectedBug.ID, currentTime);
 		}
 		
 		return commentedSubmitted;		
+	}
+
+	/**
+	 * Deletes a the given comment from the database 
+	 * @param commentToDelete What to delete
+	 * @return True if successfully deleted 
+	 */
+	public static boolean delete(Comment commentToDelete) {
+		// Make sure we are connected first
+		if( !isConnected() ){
+			return false;
+		}
+		else if( commentToDelete == null ){
+			
+			// Can not delete a null bug
+			return false;
+		}
+
+		// Get currentTime
+		String currentTime = retrieveCurrentTime();
+		
+		System.out.println("Comment ID: " + commentToDelete.id);
+		boolean deleted = submitQuery("DELETE FROM comments where commentid = " + commentToDelete.id);
+		if( !deleted ){
+			System.out.println("Did not delete bug!");
+			return false;
+		}	
+		
+		// Report update
+		updateBugsLastReportedDate(commentToDelete.bugid, currentTime);
+		
+		// Successfully deleted
+		return true;
+	}
+
+	/**
+	 * Change the comment in the database and alert evberyone of it's change
+	 * @param selectedComment What we originally had in the database
+	 * @param newComment Comment to change the old Comment to
+	 * @return True if updated correctly
+	 */
+	public static boolean update(Comment selectedComment, Comment newComment) {
+		
+		String currentTime = retrieveCurrentTime();
+		
+		String query = "UPDATE `comments` set `comment`= '" + newComment.message + "' WHERE `commentid`='" + selectedComment.id + "'; ";
+		boolean submitted = submitQuery(query);
+		if( submitted ){
+			updateBugsLastReportedDate(selectedComment.bugid, currentTime);
+		}
+		
+		return submitted;
 	}
 }
 

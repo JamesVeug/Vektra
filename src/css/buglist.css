@@ -19,6 +19,8 @@
     -fx-font-size: 10px;
     -fx-font-family: "Ariel";
     -fx-border-width: 0, 0;
+    -fx-fill: white;
+    -fx-focus-color: black;
 }
 
 .table-row-cell{

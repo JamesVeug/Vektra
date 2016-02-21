@@ -42,18 +42,22 @@ public class CreateReport extends ModifyReport{
 		
 		createReport.setDisable(true);
 		
+		System.out.println("Inserting");
+		
 		// Create
 		BugItem bug = getBug();
 		List<Integer> insertedErrors = SQLData.insert(bug);
+		System.out.println("Inserted");
 		
 		boolean addedBug = false;
 		List<String> errorMessages = new ArrayList<String>();
 		for(Integer inserted : insertedErrors){
+			System.out.println("Each " + inserted);
 		
 			if( inserted > 0 ){
 				addedBug = true;
 				errorMessages.add("Success!\nCreated a new Bug Report!\nBugID: " + inserted);
-				return;
+				break;
 			}
 			if( inserted == -1 ){
 				errorMessages.add("Not connected to database");
@@ -74,6 +78,7 @@ public class CreateReport extends ModifyReport{
 				errorMessages.add("Could not insert Tags.");
 			}
 		}
+		System.out.println("Finished inserting each");
 		
 		// If we added the bug. Close the dialog
 		if( addedBug ){
@@ -85,12 +90,14 @@ public class CreateReport extends ModifyReport{
 			createReport.setDisable(false);			
 		}
 		
+		System.out.println("Added " + addedBug);
+		
 		//
 		// Display message
 		//
 		
 		// If we did not insert the bug. Display error
-		if( insertedErrors.contains(new Integer(-2)) ){
+		if( !addedBug ){
 			PopupError.show("Failed to insert new Report!", errorMessages);
 		}
 		else if( insertedErrors.size() == 1 ){
