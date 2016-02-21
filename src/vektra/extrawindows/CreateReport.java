@@ -13,6 +13,7 @@ import vektra.Stage;
 import vektra.Status;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
+import vektra.dialogs.PopupWarning;
 import vektra.dialogs.PopupWarningConfirmation;
 
 public class CreateReport extends ModifyReport{
@@ -56,7 +57,7 @@ public class CreateReport extends ModifyReport{
 		
 			if( inserted > 0 ){
 				addedBug = true;
-				errorMessages.add("Success!\nCreated a new Bug Report!\nBugID: " + inserted);
+				errorMessages.add("New BugID: " + inserted);
 				break;
 			}
 			if( inserted == -1 ){
@@ -103,13 +104,13 @@ public class CreateReport extends ModifyReport{
 		else if( insertedErrors.size() == 1 ){
 			
 			// No errors
-			PopupMessage.show("Inserted Bug Successfully", "BugID: " + insertedErrors.get(0));
+			PopupMessage.show("Inserted Bug Successfully!", "New BugID: " + insertedErrors.get(0));
 			
 		}
 		else{
 			
 			// Some errors
-			PopupWarningConfirmation.show("Warning adding Bug", "Successfully added bug but with some warnings", errorMessages);
+			PopupWarning.show("Warning adding Bug", "Successfully added bug but with some warnings", errorMessages);
 		}
 	}
 

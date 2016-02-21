@@ -92,17 +92,10 @@ public class LocalResources {
 			for( BugImage image : bug.imageMap.values() ){
 				databaseImages.add(image);
 				int screenshotId = image.screenshotID;
-				System.out.println("ID: " + screenshotId);
 				
 				if( !screenshotIDToImage.containsKey(screenshotId)){
-					System.out.println("Do not have this id yet");
 					addImage(image);
-				}
-				else{
-					System.out.println("Already have this id");
-					
-				}
-				
+				}				
 			}
 		}
 		
@@ -183,6 +176,7 @@ public class LocalResources {
 	 */
 	private static String downloadToComputer(BugImage image){
 		String link = image.link;
+		System.out.println("UPLOADING TO COMPUTER: " + link);
 		
 		String name = image.screenshotID + link.substring(link.lastIndexOf("."));
 		if( name.contains("?") ){

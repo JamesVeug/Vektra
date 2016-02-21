@@ -295,12 +295,14 @@ public class SQLData {
 	private static BugImage getScreenshot(int screenshotid, String link) {
 		
 		// Check to make sure we have a valid link from the database
-		if( link != null && !link.isEmpty() ){
+		if( link != null && !link.isEmpty() && !link.equals("NULL") ){
 				
 			// Get it from our database
 			// Either from our computer, or download off the internet
 			BugImage image = R.getImage(link, 400, 300, screenshotid);
-			image.screenshotID = screenshotid;
+			if( image != null ){
+				image.screenshotID = screenshotid;
+			}
 			
 			// Return BugImage
 			return image;
