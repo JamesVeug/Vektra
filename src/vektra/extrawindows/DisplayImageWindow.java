@@ -1,5 +1,8 @@
 package vektra.extrawindows;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -8,9 +11,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class DisplayImageWindow {
+	private static List<Stage> windows = new ArrayList<Stage>();
 
 	public static void show(Stage primaryStage, ImageView displayScreenshot) {
 		final Stage stage = new Stage();
+		stage.setOnCloseRequest((a)->{windows.remove(stage);});
+		windows.add(stage);
+		
 		stage.setTitle("Display Screenshot");
 		stage.getIcons().add(new Image("v.jpg"));
 		stage.setResizable(true);
@@ -31,4 +38,16 @@ public class DisplayImageWindow {
 		stage.show();
 	}
 
+	/**
+	 * Closes all of the DisplayImageWindow's that are currently open
+	 */
+	public static void closeAllWindows(){
+		System.out.println("Windows Open: " + windows.size());
+		for(Stage s : windows){
+			System.out.println("\tClosing a window");
+			if( s.isShowing() ){
+				s.close();
+			}
+		}
+	}
 }

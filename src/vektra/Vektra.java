@@ -1183,6 +1183,9 @@ public class Vektra extends Application{
 			
 			// Close the connection to the database
 			SQLData.close();
+			
+			// Close all Display Images
+			DisplayImageWindow.closeAllWindows();
 		}
 
 		/**
