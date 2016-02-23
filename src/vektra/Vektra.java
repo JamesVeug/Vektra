@@ -61,7 +61,7 @@ import vektra.resources.R;
 public class Vektra extends Application{
 	
 	public static Application APPLICATION;
-	public static final String VERSION = "0.15";
+	public static final String VERSION = "0.16";
 	
 	private Stage primaryStage;
 	
@@ -833,17 +833,6 @@ public class Vektra extends Application{
 	 */
 	protected void signOut() {
 		
-		// Disconnect from server
-		if( SQLData.isConnected() ){
-			
-			// Stop refreshing
-			closeRequest.removeThread();
-			SQLData.close();
-
-			// Tell the user we logged in!
-			PopupMessage.show("Sign Out","Logged Out Successfully!\nGood Bye " + SQLData.getUsername() + "!");
-		}
-
 		// Change GUI
 		loginMenuItem.setVisible(true);
 		signoutMenuItem.setVisible(false);
@@ -858,6 +847,16 @@ public class Vektra extends Application{
 		openID.setDisable(true);
 		refresh.setDisable(true);
 		
+		// Disconnect from server
+		if( SQLData.isConnected() ){
+			
+			// Stop refreshing
+			closeRequest.removeThread();
+			SQLData.close();
+
+			// Tell the user we logged in!
+			PopupMessage.show("Sign Out","Logged Out Successfully!\nGood Bye " + SQLData.getUsername() + "!");
+		}		
 	}
 
 	/**

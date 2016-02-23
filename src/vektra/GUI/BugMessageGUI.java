@@ -185,7 +185,8 @@ public class BugMessageGUI {
 	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->commentSelected(a,comments,vektra));
 	                		this.setContextMenu(contextMenu);
 	                        
-	                        setText(item);
+	                		String name = item.substring(0,1).toUpperCase() + item.substring(1);
+	                        setText(name);
 	                        
 	                    }
 	                }
@@ -300,6 +301,9 @@ public class BugMessageGUI {
 		        	Comment newComment = new Comment(selectedComment.poster, selectedComment.timePosted, editedText, selectedComment.bugid);
 		        	if( !SQLData.update(selectedComment, newComment) ){
 		        		PopupError.show("Edit Comment", "Could not update comment!");;
+		        	}
+		        	else{
+		        		vektra.performPartialRefresh();
 		        	}
 		        }
 		    }

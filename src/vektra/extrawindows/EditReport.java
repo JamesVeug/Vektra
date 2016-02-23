@@ -42,7 +42,7 @@ public class EditReport extends ModifyReport{
 		version.setText(bug.version.version);
 
 		addImages(bug.imageMap);
-		
+//		
 		editReport = new Button("Update Bug");
 		editReport.setOnAction(new UpdateBugButtonPress());
 		setConfirmButton(editReport);
