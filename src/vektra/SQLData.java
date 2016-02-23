@@ -665,7 +665,7 @@ public class SQLData {
 			queries.add("INSERT INTO versions (`version`, `stage`, `bugid`) VALUES ('" + newBug.version.version + "', '" + newBug.version.stage + "', '" + ID +"');");
 		}
 		else if( oldBug != null && !oldBug.version.equals(newBug.version) ){
-			queries.add("UPDATE versions SET version = '" + newBug.version.version + "' WHERE BugId = " + ID + "; ");
+			queries.add("UPDATE versions SET version = '" + newBug.version.version + "', stage = '"+newBug.version.stage+"' WHERE BugId = " + ID + "; ");
 		}
 
 		// Tags have changed

@@ -25,10 +25,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -124,17 +124,18 @@ public class Vektra extends Application{
 		
 		
 		GridPane mainLayout = new GridPane();
-		mainLayout.addRow(0, menu);
+//		mainLayout.addRow(0, menu);
 		GridPane.setColumnSpan(menu,3);
-		mainLayout.addRow(1, reportOptions);
+		mainLayout.addRow(0, reportOptions);
 		GridPane.setColumnSpan(reportOptions,3);
-		mainLayout.addRow(2, bugs);
+		mainLayout.addRow(1, bugs);
 		mainLayout.addColumn(1, screenshotList);
 		mainLayout.addColumn(2, messages);
 		
-		StackPane outter = new StackPane();
+		BorderPane outter = new BorderPane();
 		outter.getStylesheets().add("css/custom.css");
-		outter.getChildren().add(mainLayout);
+		outter.setTop(menu);
+		outter.setCenter(mainLayout);
 	    
 		Scene scene = new Scene(outter);
 

@@ -208,28 +208,25 @@ public class ModifyReport {
 			text.setPrefHeight(300);
 			text.getStyleClass().add("createReport_Message");
 		bottomPane.addRow(0,text);
-		//pane.setBackground(new Background(new BackgroundFill(Paint.valueOf("pink"), new CornerRadii(0), new Insets(0))));
 		
 			Pane statusPane = new Pane();
 			statusPane.getStyleClass().add("createReport_Message");
-			//statusPane.setBackground(new Background(new BackgroundFill(Paint.valueOf("red"), new CornerRadii(0), new Insets(0))));
 			
 				HBox statusInnerPane = new HBox();
 					statusInnerPane.setPadding(new Insets(5)); //margins around the whole grid
 					statusInnerPane.getStyleClass().add("createReport_Options");
 					statusInnerPane.setPrefHeight(10);
-					//statusInnerPane.setBackground(new Background(new BackgroundFill(Paint.valueOf("black"), new CornerRadii(0), new Insets(0))));
 					statusInnerPane.setAlignment(Pos.CENTER_LEFT);
 					statusInnerPane.setSpacing(10);
 				
 					Label statusLabel = new Label("STATUS:");
 					statusLabel.getStyleClass().add("createReport_Options_Headers");
-				statusInnerPane.getChildren().add(statusLabel);
+			statusInnerPane.getChildren().add(statusLabel);
 					
 					statusSelection = new ComboBox<Status>();
 					statusSelection.getItems().addAll(Status.statusList);
 					statusSelection.getStyleClass().add("createReport_Options_Text");
-				statusInnerPane.getChildren().add(statusSelection);
+			statusInnerPane.getChildren().add(statusSelection);
 				
 				Label versionLabel = new Label("VERSION:");
 				versionLabel.getStyleClass().add("createReport_Options_Headers");
@@ -238,6 +235,7 @@ public class ModifyReport {
 				stageVersion = new ComboBox<vektra.Stage>();
 				stageVersion.getItems().addAll(vektra.Stage.stageList);
 				stageVersion.getStyleClass().add("createReport_Options_Text");
+			statusInnerPane.getChildren().add(stageVersion);
 			
 				version = new TextField();
 				version.getStyleClass().add("createReport_Options_Text");
