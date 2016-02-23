@@ -105,7 +105,6 @@ public class LoginDialog {
 			@Override
 			public Pair<String, String> call(ButtonType dialogButton) {
 				if (dialogButton == loginButtonType) {
-					System.out.println("Pressed: " + username.getText() + ", " + password.getText());
 			        return new Pair<String, String>(username.getText(), password.getText());
 			    }
 			    return null;

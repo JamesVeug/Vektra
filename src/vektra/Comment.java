@@ -3,11 +3,11 @@ package vektra;
 import java.sql.Date;
 
 public class Comment {
-	final int id;
-	final String poster;
-	final Date timePosted;
-	final String message;
-	final int bugid;
+	public final int id;
+	public final String poster;
+	public final Date timePosted;
+	public final String message;
+	public final int bugid;
 	
 	public Comment(String poster, Date timePosted, String message, int bugid) {
 		this(message, -1, poster, timePosted, bugid);

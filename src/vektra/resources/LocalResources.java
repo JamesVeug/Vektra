@@ -17,6 +17,7 @@ import javafx.scene.image.WritableImage;
 import vektra.BugImage;
 import vektra.BugItem;
 import vektra.SQLData;
+import vektra.dialogs.PopupWarning;
 
 public class LocalResources {
 	
@@ -90,6 +91,10 @@ public class LocalResources {
 		for(BugItem bug : databaseData){
 			
 			for( BugImage image : bug.imageMap.values() ){
+				if( image == null || image.getImage() == null ){
+					continue;
+				}
+				
 				databaseImages.add(image);
 				int screenshotId = image.screenshotID;
 				
@@ -99,10 +104,10 @@ public class LocalResources {
 			}
 		}
 		
-		System.out.println("Database Images: " + databaseImages.size());
+		/*System.out.println("Database Images: " + databaseImages.size());
 		for(BugImage i : databaseImages){
 			System.out.println("\t"+i.screenshotID);
-		}
+		}*/
 		
 		// Check if the images off the computer match the images on the database
 		List<BugImage> computerImages = getImagesOffcomputer();
@@ -127,6 +132,11 @@ public class LocalResources {
 	}
 	
 	private static void addImage(BugImage image) {
+		
+		// Don't store NULL
+		if( image == R.getNullImage() ){
+			return;
+		}
 		String directory = downloadToComputer(image);
 		if( directory != null ){
 			screenshotIDToImage.put(image.screenshotID, image.getImage());
@@ -202,12 +212,17 @@ public class LocalResources {
 			return filepath;
 		}
 		
+		System.out.println("Iamge: " + image);
+		System.out.println("Image image " + image.getImage());
+		System.out.println("Image image " + image.link);
 		BufferedImage buffimage = toBufferedImage(image.getImage());
 		try {
 		   ImageIO.write(buffimage, ext, file);
 		   return filepath;
 		} catch(IOException e) {
 			System.out.println("Write error for " + file.getPath() + ": " + e.getMessage());
+		} catch(IllegalArgumentException e ){
+			//PopupWarning.show("Save Local Image", "Could not locally save image", file.getPath() + "\n" + e.getMessage());
 		}
 		return null;
 	}
@@ -270,7 +285,9 @@ public class LocalResources {
 	 */
 	public static BufferedImage toBufferedImage(Image img){
 		
+		System.out.println("To Buff " + img);
 		BufferedImage image = SwingFXUtils.fromFXImage(img, null);
+		System.out.println("image " + image);
 
 	    // Return the buffered image
 	    return image;

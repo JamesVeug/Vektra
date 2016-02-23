@@ -1,21 +1,15 @@
 package vektra;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -28,31 +22,27 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
+import vektra.GUI.BugListGUI;
+import vektra.GUI.BugMessageGUI;
+import vektra.GUI.ReportOptionsGUI;
+import vektra.GUI.ScreenShotDisplayGUI;
 import vektra.dialogs.LoginDialog;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
-import vektra.dialogs.PopupTextField;
 import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.EditReport;
@@ -92,9 +82,7 @@ public class Vektra extends Application{
 	private Label tags;
 	private Label priority;
 	private Label version;
-	private StackPane screenshotPane;
 	private ImageView displayScreenshot;
-	private Image logo;
 	private FlowPane screenshotList;
 	private ImageView selectedListImage;
 	private Label openScreenshots;
@@ -116,7 +104,8 @@ public class Vektra extends Application{
 	/**
 	 * Starting method that creates the main window and loads the primary font.
 	 */
-	public void start(Stage primaryStage) throws Exception {
+	public void revampedStart(Stage primaryStage) throws Exception {
+		
 		APPLICATION = this;
 		
 		// Required in order to be able to use it in css's
@@ -124,308 +113,32 @@ public class Vektra extends Application{
 		final Font font = Font.loadFont(Vektra.class.getClass().getResourceAsStream("/fonts/Microstyle Bold Extended ATT.ttf"), 20);
 		
 		this.primaryStage = primaryStage;
-		primaryStage.setTitle("VEKTRA - Bug Reporter");
-		primaryStage.setWidth(1024);
-		primaryStage.setHeight(800);
-		primaryStage.getIcons().add(new Image("v.jpg"));
+		setupStage(primaryStage);
+		
+		GridPane reportOptions = ReportOptionsGUI.create(primaryStage,this);
+		TableView<BugItem> bugs = BugListGUI.create(primaryStage,this);
+		GridPane screenshotList = ScreenShotDisplayGUI.create(primaryStage,this);
+		GridPane messages = BugMessageGUI.create(primaryStage,this);
+		MenuBar menu = setupMenu(primaryStage);
 		
 		
-		BorderPane mainLayout = new BorderPane();
-		mainLayout.getStylesheets().add("css/custom.css");
-
+		GridPane mainLayout = new GridPane();
+		mainLayout.addRow(0, menu);
+		GridPane.setColumnSpan(menu,3);
+		mainLayout.addRow(1, reportOptions);
+		GridPane.setColumnSpan(reportOptions,3);
+		mainLayout.addRow(2, bugs);
+		mainLayout.addColumn(1, screenshotList);
+		mainLayout.addColumn(2, messages);
 		
-		GridPane layout = new GridPane();
-		
-		
-		// Top
-		GridPane options = new GridPane();
-		options.setStyle("-fx-border-width: 1, 1; -fx-border-color: #FFFFFF");
-		options.setPrefHeight(105);
-		options.setMaxHeight(130);
-		
-		GridPane buttonGrid = new GridPane();
-		buttonGrid.setPadding(new Insets(5,5,5,5));
-		buttonGrid.setVgap(5);
-		
-		createReport = new Button("CREATE\nREPORT");
-		createReport.setTextAlignment(TextAlignment.CENTER);
-		createReport.setOnAction(new MenuItemCreateReport());
-		createReport.getStyleClass().add("button_create");
-		createReport.setPrefWidth(85);
-		createReport.setPrefHeight(65);
-		createReport.setDisable(true);
-		
-		editReport = new Button("EDIT");
-		editReport.setTextAlignment(TextAlignment.CENTER);
-		editReport.setOnAction(new EditReportButtonPressed());
-		editReport.getStyleClass().add("button_edit");
-		editReport.setPrefWidth(85);
-		editReport.setPrefHeight(50);
-		editReport.setDisable(true);
-		
-		deleteReport = new Button("DELETE");
-		deleteReport.setTextAlignment(TextAlignment.CENTER);
-		deleteReport.setOnAction(new DeleteReport());
-		deleteReport.getStyleClass().add("button_delete");
-		deleteReport.setPrefWidth(85);
-		deleteReport.setPrefHeight(50);
-		deleteReport.setDisable(true);
-		
-		buttonGrid.addRow(0, createReport);
-		buttonGrid.addRow(1, editReport);
-		buttonGrid.addRow(2, deleteReport);
-		
-		
-		GridPane extraButtonGrid = new GridPane();
-		extraButtonGrid.setPadding(new Insets(5,5,5,0));
-		extraButtonGrid.setVgap(5);
-		
-		openID = new Button("OPEN ID");
-		openID.setOnAction(new OpenID());
-		openID.getStyleClass().add("button_extra");
-		openID.setPrefWidth(150);
-		openID.setPrefHeight(50);
-		openID.setDisable(true);
-		refresh = new Button("REFRESH");
-		refresh.setOnAction(new Refresh());
-		refresh.getStyleClass().add("button_extra");
-		refresh.setPrefWidth(150);
-		refresh.setPrefHeight(50);
-		refresh.setDisable(true);
-		
-		extraButtonGrid.addRow(0, openID);
-		extraButtonGrid.addRow(1, refresh);
-		
-		
-		GridPane loggedGrid = new GridPane();
-		loggedGrid.alignmentProperty().set(Pos.TOP_RIGHT);
-			Label loggedInLabel = new Label("User: ");
-			loggedInLabel.getStyleClass().add("loggedLabel");
-			loggedInName = new Label("-");
-			loggedInName.getStyleClass().add("loggedLabel");
-			
-			Label loggedInPingLabel = new Label("Ping: ");
-			loggedInPingLabel.getStyleClass().add("serverLabel");
-			loggedInPing = new Label("-");
-			loggedInPing.getStyleClass().add("serverLabel");
-			
-			Label loggedInCurrentDateLabel = new Label("Current Date: ");
-			loggedInCurrentDateLabel.getStyleClass().add("serverLabel");
-			loggedInCurrentDate = new Label("-");
-			loggedInCurrentDate.getStyleClass().add("serverLabel");
-		loggedGrid.addRow(0, loggedInLabel);
-		loggedGrid.addColumn(1, loggedInName);
-		loggedGrid.addRow(1, loggedInCurrentDateLabel);
-		loggedGrid.addColumn(1, loggedInCurrentDate);
-		loggedGrid.addRow(2, loggedInPingLabel);
-		loggedGrid.addColumn(1, loggedInPing);
-		
-		
-		options.addColumn(0, buttonGrid);
-		options.addColumn(1, extraButtonGrid);
-		options.addColumn(2, loggedGrid);
-		
-
-		bugs = new TableView<BugItem>();
-		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);	
-		bugs.setPrefHeight(400);
-		bugs.setPrefWidth(410);
-		bugs.getStylesheets().add("css/buglist.css");
-		setupTable();
-		
-		
-		// Middle area
-		GridPane screenshotinfo = new GridPane();
-		screenshotinfo.setPadding(new Insets(10,0,0,10));
-		screenshotinfo.getStylesheets().add("css/custom.css");
-		screenshotinfo.setHgap(20);
-		
-		priorityIndicator = new Rectangle();
-		priorityIndicator.setFill(Color.BLACK);
-		priorityIndicator.setStroke(Color.BLACK);
-		priorityIndicator.setWidth(10);
-		priorityIndicator.setHeight(10);
-
-		screenshotinfo.addColumn(0, priorityIndicator);
-		screenshotinfo.addRow(1, new Label());
-		screenshotinfo.addRow(2, new Label());
-		screenshotinfo.addRow(3, new Label());
-		
-		Label reportIDLabel = new Label("REPORT ID:");
-		reportIDLabel.getStyleClass().add("reportidheader");
-		screenshotinfo.addColumn(1, reportIDLabel);
-		
-		reportID = new Label("-");
-		reportID.getStyleClass().add("reportid");
-		screenshotinfo.addColumn(2, reportID);
-		
-		Label tagLabel = new Label("TAGS:");
-		tagLabel.setPrefHeight(15);
-		tagLabel.getStyleClass().add("tagstyle");
-		screenshotinfo.addRow(1, tagLabel);
-		
-		tags = new Label("-");
-		tags.setPrefHeight(15);
-		tags.getStyleClass().add("tagstyle");
-		screenshotinfo.addColumn(2, tags);
-		
-		Label priorityLabel = new Label("PRIORITY:");
-		priorityLabel.setPrefHeight(30);
-		priorityLabel.getStyleClass().add("tagstyle");
-		screenshotinfo.addRow(2, priorityLabel);
-		
-		priority = new Label("-");
-		priority.setPrefHeight(15);
-		priority.getStyleClass().add("tagstyle");
-		screenshotinfo.addColumn(2, priority);
-		
-		Label versionLabel = new Label("VERSION:");
-		versionLabel.setPrefHeight(15);
-		versionLabel.getStyleClass().add("tagstyle");
-		screenshotinfo.addRow(3, versionLabel);
-		
-		version = new Label("-");
-		version.setPrefHeight(15);
-		version.getStyleClass().add("tagstyle");
-		screenshotinfo.addColumn(2, version);
-		
-		
-		screenshotPane = new StackPane();
-		screenshotPane.setStyle("-fx-border-width: 1; -fx-border-color: white;");
-		screenshotPane.setPrefHeight(325);		
-		screenshotPane.setPadding(new Insets(5));		
-			logo = new Image("logo.png");
-			displayScreenshot = new ImageView(logo);
-			displayScreenshot.setPreserveRatio(true);
-		screenshotPane.getChildren().add(displayScreenshot);
-		
-		StackPane.setAlignment(screenshotPane, Pos.CENTER);
-		
-		// Bottom Middle
-		GridPane screenshotListPane = new GridPane();
-		screenshotListPane.setPrefWidth(600);
-		screenshotListPane.setPrefHeight(200);
-			
-			openScreenshots = new Label("Open Screenshots(0)");
-			openScreenshots.getStyleClass().add("openScreenShots");
-		screenshotListPane.addRow(0, openScreenshots);
-	
-			// List of Screenshots to be displayed 
-			screenshotList = new FlowPane();
-			screenshotList.setPrefHeight(400);
-			screenshotList.setVgap(8);
-			screenshotList.setHgap(4);
-		screenshotListPane.addRow(1, screenshotList);
-
-		GridPane screenshotlayout = new GridPane();
-		screenshotlayout.setPadding(new Insets(0,0,0,5));
-		screenshotlayout.addRow(0, screenshotinfo);
-		screenshotlayout.addRow(1, screenshotPane);
-		screenshotlayout.addRow(2, screenshotListPane);
-		
-		// Bottom right
-		
-		GridPane messagePane = new GridPane();
-			messagePane.setPadding(new Insets(5,5,0,5));
-			
-			Label label = new Label("REPORT DESCRIPTION:");
-			label.getStyleClass().add("reportDescription");
-			messagePane.addRow(0, label);
-			
-			message = new TextArea("No Text Here");
-			message.setPrefHeight(400);
-			message.setEditable(false);
-			message.setWrapText(true);
-			messagePane.addRow(1, message);
-			messagePane.setPrefHeight(200);
-			
-			VBox commentPane = new VBox();
-				comments = new TableView<Comment>();
-				comments.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-				comments.getStylesheets().add("css/buglist.css");
-				
-				//commentScroll = new ScrollPane(comments);
-				setupComments(FXCollections.observableArrayList());
-				
-				
-				GridPane commentOptions = new GridPane();
-					submitComment = new Button("Send");
-					submitComment.setOnAction(new SubmitCommentButtonPressed());
-					
-					enterComment = new TextField();
-					enterComment.setPromptText("Enter a response here");
-					enterComment.setOnAction(new SubmitCommentButtonPressed());
-					enterComment.getStyleClass().add("createReport_Options_Text");
-					enterComment.setPrefWidth(357);
-					enterComment.setPrefHeight(100);	
-					
-				commentOptions.addColumn(0,submitComment);
-				commentOptions.addColumn(1,enterComment);
-				
-				
-			commentPane.getChildren().add(comments);
-			commentPane.getChildren().add(commentOptions);
-			
-			
-			messagePane.addRow(2, commentPane);
-
-			GridPane extraInfoPane = new GridPane();
-				extraInfoPane.setPadding(new Insets(0,0,0,10));
-				extraInfoPane.setStyle("-fx-background-color: #ECECEC;");
-				Label loggedByLabel = new Label("LOGGED BY:");
-				loggedByLabel.setPrefSize(120,25);
-				loggedByLabel.getStyleClass().add("extraMessageInfoHeaders");
-				
-				whoLogged = new Label("-");
-				whoLogged.setPrefSize(100,25);
-				whoLogged.getStyleClass().add("extraMessageInfo");
-				
-				Label dateLabel = new Label("DATE:");
-				dateLabel.setPrefSize(70,25);
-				dateLabel.getStyleClass().add("extraMessageInfoHeaders");
-				
-				loggedDate = new Label("-");
-				loggedDate.setPrefSize(200,25);
-				loggedDate.getStyleClass().add("extraMessageInfo");
-				
-				Label updatedByLabel = new Label("UPDATED BY:");
-				updatedByLabel.setPrefSize(150,25);
-				updatedByLabel.getStyleClass().add("extraMessageInfoHeaders");
-				
-				whoUpdated = new Label("-");
-				whoUpdated.setPrefSize(100,25);
-				whoUpdated.getStyleClass().add("extraMessageInfo");
-				
-				Label updatedDateLabel = new Label("DATE:");
-				updatedDateLabel.setPrefSize(100,25);
-				updatedDateLabel.getStyleClass().add("extraMessageInfoHeaders");
-				
-				updatedDate = new Label("-");
-				updatedDate.setPrefSize(200,50);
-				updatedDate.getStyleClass().add("extraMessageInfo");
-			extraInfoPane.addColumn(0, loggedByLabel);
-			extraInfoPane.addRow(1, updatedByLabel);
-			extraInfoPane.addColumn(1, whoLogged);
-			extraInfoPane.addRow(1, whoUpdated);
-			extraInfoPane.addColumn(2, dateLabel);
-			extraInfoPane.addRow(1, updatedDateLabel);
-			extraInfoPane.addColumn(3, loggedDate);
-			extraInfoPane.addRow(1, updatedDate);
-
-		messagePane.addRow(3, extraInfoPane);
-			
-		layout.addColumn(0,bugs);
-		layout.addColumn(1,screenshotlayout);
-		layout.addColumn(2,messagePane);
-
-		mainLayout.setCenter(options);
-		mainLayout.setBottom(layout);
-		Scene scene = new Scene(mainLayout,Paint.valueOf("green"));
+		StackPane outter = new StackPane();
+		outter.getStylesheets().add("css/custom.css");
+		outter.getChildren().add(mainLayout);
+	    
+		Scene scene = new Scene(outter);
 
 		closeRequest = new WindowCloseRequest();
 		primaryStage.setOnCloseRequest(closeRequest);
-		
-		setupMenu(mainLayout, primaryStage);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		
@@ -434,174 +147,201 @@ public class Vektra extends Application{
 		login();
 	}
 	
+	private void setupStage(Stage primaryStage) {
+		primaryStage.setTitle("VEKTRA - Bug Reporter");
+		primaryStage.setWidth(1024);
+		primaryStage.setHeight(800);
+		primaryStage.getIcons().add(new Image("v.jpg"));
+	}
 
-	@SuppressWarnings("unchecked")
-	private void setupComments(Collection<Comment> currentComments) {
-		
-		comments.getItems().clear();
-		if( !currentComments.isEmpty() ){
-			ObservableList<Comment> list = FXCollections.observableArrayList(currentComments);
-			comments.setItems(list);
-			
-			Collections.sort(list,new Comparator<Comment>(){
-
-				@Override
-				public int compare(Comment one, Comment two) {
-					return one.timePosted.compareTo(two.timePosted);
-				}
-				
-			});
+	/**
+	 * Starting method that creates the main window and loads the primary font.
+	 */
+	public void start(Stage primaryStage) throws Exception {
+		revampedStart(primaryStage);
+		if( true ){
+			return;
 		}
-		
-		// Menu for when the user right clicks a comment
-		final ContextMenu contextMenu = getCommentPopupMenu();
-		
-		
-		TableColumn<Comment, String> commenterColumn = new TableColumn<Comment,String>("POSTER");
-		commenterColumn.setSortable(false);
-		commenterColumn.setMinWidth(80);
-		commenterColumn.setMaxWidth(80);
-		commenterColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("poster"));
-		commenterColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
-	        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
-	            return new TableCell<Comment, String>() {
-
-	                @Override
-	                public void updateItem(String item, boolean empty) {
-	                    super.updateItem(item, empty);
-	                    if (!isEmpty()) {
-	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
-	                		this.setContextMenu(contextMenu);
-	                        
-	                        setText(item);
-	                        
-	                    }
-	                }
-	            };
-	        }
-	    });
-		if( !comments.getColumns().isEmpty() ){
-			commenterColumn.setSortType(comments.getColumns().get(0).getSortType());
-		}
-		
-		TableColumn<Comment, String> messageColumn = new TableColumn<Comment, String>("MESSAGE");
-		messageColumn.setSortable(false);
-		messageColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("message"));
-		messageColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
-
-		        @Override
-		        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
-		            TableCell<Comment, String> cell = new TableCell<Comment, String>(){
-		            	@Override
-		                public void updateItem(String item, boolean empty) {
-		                    super.updateItem(item, empty);
-		                    if (!isEmpty()) {
-		                        setText(item);
-		                    }
-		                }
-		            };
-		            Text text = new Text();
-		            text.getStyleClass().add("table-cell");
-		            cell.setGraphic(text);
-		            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
-		            cell.getStylesheets().add("css/buglist.css");
-		            text.wrappingWidthProperty().bind(cell.widthProperty());
-		            text.textProperty().bind(cell.itemProperty());
-		            cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
-		            cell.setContextMenu(contextMenu);
-		            return cell ;
-		        }
-        });
-		if( !comments.getColumns().isEmpty() ){
-			messageColumn.setSortType(comments.getColumns().get(1).getSortType());
-		}
-		
-		@SuppressWarnings("rawtypes")
-		TableColumn sorting = comments.getSortOrder().isEmpty() ? null : comments.getSortOrder().get(0);
-		if( sorting == null ){
-			// Ignore
-		}
-		else if( sorting == comments.getColumns().get(2) ){
-			comments.getSortOrder().set(0, commenterColumn);
-		}
-		else if( sorting == comments.getColumns().get(2) ){
-			comments.getSortOrder().set(0, messageColumn);
-		}
-		
-		comments.getColumns().clear();
-		comments.getColumns().addAll(commenterColumn,messageColumn);	
-		comments.sort();
+//		APPLICATION = this;
+//		
+//		// Required in order to be able to use it in css's
+//		final Font font = Font.loadFont(Vektra.class.getClass().getResourceAsStream("/fonts/Microstyle Bold Extended ATT.ttf"), 20);
+//		
+//		this.primaryStage = primaryStage;
+//		setupStage(primaryStage);
+//		
+//		
+//		
+//		GridPane mainLayout = new GridPane();
+//		//mainLayout.getStylesheets().add("css/custom.css");
+//		mainLayout.setBackground(new Background(new BackgroundFill(Color.RED, new  CornerRadii(0), new Insets(0))));
+////		mainLayout.topProperty().
+//
+//		
+//		setupMenu(mainLayout, primaryStage);
+//		
+//		
+//		// Top
+//		GridPane options = ReportOptionsGUI.create(primaryStage, this);
+//		
+//
+//		bugs = BugListGUI.create(primaryStage, this);
+//		
+//		
+//		// Middle area
+//		GridPane screenshotlayout = ScreenShotDisplayGUI.create(primaryStage, this);
+//		
+//		// Bottom right
+//		
+//		GridPane bugListAndInfolayout = BugMessageGUI.create(primaryStage, this);
+//
+//		mainLayout.addRow(1,options);
+//		mainLayout.addRow(2,bugListAndInfolayout);
+//		
+//		GridPane testGrid = new GridPane();
+//		testGrid.setBackground(new Background(new BackgroundFill(Color.BLUE, new CornerRadii(0), new Insets(0))));
+//		
+//		
+//		StackPane outter = new StackPane();
+//		outter.setBackground(new Background(new BackgroundFill(Color.GRAY, new CornerRadii(0), new Insets(0))));
+//		outter.getChildren().add(mainLayout);
+//	    
+//		Scene scene = new Scene(outter);
+//
+//		closeRequest = new WindowCloseRequest();
+//		primaryStage.setOnCloseRequest(closeRequest);
+//		primaryStage.setScene(scene);
+//		primaryStage.show();
+//		
+//		
+//		// Ask to log in!
+//		login();
+//	}
+//	
+//
+//	@SuppressWarnings("unchecked")
+//	private void setupComments(Collection<Comment> currentComments) {
+//		
+//		comments.getItems().clear();
+//		if( !currentComments.isEmpty() ){
+//			ObservableList<Comment> list = FXCollections.observableArrayList(currentComments);
+//			comments.setItems(list);
+//			
+//			Collections.sort(list,new Comparator<Comment>(){
+//
+//				@Override
+//				public int compare(Comment one, Comment two) {
+//					return one.timePosted.compareTo(two.timePosted);
+//				}
+//				
+//			});
+//		}
+//		
+//		// Menu for when the user right clicks a comment
+//		final ContextMenu contextMenu = getCommentPopupMenu();
+//		
+//		
+//		TableColumn<Comment, String> commenterColumn = new TableColumn<Comment,String>("POSTER");
+//		commenterColumn.setSortable(false);
+//		commenterColumn.setMinWidth(80);
+//		commenterColumn.setMaxWidth(80);
+//		commenterColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("poster"));
+//		commenterColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
+//	        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
+//	            return new TableCell<Comment, String>() {
+//
+//	                @Override
+//	                public void updateItem(String item, boolean empty) {
+//	                    super.updateItem(item, empty);
+//	                    if (!isEmpty()) {
+//	                        this.getStylesheets().add("css/buglist.css");
+//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
+//	                		this.setContextMenu(contextMenu);
+//	                        
+//	                        setText(item);
+//	                        
+//	                    }
+//	                }
+//	            };
+//	        }
+//	    });
+//		if( !comments.getColumns().isEmpty() ){
+//			commenterColumn.setSortType(comments.getColumns().get(0).getSortType());
+//		}
+//		
+//		TableColumn<Comment, String> messageColumn = new TableColumn<Comment, String>("MESSAGE");
+//		messageColumn.setSortable(false);
+//		messageColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("message"));
+//		messageColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
+//
+//		        @Override
+//		        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
+//		            TableCell<Comment, String> cell = new TableCell<Comment, String>(){
+//		            	@Override
+//		                public void updateItem(String item, boolean empty) {
+//		                    super.updateItem(item, empty);
+//		                    if (!isEmpty()) {
+//		                        setText(item);
+//		                    }
+//		                }
+//		            };
+//		            Text text = new Text();
+//		            text.getStyleClass().add("table-cell");
+//		            cell.setGraphic(text);
+//		            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
+//		            cell.getStylesheets().add("css/buglist.css");
+//		            text.wrappingWidthProperty().bind(cell.widthProperty());
+//		            text.textProperty().bind(cell.itemProperty());
+//		            cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
+//		            cell.setContextMenu(contextMenu);
+//		            return cell ;
+//		        }
+//        });
+//		if( !comments.getColumns().isEmpty() ){
+//			messageColumn.setSortType(comments.getColumns().get(1).getSortType());
+//		}
+//		
+//		@SuppressWarnings("rawtypes")
+//		TableColumn sorting = comments.getSortOrder().isEmpty() ? null : comments.getSortOrder().get(0);
+//		if( sorting == null ){
+//			// Ignore
+//		}
+//		else if( sorting == comments.getColumns().get(2) ){
+//			comments.getSortOrder().set(0, commenterColumn);
+//		}
+//		else if( sorting == comments.getColumns().get(2) ){
+//			comments.getSortOrder().set(0, messageColumn);
+//		}
+//		
+//		comments.getColumns().clear();
+//		comments.getColumns().addAll(commenterColumn,messageColumn);	
+//		comments.sort();
 		
 //		messageColumn.setPrefWidth(320);
 		//messageColumn.minWidthProperty().bind(commentScroll.widthProperty());
 	}
-
-
-	private ContextMenu getCommentPopupMenu() {
-		final ContextMenu contextMenu = new ContextMenu();
-		MenuItem copy = new MenuItem("Copy Text");
-		MenuItem edit = new MenuItem("Edit");
-		MenuItem delete = new MenuItem("Delete");
-		copy.setOnAction(new EventHandler<ActionEvent>() {
-		    @Override
-		    public void handle(ActionEvent event) {
-		    	final Clipboard clipboard = Clipboard.getSystemClipboard();
-		        final ClipboardContent content = new ClipboardContent();
-		        
-		        String commentCopy = selectedComment.getPoster() + ": " + selectedComment.message;
-		        content.putString(commentCopy);
-		        clipboard.setContent(content);
-		    }
-		});
+	
+	public void SubmitCommentButtonPressed(String commentWritten) {
+		System.out.println("Submitting comment!");
+		String text = enterComment.getText();
+		if( text.isEmpty() ){
+			return;
+		}
+		else if( submitComment.isDisabled() ){
+			return;
+		}
 		
-		edit.setOnAction(new EventHandler<ActionEvent>() {
-		    @Override
-		    public void handle(ActionEvent event) {
-		    	
-		    	String poster = selectedComment.poster;
-		        if( !poster.equalsIgnoreCase(SQLData.getUsername()) ){
-		        	PopupError.show("Edit Comment", "Can not edit comments not posted by you.");
-		        	return;
-		        }
-		    	
-		        String editedText = PopupTextField.show("Edit Comment","Please enter the text you wish to change the comment to.",selectedComment.getMessage());
-		        if( editedText != null ){
-		        	Comment newComment = new Comment(selectedComment.poster, selectedComment.timePosted, editedText, selectedComment.bugid);
-		        	if( !SQLData.update(selectedComment, newComment) ){
-		        		PopupError.show("Edit Comment", "Could not update comment!");;
-		        	}
-		        }
-		    }
-		});
-		
-		delete.setOnAction(new EventHandler<ActionEvent>() {
-		    @Override
-		    public void handle(ActionEvent event) {
-		        String poster = selectedComment.poster;
-		        if( !poster.equalsIgnoreCase(SQLData.getUsername()) ){
-		        	PopupError.show("Delete Comment", "Can not delete comments not posted by you.");
-		        	return;
-		        }
-		        
-		        // Double check we want to delete this comment
-		        boolean confirm = PopupConfirmation.show("Delete Comment", "Are you sure you want to delete this comment?");
-		        if( !confirm ){
-		        	return;
-		        }
-		        
-		        boolean deleted = SQLData.delete(selectedComment);
-		        if( deleted ){
-		        	refreshThread.partialUpdate();
-		        }
-		        
-		    }
-		});
-		
-
-		contextMenu.getItems().addAll(copy, edit, delete);
-		return contextMenu;
+		boolean submitted = SQLData.submitComment(text,selectedBug);
+		if( submitted ){
+			enterComment.setText("");
+			refreshThread.partialUpdate();
+		}
+		else{
+			PopupError.show("Submit Commeny", "Could not submit comment");
+		}
 	}
+
+	
 
 
 	/**
@@ -938,7 +678,7 @@ public class Vektra extends Application{
             //System.out.println("id = " + item.getID());
             //System.out.println("message = " + item.getMessage());
             selectedBug = bug;
-            openScreenshots.setText("Open Screenshots (" + bug.imageMap.size() + ")");
+            openScreenshots.setText("(" + bug.imageMap.size() + ")");
             message.setText(bug.message);
             reportID.setText(String.valueOf(bug.ID));
             
@@ -976,7 +716,6 @@ public class Vektra extends Application{
             	i = 0;
             	ScreenShotListListener listener = new ScreenShotListListener();
             	for( BugImage bImage : bug.imageMap.values() ){
-            		
             		ImageView v = bImage.cloneView();
             		v.preserveRatioProperty();
             		v.setOnMouseClicked(listener);
@@ -991,7 +730,7 @@ public class Vektra extends Application{
             }
             
             // Apply comments
-            setupComments(bug.getComments());
+            BugMessageGUI.setupComments(bug.getComments(), comments, this);
 		}
 	}
 
@@ -1000,7 +739,7 @@ public class Vektra extends Application{
 	 * @param mainLayout Layout to add the items to.
 	 * @param primaryStage What stage to add the menu to.
 	 */
-	private void setupMenu(BorderPane mainLayout, Stage primaryStage) {
+	private MenuBar setupMenu(Stage primaryStage) {
 		
 		MenuBar menuBar = new MenuBar();
 		menuBar.prefWidthProperty().bind(primaryStage.widthProperty());
@@ -1040,8 +779,7 @@ public class Vektra extends Application{
 		report.getItems().add(createReport);
 		createReport.setOnAction(new EventHandler<ActionEvent>(){
 			public void handle(ActionEvent arg0) {
-				int maxID = importedData == null ? -1 : importedData.get(importedData.size()-1).ID;
-				CreateReport.display(maxID);
+				createReport();
 			}
 			
 		});
@@ -1078,10 +816,15 @@ public class Vektra extends Application{
 		menuBar.getMenus().add(report);
 		menuBar.getMenus().add(help);
 
-		mainLayout.setTop(menuBar);
-		
+		return menuBar;		
 	}
 
+
+	public void createReport() {
+		int maxID = importedData == null ? -1 : importedData.get(importedData.size()-1).ID;
+		CreateReport.display(maxID);
+	}
+	
 	/**
 	 * Signs out of the database
 	 * If we are not signed in, it will still reset all GUI appropriately.
@@ -1226,7 +969,7 @@ public class Vektra extends Application{
 		refreshThread.partialUpdate();
 	}
 	
-	public void editCurrentBut() {
+	public void editCurrentBug() {
 		EditReport.display(selectedBug);
 	}
 
@@ -1242,51 +985,11 @@ public class Vektra extends Application{
 	}
 	
 	/**
-	 * When the Create Report menu item is pressed. It will call the create report class to create a new bug report.  
-	 * @author James
-	 *
-	 */
-	private class MenuItemCreateReport implements EventHandler<ActionEvent> {
-		@Override public void handle(ActionEvent arg0) { CreateReport.display(-1); }
-	}
-	
-	/**
-	 * When the Edit Report menu item is pressed. It will call the edit report class to edit the currently selected report
-	 * @author James
-	 *
-	 */
-	private class EditReportButtonPressed implements EventHandler<ActionEvent> {
-		@Override public void handle(ActionEvent arg0) { editCurrentBut(); }
-	}
-	
-	/**
-	 * When the Delete Report menu item is pressed. It will ask for verification before deleteing.  
-	 * @author James
-	 *
-	 */
-	private class DeleteReport implements EventHandler<ActionEvent> {
-		@Override public void handle(ActionEvent t) { deleteCurrentBug(); }
-	}
-	
-	/**
-	 * When the Create Report menu item is pressed. It will call the create report method  
-	 * @author James
-	 *
-	 */
-	private class OpenID implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			System.out.println("OpenID Pressed");
-		}
-	}
-	
-	/**
 	 * When the refresh button is pressed. It will reset the timer on the refresh thread which will then refresh the data.
 	 * @author James
 	 *
 	 */
-	private class Refresh implements EventHandler<ActionEvent> {
+	public class Refresh implements EventHandler<ActionEvent> {
 
 		@Override
 		public void handle(ActionEvent arg0) {
@@ -1314,37 +1017,6 @@ public class Vektra extends Application{
 	}
 	
 	/**
-	 * The user pressed the "Send" button in the comments section. 
-	 * So we should attempt sending the bug
-	 * @author James
-	 *
-	 */
-	private class SubmitCommentButtonPressed implements EventHandler<ActionEvent> {
-
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			System.out.println("Submitting comment!");
-			String text = enterComment.getText();
-			if( text.isEmpty() ){
-				return;
-			}
-			else if( submitComment.isDisabled() ){
-				return;
-			}
-			
-			boolean submitted = SQLData.submitComment(text,selectedBug);
-			if( submitted ){
-				enterComment.setText("");
-				refreshThread.partialUpdate();
-			}
-			else{
-				PopupError.show("Submit Commeny", "Could not submit comment");
-			}
-		}
-	}
-	
-	/**
 	 * Listens for the user to click on a bug in the bug list table.
 	 * Then selects the bug that was clicked on and displays it's information visually.
 	 * @author James
@@ -1362,37 +1034,6 @@ public class Vektra extends Application{
             //System.out.println("index " + index);
     		BugItem item = importedData.get(index);
     		selectBug(item);
-		}
-
-	}
-	
-	/**
-	 * Listens for the user to click on a comment in the comment list
-	 * Displays a dropdown box with Edit and Delete for ONLY the persons own comments
-	 * @author James
-	 *
-	 */
-	private class CommentCellListener implements EventHandler<MouseEvent> {
-
-
-		@Override
-		public void handle(MouseEvent t) {
-
-			TableCell c = (TableCell) t.getSource();
-            int index = c.getIndex();
-            if( index > comments.getItems().size() ){
-            	selectedComment = null;
-            	return;
-            }
-            
-            // Select the comment
-    		selectedComment = comments.getItems().get(index);
-			System.out.println("selected Comment: " + selectedComment);
-			
-			System.out.println("Clicked");
-			if( t.isSecondaryButtonDown() ){
-				c.getContextMenu().show(primaryStage);
-			}
 		}
 
 	}
@@ -1578,6 +1219,152 @@ public class Vektra extends Application{
 		launch(args);
 	}
 
+	/**
+	 * @param createReport the createReport to set
+	 */
+	public void setCreateReport(Button createReport) {
+		this.createReport = createReport;
+	}
+
+	/**
+	 * @param editReport the editReport to set
+	 */
+	public void setEditReport(Button editReport) {
+		this.editReport = editReport;
+	}
+
+	/**
+	 * @param deleteReport the deleteReport to set
+	 */
+	public void setDeleteReport(Button deleteReport) {
+		this.deleteReport = deleteReport;
+	}
+
+	/**
+	 * @param bugs the bugs to set
+	 */
+	public void setBugs(TableView<BugItem> bugs) {
+		this.bugs = bugs;
+	}
+
+	/**
+	 * @param submitComment the submitComment to set
+	 */
+	public void setSubmitComment(Button submitComment) {
+		this.submitComment = submitComment;
+	}
+
+	public BugItem getSelectedBug() {
+		return selectedBug;
+	}
+
+	public void setOpenID(Button openID2) {
+		openID = openID2;
+	}
+
+	public void setRefresh(Button refresh2) {
+		refresh = refresh2;
+	}
+
+	public void setLoggedInName(Label loggedInName2) {
+		loggedInName = loggedInName2;
+	}
+
+	public void setLoggedInPing(Label loggedInPing2) {
+		loggedInPing = loggedInPing2;
+	}
+
+	public void setLoggedInCurrentDate(Label loggedInCurrentDate2) {
+		loggedInCurrentDate = loggedInCurrentDate2;
+	}
+
+	public void performfullRefresh() {
+		if( refreshThread == null || !refreshThread.isAlive() ){
+			PopupError.show("Can not refresh!", "Not logged in?");
+		}
+		
+		refreshThread.fullRefreshTime();
+	}
+
+	public void performPartialRefresh() {
+		if( refreshThread == null || !refreshThread.isAlive() ){
+			PopupError.show("Can not refresh!", "Not logged in?");
+		}
+		
+		refreshThread.partialUpdate();
+	}
+	
+	public void setPriorityIndicator(Rectangle priorityIndicator2) {
+		priorityIndicator = priorityIndicator2;
+	}
+
+	public void setScreenshotList(FlowPane screenshotList2) {
+		screenshotList = screenshotList2;
+	}
+
+	public void setDisplayScreenshot(ImageView displayScreenshot2) {
+		displayScreenshot = displayScreenshot2;
+	}
+
+	public void setVersion(Label version2) {
+		version = version2;
+	}
+
+	public void setPriority(Label priority2) {
+		priority = priority2;
+	}
+
+	public void setTags(Label tags2) {
+		tags = tags2;
+	}
+
+	public void setReportID(Label reportID2) {
+		reportID = reportID2;
+	}
+
+	public void setUpdatedDate(Label updatedDate2) {
+		updatedDate = updatedDate2;
+	}
+
+	public void setWhoUpdated(Label whoUpdated2) {
+		whoUpdated = whoUpdated2;
+	}
+
+	public void setLoggedDate(Label loggedDate2) {
+		loggedDate = loggedDate2;
+	}
+
+	public void setWhoLogged(Label whoLogged2) {
+		whoLogged = whoLogged2;
+	}
+
+	public void setEnterComment(TextField enterComment2) {
+		enterComment = enterComment2;
+	}
+
+	public void setComments(TableView<Comment> comments2) {
+		comments = comments2;
+	}
+
+	public void setMessage(TextArea message2) {
+		message = message2;
+	}
+
+	public void setSelectedComment(Comment object) {
+		selectedComment = object;
+	}
+
+	public Comment getSelectedComment() {
+		return selectedComment;
+	}
+
+	public Stage getPrimaryStage() {
+		return primaryStage;
+	}
+
+	public void setOpenScreenshots(Label openScreenshots2) {
+		openScreenshots = openScreenshots2;
+	}
 
 	
 }

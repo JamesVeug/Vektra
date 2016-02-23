@@ -21,24 +21,31 @@ public class PopupWarning {
 	}
 
 	public static void show(String title, String text, List<String> errorMessages) {
-		Alert alert = new Alert(AlertType.WARNING);
-		alert.setTitle(title);
-		alert.setHeaderText(text);
-		
-		String message = "";
-		for(int i = 1; i < errorMessages.size(); i++){
-			message += "#" + (i) + errorMessages.get(i) + "\n";
-		}
-		alert.setContentText(message);
+		Thread t = new Thread(new Runnable(){
 
-		// Change Icon
-		Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-		stage.getIcons().add(new Image("v.jpg"));
+			@Override
+			public void run() {
+				Alert alert = new Alert(AlertType.WARNING);
+				alert.setTitle(title);
+				alert.setHeaderText(text);
+				
+				String message = "";
+				for(int i = 0; i < errorMessages.size(); i++){
+					message += "#" + (i+1) + " " + errorMessages.get(i) + "\n";
+				}
+				alert.setContentText(message);
 		
-		ButtonType okay = new ButtonType("Okay");
-		alert.getButtonTypes().setAll(okay);
-
-		alert.show();
+				// Change Icon
+				Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+				stage.getIcons().add(new Image("v.jpg"));
+				
+				ButtonType okay = new ButtonType("Okay");
+				alert.getButtonTypes().setAll(okay);
+		
+				alert.show();				
+			}
+		});
+		Platform.runLater(t);
 //		Optional<ButtonType> result = alert.showAndWait();
 		//return (result.get() == yes);
 	}

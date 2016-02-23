@@ -14,6 +14,11 @@ public class BugImage {
 		view = v;
 		this.link = link;
 	}
+	
+	public BugImage(Image image, String link){
+		view = new ImageView(image);
+		this.link = link;
+	}
 
 	public BugImage(Image image, double w, double h, String link){
 		view = new ImageView(image);

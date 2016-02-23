@@ -1,6 +1,8 @@
 package vektra.resources;
 
-import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,11 +40,25 @@ public class OnlineResources {
 		return new BugImage(importedImage, w, h, link);
 	}
 
+	/**
+	 * Download the given link off the internet
+	 * @param link
+	 * @return
+	 */
 	private static Image downloadImage(String link) {
 		System.out.println("DOWNLOADING IMAGE '" + link + "'");
 		
-		Image i = new Image(link);
-		if( i != null ){
+		// Check the link is valid
+		InputStream input = null;
+		try {
+			input = new URL(link).openStream();
+		} catch (IOException e) {
+			return null;
+		}
+		
+		// Link is valid. Create an image
+		Image i = new Image(input);
+		if( i != null && !i.isError() ){
 			images.put(link, i);
 		}
 		
