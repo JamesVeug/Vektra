@@ -84,6 +84,7 @@ public class ScreenShotDisplayGUI {
 		screenshotPane.setPadding(new Insets(5));		
 			Image logo = new Image("logo.png");
 			ImageView displayScreenshot = new ImageView(logo);
+			displayScreenshot.setOnMouseClicked((a)->vektra.displayImageClicked());
 			displayScreenshot.setPreserveRatio(true);
 			vektra.setDisplayScreenshot(displayScreenshot);
 		screenshotPane.getChildren().add(displayScreenshot);
@@ -109,7 +110,6 @@ public class ScreenShotDisplayGUI {
 	
 			// List of Screenshots to be displayed 
 			FlowPane screenshotList = new FlowPane();
-			//screenshotList.setPrefHeight(400);
 			screenshotList.setVgap(8);
 			screenshotList.setHgap(4);
 		screenshotListPane.addRow(1, screenshotList);

@@ -45,6 +45,7 @@ import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
 import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
+import vektra.extrawindows.DisplayImageWindow;
 import vektra.extrawindows.EditReport;
 import vektra.resources.LocalResources;
 import vektra.resources.R;
@@ -1212,6 +1213,14 @@ public class Vektra extends Application{
 		}
 	}
 
+
+	/**
+	 * This method is called when the user clicks on the large display picture.
+	 */
+	public void displayImageClicked() {
+		System.out.println("CLICKED");
+		DisplayImageWindow.show(primaryStage, displayScreenshot);
+	}
 	
 	
 	
