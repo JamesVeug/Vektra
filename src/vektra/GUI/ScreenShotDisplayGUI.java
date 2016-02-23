@@ -97,8 +97,10 @@ public class ScreenShotDisplayGUI {
 			
 			Label openScreenshotsLabel = new Label("Open Screenshots");
 			openScreenshotsLabel.getStyleClass().add("openScreenShots");
+			openScreenshotsLabel.setPrefWidth(200);
 			
 			Label openScreenshots = new Label("(0)");
+			openScreenshots.setAlignment(Pos.CENTER_LEFT);
 			openScreenshots.getStyleClass().add("openScreenShots");
 			vektra.setOpenScreenshots(openScreenshots);
 		screenshotListPane.addRow(0, openScreenshotsLabel);

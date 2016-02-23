@@ -45,12 +45,13 @@ public class BugMessageGUI {
 	public static GridPane create(Stage primaryStage, Vektra vektra) {
 		GridPane messagePane = new GridPane();
 		messagePane.setPadding(new Insets(5,5,0,5));
-		messagePane.setMaxWidth(300);
+		messagePane.setMaxWidth(400);
 //		messagePane.setBackground(new Background(new BackgroundFill(Color.PINK, new CornerRadii(0), new Insets(0))));
 		
 		Label label = new Label("REPORT DESCRIPTION:");
 		label.getStyleClass().add("reportDescription");
 		messagePane.addRow(0, label);
+		GridPane.setColumnSpan(label, 2);
 		
 		TextArea message = new TextArea("No Text Here");
 		message.setPrefHeight(400);
@@ -59,8 +60,9 @@ public class BugMessageGUI {
 		messagePane.addRow(1, message);
 		messagePane.setPrefHeight(200);
 		vektra.setMessage(message);
+		GridPane.setColumnSpan(message, 2);
 		
-		VBox commentPane = new VBox();
+//		VBox commentPane = new VBox();
 			TableView<Comment> comments = new TableView<Comment>();
 			comments.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 			comments.getStylesheets().add("css/buglist.css");
@@ -69,14 +71,16 @@ public class BugMessageGUI {
 			setupComments(new ArrayList<Comment>(), comments, vektra);
 			vektra.setComments(comments);
 			
+			messagePane.addRow(2, comments);
+			GridPane.setColumnSpan(comments, 2);
 			
-			GridPane commentOptions = new GridPane();
+//			GridPane commentOptions = new GridPane();
 				
 				TextField enterComment = new TextField();
 				enterComment.setPromptText("Enter a response here");
 				enterComment.setOnAction((a)->vektra.SubmitCommentButtonPressed(enterComment.getText()));
 				enterComment.getStyleClass().add("createReport_Options_Text");
-				enterComment.setPrefWidth(357);
+//				enterComment.setPrefWidth(357);
 				enterComment.setPrefHeight(100);
 				vektra.setEnterComment(enterComment);
 				
@@ -84,15 +88,9 @@ public class BugMessageGUI {
 				submitComment.setOnAction((a)->vektra.SubmitCommentButtonPressed(enterComment.getText()));
 				vektra.setSubmitComment(submitComment);
 				
-			commentOptions.addColumn(0,submitComment);
-			commentOptions.addColumn(1,enterComment);
-			
-			
-		commentPane.getChildren().add(comments);
-		commentPane.getChildren().add(commentOptions);
-		
-		
-		messagePane.addRow(2, commentPane);
+			messagePane.addRow(3, submitComment);
+			messagePane.addColumn(1, enterComment);
+			GridPane.isFillWidth(enterComment);
 
 		GridPane extraInfoPane = new GridPane();
 			extraInfoPane.setPadding(new Insets(0,0,0,10));
@@ -116,7 +114,7 @@ public class BugMessageGUI {
 			vektra.setLoggedDate(loggedDate);
 			
 			Label updatedByLabel = new Label("UPDATED BY:");
-			updatedByLabel.setPrefSize(150,25);
+			updatedByLabel.setPrefSize(160,25);
 			updatedByLabel.getStyleClass().add("extraMessageInfoHeaders");
 			
 			Label whoUpdated = new Label("-");
@@ -132,6 +130,8 @@ public class BugMessageGUI {
 			updatedDate.setPrefSize(200,50);
 			updatedDate.getStyleClass().add("extraMessageInfo");
 			vektra.setUpdatedDate(updatedDate);
+			
+			
 		extraInfoPane.addColumn(0, loggedByLabel);
 		extraInfoPane.addRow(1, updatedByLabel);
 		extraInfoPane.addColumn(1, whoLogged);
@@ -141,7 +141,8 @@ public class BugMessageGUI {
 		extraInfoPane.addColumn(3, loggedDate);
 		extraInfoPane.addRow(1, updatedDate);
 
-		messagePane.addRow(3, extraInfoPane);
+		messagePane.addRow(4, extraInfoPane);
+		GridPane.setColumnSpan(extraInfoPane, 2);
 		
 		return messagePane;
 	}

@@ -29,7 +29,7 @@ public class ReportOptionsGUI {
 		buttonGrid.setPadding(new Insets(5,5,5,5));
 		buttonGrid.setVgap(5);
 		
-		Button create = new Button("CREATE\nREPORT");
+		Button create = new Button("CREATE");
 		vektra.setCreateReport(create);
 		create.setTextAlignment(TextAlignment.CENTER);
 		create.setOnAction((a)->{CreateReport.display(-1);});

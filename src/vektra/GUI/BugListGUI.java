@@ -26,7 +26,7 @@ public class BugListGUI {
 		
 		TableView<BugItem> bugs = new TableView<BugItem>();
 		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-		bugs.setMaxWidth(400);
+		bugs.setMaxWidth(300);
 		bugs.getStylesheets().add("css/buglist.css");
 		GridPane.isFillHeight(bugs);
 		vektra.setBugs(bugs);

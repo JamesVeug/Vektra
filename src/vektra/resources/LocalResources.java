@@ -257,11 +257,16 @@ public class LocalResources {
 	}
 	
 	/**
-	 * Deletes a file off the computjer with the given path 
+	 * Deletes a file off the computer with the given path 
 	 * @param path directory and filename of file to delete.
 	 * @return true if it was deleted
 	 */
 	private static boolean deleteFromComputer(String path){
+		
+		// If we don't have a path. It's already deleted
+		if( path == null ){
+			return true;
+		}
 		
 		File file = new File(path);
 		if( file != null && file.exists() ){
