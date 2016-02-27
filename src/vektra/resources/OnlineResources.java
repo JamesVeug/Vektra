@@ -3,16 +3,10 @@ package vektra.resources;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
 import javafx.scene.image.Image;
 import vektra.BugImage;
 
 public class OnlineResources {
-
-	// All images we have downloaded online
-	public static Map<String, Image> images = new HashMap<String, Image>();
 	
 	public static BugImage getImage(String link){
 		return createImage(link);
@@ -24,11 +18,6 @@ public class OnlineResources {
 	
 	private static BugImage createImage(String link, double w, double h){
 		
-		// Return the object we already have
-		if( images.keySet().contains(link) ){
-			return new BugImage(images.get(link),w,h,link);
-		}
-		
 		// Download image online
 		Image importedImage = downloadImage(link);
 		if( importedImage == null ){
@@ -37,7 +26,20 @@ public class OnlineResources {
 			return null;
 		}
 		
-		return new BugImage(importedImage, w, h, link);
+		return new BugImage(w, h, link);
+	}
+	
+	private static BugImage createImage(String link){
+			
+		// Download image online
+		Image importedImage = downloadImage(link);
+		if( importedImage == null ){
+			
+			// Could not download
+			return null;
+		}
+		
+		return new BugImage(importedImage.getWidth(),importedImage.getHeight(), link);
 	}
 
 	/**
@@ -49,39 +51,19 @@ public class OnlineResources {
 		System.out.println("DOWNLOADING IMAGE '" + link + "'");
 		
 		// Check the link is valid
+		System.out.println("Testing");
 		InputStream input = null;
 		try {
 			input = new URL(link).openStream();
 		} catch (IOException e) {
 			return null;
 		}
+		System.out.println("Valid");
 		
+		System.out.println("Downloading");
 		// Link is valid. Create an image
-		Image i = new Image(input);
-		if( i != null && !i.isError() ){
-			images.put(link, i);
-		}
-		
-		return i;
-	}
-	
-	
-	private static BugImage createImage(String link){
-		
-		// Return the object we already have
-		if( images.keySet().contains(link) ){
-			Image image = images.get(link);
-			return new BugImage(image,image.getWidth(),image.getHeight(), link);
-		}
-			
-		// Download image online
-		Image importedImage = downloadImage(link);
-		if( importedImage == null ){
-			
-			// Could not download
-			return null;
-		}
-		
-		return new BugImage(importedImage,importedImage.getWidth(),importedImage.getHeight(), link);
+		Image image = new Image(input);
+		System.out.println("Downloaded");
+		return image;
 	}
 }

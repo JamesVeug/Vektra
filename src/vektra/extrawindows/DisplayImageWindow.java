@@ -13,6 +13,10 @@ import javafx.stage.Stage;
 public class DisplayImageWindow {
 	private static List<Stage> windows = new ArrayList<Stage>();
 
+	public static void setup(){
+		// Do nothing but allow the variable to be declared
+	}
+	
 	public static void show(Stage primaryStage, ImageView displayScreenshot) {
 		final Stage stage = new Stage();
 		stage.setOnCloseRequest((a)->{windows.remove(stage);});
@@ -21,6 +25,9 @@ public class DisplayImageWindow {
 		stage.setTitle("Display Screenshot");
 		stage.getIcons().add(new Image("v.jpg"));
 		stage.setResizable(true);
+		
+		stage.setWidth(Math.min(primaryStage.getWidth(), displayScreenshot.getImage().getWidth()));
+		stage.setHeight(Math.min(primaryStage.getHeight(), displayScreenshot.getImage().getHeight()));
 		
 		VBox layout = new VBox();
 		layout.setAlignment(Pos.CENTER);

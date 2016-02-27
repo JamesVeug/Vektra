@@ -35,6 +35,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
+import vektra.SQLData.DatabaseData;
 import vektra.GUI.BugListGUI;
 import vektra.GUI.BugMessageGUI;
 import vektra.GUI.ReportOptionsGUI;
@@ -61,7 +62,7 @@ import vektra.resources.R;
 public class Vektra extends Application{
 	
 	public static Application APPLICATION;
-	public static final String VERSION = "0.16";
+	public static final String VERSION = "0.17";
 	
 	private Stage primaryStage;
 	
@@ -102,12 +103,20 @@ public class Vektra extends Application{
 	private RefreshThread refreshThread;
 	private WindowCloseRequest closeRequest;
 	
+	private void setupStage(Stage primaryStage) {
+		primaryStage.setTitle("VEKTRA - Bug Reporter");
+		primaryStage.setWidth(1024);
+		primaryStage.setHeight(800);
+		primaryStage.getIcons().add(new Image("v.jpg"));
+	}
+
 	/**
 	 * Starting method that creates the main window and loads the primary font.
 	 */
-	public void revampedStart(Stage primaryStage) throws Exception {
-		
+	public void start(Stage primaryStage) throws Exception {
 		APPLICATION = this;
+		
+		DisplayImageWindow.setup();
 		
 		// Required in order to be able to use it in css's
 		@SuppressWarnings("unused")
@@ -124,7 +133,6 @@ public class Vektra extends Application{
 		
 		
 		GridPane mainLayout = new GridPane();
-//		mainLayout.addRow(0, menu);
 		GridPane.setColumnSpan(menu,3);
 		mainLayout.addRow(0, reportOptions);
 		GridPane.setColumnSpan(reportOptions,3);
@@ -147,180 +155,6 @@ public class Vektra extends Application{
 		
 		// Ask to log in!
 		login();
-	}
-	
-	private void setupStage(Stage primaryStage) {
-		primaryStage.setTitle("VEKTRA - Bug Reporter");
-		primaryStage.setWidth(1024);
-		primaryStage.setHeight(800);
-		primaryStage.getIcons().add(new Image("v.jpg"));
-	}
-
-	/**
-	 * Starting method that creates the main window and loads the primary font.
-	 */
-	public void start(Stage primaryStage) throws Exception {
-		revampedStart(primaryStage);
-		if( true ){
-			return;
-		}
-//		APPLICATION = this;
-//		
-//		// Required in order to be able to use it in css's
-//		final Font font = Font.loadFont(Vektra.class.getClass().getResourceAsStream("/fonts/Microstyle Bold Extended ATT.ttf"), 20);
-//		
-//		this.primaryStage = primaryStage;
-//		setupStage(primaryStage);
-//		
-//		
-//		
-//		GridPane mainLayout = new GridPane();
-//		//mainLayout.getStylesheets().add("css/custom.css");
-//		mainLayout.setBackground(new Background(new BackgroundFill(Color.RED, new  CornerRadii(0), new Insets(0))));
-////		mainLayout.topProperty().
-//
-//		
-//		setupMenu(mainLayout, primaryStage);
-//		
-//		
-//		// Top
-//		GridPane options = ReportOptionsGUI.create(primaryStage, this);
-//		
-//
-//		bugs = BugListGUI.create(primaryStage, this);
-//		
-//		
-//		// Middle area
-//		GridPane screenshotlayout = ScreenShotDisplayGUI.create(primaryStage, this);
-//		
-//		// Bottom right
-//		
-//		GridPane bugListAndInfolayout = BugMessageGUI.create(primaryStage, this);
-//
-//		mainLayout.addRow(1,options);
-//		mainLayout.addRow(2,bugListAndInfolayout);
-//		
-//		GridPane testGrid = new GridPane();
-//		testGrid.setBackground(new Background(new BackgroundFill(Color.BLUE, new CornerRadii(0), new Insets(0))));
-//		
-//		
-//		StackPane outter = new StackPane();
-//		outter.setBackground(new Background(new BackgroundFill(Color.GRAY, new CornerRadii(0), new Insets(0))));
-//		outter.getChildren().add(mainLayout);
-//	    
-//		Scene scene = new Scene(outter);
-//
-//		closeRequest = new WindowCloseRequest();
-//		primaryStage.setOnCloseRequest(closeRequest);
-//		primaryStage.setScene(scene);
-//		primaryStage.show();
-//		
-//		
-//		// Ask to log in!
-//		login();
-//	}
-//	
-//
-//	@SuppressWarnings("unchecked")
-//	private void setupComments(Collection<Comment> currentComments) {
-//		
-//		comments.getItems().clear();
-//		if( !currentComments.isEmpty() ){
-//			ObservableList<Comment> list = FXCollections.observableArrayList(currentComments);
-//			comments.setItems(list);
-//			
-//			Collections.sort(list,new Comparator<Comment>(){
-//
-//				@Override
-//				public int compare(Comment one, Comment two) {
-//					return one.timePosted.compareTo(two.timePosted);
-//				}
-//				
-//			});
-//		}
-//		
-//		// Menu for when the user right clicks a comment
-//		final ContextMenu contextMenu = getCommentPopupMenu();
-//		
-//		
-//		TableColumn<Comment, String> commenterColumn = new TableColumn<Comment,String>("POSTER");
-//		commenterColumn.setSortable(false);
-//		commenterColumn.setMinWidth(80);
-//		commenterColumn.setMaxWidth(80);
-//		commenterColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("poster"));
-//		commenterColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
-//	        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
-//	            return new TableCell<Comment, String>() {
-//
-//	                @Override
-//	                public void updateItem(String item, boolean empty) {
-//	                    super.updateItem(item, empty);
-//	                    if (!isEmpty()) {
-//	                        this.getStylesheets().add("css/buglist.css");
-//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
-//	                		this.setContextMenu(contextMenu);
-//	                        
-//	                        setText(item);
-//	                        
-//	                    }
-//	                }
-//	            };
-//	        }
-//	    });
-//		if( !comments.getColumns().isEmpty() ){
-//			commenterColumn.setSortType(comments.getColumns().get(0).getSortType());
-//		}
-//		
-//		TableColumn<Comment, String> messageColumn = new TableColumn<Comment, String>("MESSAGE");
-//		messageColumn.setSortable(false);
-//		messageColumn.setCellValueFactory(new PropertyValueFactory<Comment, String>("message"));
-//		messageColumn.setCellFactory(new Callback<TableColumn<Comment, String>, TableCell<Comment, String>>() {
-//
-//		        @Override
-//		        public TableCell<Comment, String> call(TableColumn<Comment, String> param) {
-//		            TableCell<Comment, String> cell = new TableCell<Comment, String>(){
-//		            	@Override
-//		                public void updateItem(String item, boolean empty) {
-//		                    super.updateItem(item, empty);
-//		                    if (!isEmpty()) {
-//		                        setText(item);
-//		                    }
-//		                }
-//		            };
-//		            Text text = new Text();
-//		            text.getStyleClass().add("table-cell");
-//		            cell.setGraphic(text);
-//		            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
-//		            cell.getStylesheets().add("css/buglist.css");
-//		            text.wrappingWidthProperty().bind(cell.widthProperty());
-//		            text.textProperty().bind(cell.itemProperty());
-//		            cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new CommentCellListener());
-//		            cell.setContextMenu(contextMenu);
-//		            return cell ;
-//		        }
-//        });
-//		if( !comments.getColumns().isEmpty() ){
-//			messageColumn.setSortType(comments.getColumns().get(1).getSortType());
-//		}
-//		
-//		@SuppressWarnings("rawtypes")
-//		TableColumn sorting = comments.getSortOrder().isEmpty() ? null : comments.getSortOrder().get(0);
-//		if( sorting == null ){
-//			// Ignore
-//		}
-//		else if( sorting == comments.getColumns().get(2) ){
-//			comments.getSortOrder().set(0, commenterColumn);
-//		}
-//		else if( sorting == comments.getColumns().get(2) ){
-//			comments.getSortOrder().set(0, messageColumn);
-//		}
-//		
-//		comments.getColumns().clear();
-//		comments.getColumns().addAll(commenterColumn,messageColumn);	
-//		comments.sort();
-		
-//		messageColumn.setPrefWidth(320);
-		//messageColumn.minWidthProperty().bind(commentScroll.widthProperty());
 	}
 	
 	public void SubmitCommentButtonPressed(String commentWritten) {
@@ -664,9 +498,16 @@ public class Vektra extends Application{
 		if( selectedBug == null ){
 			return;
 		}
-
+		
+		for(BugImage i : selectedBug.getImages()){
+			i.dispose();
+		}
+		
     	screenshotList.getChildren().clear();
     	displayScreenshot.setImage(null);
+    	message.setText("");
+    	reportID.setText("");
+    	version.setText("");
 	}
 
 	/**
@@ -679,6 +520,11 @@ public class Vektra extends Application{
 			//System.out.println("Selected Bug: ");
             //System.out.println("id = " + item.getID());
             //System.out.println("message = " + item.getMessage());
+			
+			// Deselect old bug
+			deselectBug();
+			
+			
             selectedBug = bug;
             openScreenshots.setText("(" + bug.imageMap.size() + ")");
             message.setText(bug.message);
@@ -1092,12 +938,12 @@ public class Vektra extends Application{
 					boolean fullUpdate = refreshCount++ == 0; 
 					
 					// Get the data from the database
-					ObservableList<BugItem> loadedData;
+					SQLData.DatabaseData loadedData;
 					if( fullUpdate ){
 						loadedData = SQLData.getData();
 						
 						// Save local images
-						LocalResources.synchronizeLocalImages(loadedData);
+						LocalResources.synchronizeLocalImages(loadedData.images.values());
 					}
 					else{
 						loadedData = SQLData.getUpdatedData();
@@ -1114,7 +960,7 @@ public class Vektra extends Application{
 					
 					
 					// Refresh the GUI
-					refreshData(loadedData, SQLData.retrieveCurrentTime(), length, fullUpdate);
+					refreshData(loadedData.data, SQLData.retrieveCurrentTime(), length, fullUpdate);
 					
 					// Disable refresh button
 					while(disable != null && disable.isAlive() ){}

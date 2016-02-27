@@ -1,42 +1,94 @@
 package vektra;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
+
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 
 public class BugImage {
 	
+	public final double width;
+	public final double height;
 	public final String link;
-	public final ImageView view;
+	
+	
+	// To dispose of
+	private ImageView view;
+	private Image image;
+	
+//	AsyncImageProperty imageProperty = new AsyncImageProperty();  // create async image loading property
+//
+//	ImageView view = new ImageView();  // create a View to display images
+//	view.imageProperty().bind(imageProperty);  // bind to the image property so any changes become visible
+//
+//	imageProperty.imageHandleProperty().set("/my/image/to/load.png");  // set an image to load
 	
 	// Changes later
 	public int screenshotID = -1;
-	public BugImage(ImageView v, String link){
-		view = v;
-		this.link = link;
+	public BugImage(String link){
+		this(-1,-1,link);
 	}
 	
-	public BugImage(Image image, String link){
-		view = new ImageView(image);
+	public BugImage(double w, double h, String link){
 		this.link = link;
-	}
-
-	public BugImage(Image image, double w, double h, String link){
-		view = new ImageView(image);
-		view.setFitWidth(w);
-		view.setFitHeight(h);
-		this.link = link;
+		width = w;
+		height = h;
 	}
 	
 	public Image getImage(){
-		return view.getImage();
+		if( image == null ){
+//			getImageView();
+			//imageProperty.imageHandleProperty().set("/my/image/to/load.png");  // set an image to load
+			try{
+				
+				
+				System.out.println("Loading Image: '" + link + "'");
+				BufferedImage buffimage = ImageIO.read(new File(link));
+				WritableImage image = null;
+				image = SwingFXUtils.toFXImage(buffimage, image);
+				this.image = image;
+			}catch( IllegalArgumentException e ){
+				e.printStackTrace();
+				return null;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+					
+		return image;	
 	}
 	
 	public ImageView getImageView(){
+		
+		if( view == null ){
+			view = new ImageView(getImage());  // create a View to display images
+			view.setFitWidth(width);
+			view.setFitHeight(height);
+		}
+		
 		return view;
 	}
-
-	public ImageView cloneView() {
-		return new ImageView(view.getImage());
+	
+	public ImageView cloneView(){	
+		ImageView view = new ImageView(getImage());
+		view.setFitWidth(width);
+		view.setFitHeight(height);
+		return view;
+	}
+	
+	/**
+	 * Clears unrequired content to free up heap space
+	 */
+	public void dispose(){
+		view = null;
+		image = null;
 	}
 
 	/* (non-Javadoc)

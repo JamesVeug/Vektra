@@ -42,7 +42,7 @@ public class SQLData {
 	 * If we do not have a connection to the database. This will attempt to reconnect. If it it's still not connected, it will then return null.
 	 * @return new ObservableList containing the complete BugItems that have been updated in the database.
 	 */
-	public static ObservableList<BugItem> getUpdatedData(){
+	public static DatabaseData getUpdatedData(){
 		
 		// Connect if we aren't connected yet.
 		connect();
@@ -60,9 +60,6 @@ public class SQLData {
 			
 			// Get all the updates from the last time we performed a select
 			String previousDate = lastUpdate;
-			
-			
-			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
 			
 			Statement st = con.createStatement();
 			
@@ -98,16 +95,16 @@ public class SQLData {
 			ResultSet result = st.executeQuery(selectionQuery);
 		
 			// Get all the bugs that we queried
-			processResults(result, bugs);
+			DatabaseData data = processResults(result);
 			
 			
 			// If we received an update. Record the time
-			if( !bugs.isEmpty() ){
+			if( data != null ){
 				lastUpdate = currentDate;
 			}
 			
 			// Finished getting update
-			return bugs;
+			return data;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -120,13 +117,13 @@ public class SQLData {
 	/**
 	 * Converts the given objects from the result object into BugItem's and adds them to the bugs list.
 	 * @param result Where the bugs are stored and retreived off the database.
-	 * @param bugs Where to store the bugs
 	 */
-	private static void processResults(ResultSet result, ObservableList<BugItem> bugs){
+	private static DatabaseData processResults(ResultSet result){
 		//long startTime = System.currentTimeMillis();
 		
 		try {
 
+			DatabaseData data = new SQLData().new DatabaseData();
 			Map<Integer,BugItem> bugMapping = new HashMap<Integer,BugItem>();
 			while( result.next() ){
 				Integer id = result.getInt("bugid");
@@ -161,13 +158,13 @@ public class SQLData {
 				// Screensots
 				String link = result.getString("link");
 				int screenshotid = result.getInt("screenshotid");
-				BugImage screenshot = getScreenshot(screenshotid, link);
+				BugImage screenshot = !data.containsImage(screenshotid) ? getScreenshot(screenshotid, link) : null;
 				
 				
 				// If we haven't recorded this bug yet. Save it as a new entry 
 				if( !bugMapping.containsKey(id) ){
 					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), Status.get(status), poster,message,date, new Version(version,Stage.get(stage)), screenshot != null ? link : null, screenshot != null ? screenshot : null);
-					bugs.add(bug);
+					data.add(bug);
 					bugMapping.put(id, bug);
 					bug.whoUpdated = whoUpdated;
 					bug.lastUpdate = lastUpdated;
@@ -190,7 +187,7 @@ public class SQLData {
 					
 					// Add another screenshot
 					if( screenshot != null ){
-						saved.addScreenshot(link, screenshot);
+						data.addImageToBug(saved, screenshot);
 					}
 					
 					// Add another comment
@@ -199,16 +196,20 @@ public class SQLData {
 					}
 				}
 			}	
+			
+			return data;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		return null;
 	}
 	
 	/**
 	 * Retrieves all data from the database and returns a new ObservableList that contains BugItems converted from the data that was pulled.
 	 * @return List of all BugItems from the database, otherwise null if we could not connect or an exception was called.
 	 */
-	public static ObservableList<BugItem> getData(){
+	public static DatabaseData getData(){
 		
 		// Connect if required
 		connect();
@@ -246,14 +247,9 @@ public class SQLData {
 			// Perform the query
 			Statement st = con.createStatement();	
 			ResultSet result = st.executeQuery(query);
-
-			ObservableList<BugItem> bugs = FXCollections.observableArrayList();
 			
 			// Convert data into BugItems, and store them in list above.
-			processResults(result, bugs);
-			
-			// Return entire list of bugs
-			return bugs;
+			return processResults(result);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -292,6 +288,7 @@ public class SQLData {
 	 * @return BugImage that stores the link and screenshotid if it's valid. Otherwise null
 	 */
 	private static BugImage getScreenshot(int screenshotid, String link) {
+		System.out.println("SQLData: Getting screenshot - " + screenshotid);
 		
 		// Check to make sure we have a valid link from the database
 		if( link != null && !link.isEmpty() && !link.equals("NULL") ){
@@ -959,6 +956,40 @@ public class SQLData {
 		}
 		
 		return submitted;
+	}
+	
+	
+	/**
+	 * Return object when getting data from the database
+	 * Contains the same image and bugitem objects
+	 * @author James
+	 *
+	 */
+	public class DatabaseData{
+		public ObservableList<BugItem> data = FXCollections.observableArrayList();
+		public Map<Integer, BugImage> images = new HashMap<Integer,BugImage>();
+		
+		public DatabaseData(){}
+		
+		public boolean containsImage(int screenshotid) {
+			return images.containsKey(screenshotid);
+		}
+
+		public void add(BugItem i){
+			System.out.println("Adding Bug " + i.getID());
+		
+			data.add(i);
+			for(BugImage image : i.getImages()){
+				images.put(image.screenshotID, image);
+				System.out.println("\tStoring Image " + image.screenshotID);
+			}
+		}
+		
+		public void addImageToBug(BugItem bug, BugImage image){
+			bug.addScreenshot(image.link, image);
+			images.put(image.screenshotID, image);
+			System.out.println("\tStoring Image " + image.screenshotID);
+		}
 	}
 }
 

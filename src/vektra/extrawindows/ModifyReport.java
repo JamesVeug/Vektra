@@ -57,7 +57,7 @@ public class ModifyReport {
 	protected static TextField enterLink;
 	protected static HBox screenshotList;
 	private static Map<String,BugImage> bugimages;
-	private static Map<Image,String> images;
+	private static Map<ImageView,String> images;
 	
 	protected static ToggleGroup priorityGroup;
 	protected static RadioButton LOW;
@@ -154,7 +154,7 @@ public class ModifyReport {
 			optionPane.addColumn(8, BREAKINGLabel);
 			
 			bugimages = new HashMap<String,BugImage>();
-			images = new HashMap<Image,String>();
+			images = new HashMap<ImageView,String>();
 			GridPane screenShotPane  = new GridPane();
 			screenShotPane.setVgap(5); //vertical gap in pixels
 			screenShotPane.setPadding(new Insets(10, 10, 10, 10)); //margins around the whole grid
@@ -241,6 +241,15 @@ public class ModifyReport {
 				version.getStyleClass().add("createReport_Options_Text");
 				version.setPromptText(exampleVersion);
 			statusInnerPane.getChildren().add(version);
+				
+//				Label bitTypeLabel = new Label("Bit Type:");
+//				bitTypeLabel.getStyleClass().add("createReport_Options_Headers");
+//			statusInnerPane.getChildren().add(bitTypeLabel);
+//				
+//				// TODO BIT TYPE OBJECT
+//				bitTypeVersion = new ComboBox<vektra.Stage>();
+//				bitTypeVersion.getItems().addAll(vektra.Stage.stageList);
+//				bitTypeVersion.getStyleClass().add("createReport_Options_Text");
 			statusPane.getChildren().add(statusInnerPane);			
 		bottomPane.addRow(1,statusInnerPane);
 		
@@ -292,7 +301,7 @@ public class ModifyReport {
 
 	protected static void addImage(String link, BugImage image){
 		bugimages.put(link, image);
-		images.put(image.getImage(), link);
+		images.put(image.getImageView(), link);
 		
 		ImageView v = new ImageView(image.getImage());
 		v.setOnMouseClicked(new ImageClickedListener());
@@ -303,8 +312,9 @@ public class ModifyReport {
 	
 	protected static void removeImage(ImageView view){
 		// Finishe remove so removing via mosue click works
-		String removedLink = images.remove(view.getImage());
+		String removedLink = images.remove(view);
 		BugImage removedImage = bugimages.remove(removedLink);
+		removedImage.dispose();
 		
 		System.out.println("RemovedImage: " + removedImage);
 		System.out.println("RemovedLink: " + removedLink);

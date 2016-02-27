@@ -22,14 +22,13 @@ import vektra.dialogs.PopupWarning;
 public class LocalResources {
 	
 
-	public static Map<Integer, String> screenshotIDToDirectory = new HashMap<Integer,String>();
-	public static Map<Integer, Image> screenshotIDToImage = new HashMap<Integer,Image>();
+	private static Map<Integer, String> screenshotIDToDirectory = new HashMap<Integer,String>();
 	
 	
-	public static BugImage getImage(String link, int screenshotid){
+	public static BugImage getImage(int screenshotid){
 		
 		// Try and get it from our local storage
-		BugImage localImage = getLocalImage(link, -1, -1, screenshotid);
+		BugImage localImage = getLocalImage(-1, -1, screenshotid);
 		if( localImage != null ){
 			return localImage;
 		}
@@ -38,10 +37,10 @@ public class LocalResources {
 		return null;
 	}
 
-	public static BugImage getImage(String link, double w, double h, int screenshotid) {
+	public static BugImage getImage(double w, double h, int screenshotid) {
 		
 		// Try and get it from our local storage
-		BugImage localImage = getLocalImage(link, w, h, screenshotid);
+		BugImage localImage = getLocalImage(w, h, screenshotid);
 		if( localImage != null ){
 			return localImage;
 		}
@@ -58,72 +57,76 @@ public class LocalResources {
 	 * @param screenshotid 
 	 * @return
 	 */
-	private static BugImage getLocalImage(String link, double w, double h, int screenshotid) {		
-
-		Image imageViaLink = screenshotIDToImage.get(screenshotid);
-		if( imageViaLink != null ){
-			System.out.println("Via link");
+	private static BugImage getLocalImage(double w, double h, int screenshotid) {		
 			
-			if( w == -1 ){
-				w = imageViaLink.getWidth();
-			}
-			
-			if( h == -1 ){
-				h = imageViaLink.getHeight();
-			}
-			
+		if( screenshotIDToDirectory.get(screenshotid) != null ){
 			System.out.println("USING LOCAL IMAGE!");
-			return new BugImage(imageViaLink, w,h, link);
+			return new BugImage(w,h, screenshotIDToDirectory.get(screenshotid));
 		}
-		
+
 		// Could not find it!
 		System.out.println("Could not find local image '" + screenshotid + "'");
 		return null;
 	}
 	
-	public static void synchronizeLocalImages(ObservableList<BugItem> databaseData){
+	public static void synchronizeLocalImages(Collection<BugImage> databaseData){
 		System.out.println("Syncing " + databaseData.size());
+	
+		// TODO
+		// TODO Not loading 105.jpg or the others. WHY!?
+		// TODO
 		
-		
-		List<BugImage> databaseImages = new ArrayList<BugImage>();
+		Map<Integer, BugImage> databaseImages = new HashMap<Integer, BugImage>();
 		
 		// Sort data by what we have and do not have
-		for(BugItem bug : databaseData){
+		for( BugImage image : databaseData ){			
+			databaseImages.put(image.screenshotID, image);
+			int screenshotId = image.screenshotID;
+			System.out.println("Database " + screenshotId);
 			
-			for( BugImage image : bug.imageMap.values() ){
-				if( image == null || image.getImage() == null ){
-					continue;
-				}
-				
-				databaseImages.add(image);
-				int screenshotId = image.screenshotID;
-				
-				if( !screenshotIDToImage.containsKey(screenshotId)){
-					addImage(image);
-				}				
+			if( !screenshotIDToDirectory.containsKey(screenshotId)){
+				addImage(image);
+			}
+			else{
+				System.out.println("Already saved: " + screenshotIDToDirectory.get(screenshotId));
 			}
 		}
 		
-		/*System.out.println("Database Images: " + databaseImages.size());
-		for(BugImage i : databaseImages){
+		System.out.println("Database Images: " + databaseImages.size());
+		for(BugImage i : databaseImages.values()){
 			System.out.println("\t"+i.screenshotID);
-		}*/
+		}
 		
 		// Check if the images off the computer match the images on the database
-		List<BugImage> computerImages = getImagesOffcomputer();
-		for(BugImage computerImage : computerImages){
-			if( !databaseImages.contains(computerImage) ){
-				
-				// Database does not have this image
-				// Delete it off computer
-				boolean deleted = removeImageViaID(computerImage.screenshotID); 
-				if( deleted ){
-					System.err.println("Deleted image " + computerImage.link);
+//		List<BugImage> computerImages = getImagesOffcomputer();
+		List<String> computerImageIDs = getImagesOffcomputer();
+		for(String path : computerImageIDs){
+			
+			int startIndex = path.lastIndexOf("\\")+1;
+			
+			String ID = path.substring(startIndex,path.indexOf("."));
+			if( ID.contains("?") ){
+				ID = ID.substring(0, ID.indexOf("?"));
+			}
+			
+			try{
+				Integer id = Integer.parseInt(ID);
+				if( !databaseImages.containsKey(id) ){
+					System.out.println("Do not have image '" + ID + "'");
 					
+					// Database does not have this image
+					// Delete it off computer
+					boolean deleted = removeImageViaID(id); 
+					if( deleted ){
+						System.err.println("Deleted image " + id);
+						
+					}
+					else{
+						System.err.println("Could not deleted image " + id);					
+					}
 				}
-				else{
-					System.err.println("Could not deleted image " + computerImage.link);					
-				}
+			}catch(NumberFormatException e){
+				System.out.println("Could not convert ID to INT: " + ID );
 			}
 		}
 
@@ -131,23 +134,7 @@ public class LocalResources {
 
 	}
 	
-	private static void addImage(BugImage image) {
-		
-		// Don't store NULL
-		if( image == R.getNullImage() ){
-			return;
-		}
-		String directory = downloadToComputer(image);
-		if( directory != null ){
-			screenshotIDToImage.put(image.screenshotID, image.getImage());
-			screenshotIDToDirectory.put(image.screenshotID, directory);
-		}
-		else{
-			System.out.println("Could not download image to directory! " + image.screenshotID);
-		}
-	}
-
-	private static List<BugImage> getImagesOffcomputer() {
+	private static List<String> getImagesOffcomputer() {
 		File imagesDirectory = new File(getImageDirectory());
 		
 		// Check that it creates directory
@@ -155,28 +142,69 @@ public class LocalResources {
 			imagesDirectory.mkdirs();
 		}
 		
-		List<BugImage> images = new ArrayList<BugImage>();
+		List<String> images = new ArrayList<String>();
 		for( File file : imagesDirectory.listFiles() ){
 			
-			String ID = file.getName().substring(0,file.getName().indexOf("."));
+//			String ID = file.getName().substring(0,file.getName().indexOf("."));
 			
 			try{
-				String path = file.getPath();
-				BufferedImage buffimage = ImageIO.read(file);
-				WritableImage image = null;
-				image = SwingFXUtils.toFXImage(buffimage, image);
-				
-				if( image != null ){
-					BugImage bugImage = new BugImage(new ImageView(image), path);
-					bugImage.screenshotID = Integer.parseInt(ID);
-					images.add(bugImage);
-				}
-			}catch(Exception e ){
-				e.printStackTrace();
+//				Integer id = Integer.parseInt(ID);
+				images.add(file.getPath());
+				System.out.println("Added ID " + file.getName());
+			}catch(NumberFormatException e){
+				System.out.println("Could not convert ID to INT: " + file.getName() );
 			}
 		}
 				
 		return images;
+	}
+
+	private static void addImage(BugImage image) {
+		
+		// Don't store NULL
+		if( image == R.getNullImage() ){
+			return;
+		}
+		
+		String directory = downloadToComputer(image);
+		if( directory != null ){
+			screenshotIDToDirectory.put(image.screenshotID, directory);
+			System.out.println("Saved To: " + screenshotIDToDirectory.get(image.screenshotID));
+		}
+		else{
+			System.out.println("Could not download image to directory! " + image.screenshotID);
+		}
+	}
+
+
+	
+	private static Image getImageOffComputer(Integer id) {
+		
+		if( !screenshotIDToDirectory.containsKey(id) ){
+			return null;
+		}
+		
+		File file = new File(screenshotIDToDirectory.get(id));
+		
+		System.out.println("Getting Image: " + file.getName());
+		
+//		String ID = file.getName().substring(0,file.getName().indexOf("."));
+		
+		try{
+//			String path = file.getPath();
+			BufferedImage buffimage = ImageIO.read(file);
+			WritableImage image = null;
+			image = SwingFXUtils.toFXImage(buffimage, image);
+			
+			if( image != null ){
+				return image;
+			}
+		}catch(Exception e ){
+			e.printStackTrace();
+		}
+				
+		// Couldn't get image
+		return null;
 	}
 
 	/**
@@ -196,8 +224,8 @@ public class LocalResources {
 		String ext = name.substring(name.lastIndexOf(".")+1);			
 		String filename = image.screenshotID + "." + ext;
 		
-		System.out.println("ext: " + ext);
-		System.out.println("File: " + filename);
+//		System.out.println("ext: " + ext);
+//		System.out.println("File: " + filename);
 		
 		File directory = new File(getImageDirectory());
 		if( !directory.exists() ){
@@ -209,21 +237,33 @@ public class LocalResources {
 		File file = new File(filepath);
 		if( file.exists() ){
 			System.err.println("File already exists. Not downloading to computer (" + getImageDirectory() + filename + ")");
-			return filepath;
+			try {
+				return file.getCanonicalPath();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return "/"+filepath;
+			}
 		}
 		
-		System.out.println("Iamge: " + image);
-		System.out.println("Image image " + image.getImage());
-		System.out.println("Image image " + image.link);
+//		System.out.println("Iamge: " + image);
+//		System.out.println("Image image " + image.getImage());
+//		System.out.println("Image image " + image.link);
 		BufferedImage buffimage = toBufferedImage(image.getImage());
 		try {
 		   ImageIO.write(buffimage, ext, file);
-		   return filepath;
+		   try {
+				return file.getCanonicalPath();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return "/"+filepath;
+			}
 		} catch(IOException e) {
 			System.out.println("Write error for " + file.getPath() + ": " + e.getMessage());
 		} catch(IllegalArgumentException e ){
 			//PopupWarning.show("Save Local Image", "Could not locally save image", file.getPath() + "\n" + e.getMessage());
 		}
+		
+		// Could not save to computer
 		return null;
 	}
 	
@@ -241,13 +281,30 @@ public class LocalResources {
 		
 		// delete from directory
 		String filename = screenshotIDToDirectory.get(id);
+		if( filename == null ){
+			
+			// This ID does not exist in our database
+			// Look for it in our idrectory
+			File directory = new File(getImageDirectory());
+			for(String file : directory.list()){
+				if( file.startsWith(String.valueOf(id)) ){
+					filename = getImageDirectory()+file;
+					break;
+				}
+			}
+			
+			// Could not delete as we don't have the file anywhere!
+			if( filename == null ){
+				return false;
+			}
+		}
+		
 		boolean deleted = deleteFromComputer(filename);
 		if( deleted ){
 			System.out.println("\tDeleted '" + filename + "'");
 			
 			// Remove from storage
 			screenshotIDToDirectory.remove(id);
-			screenshotIDToImage.remove(id);		
 			return true;
 		}
 		else{
@@ -263,9 +320,10 @@ public class LocalResources {
 	 */
 	private static boolean deleteFromComputer(String path){
 		
-		// If we don't have a path. It's already deleted
+		// Don't have a path. So did not delete
 		if( path == null ){
-			return true;
+			System.out.println("Null path!");
+			return false;
 		}
 		
 		File file = new File(path);
@@ -274,6 +332,7 @@ public class LocalResources {
 			return true;
 		}
 		else{
+			System.out.println("Path does not exist!");
 			return false;
 		}
 	}
@@ -290,9 +349,7 @@ public class LocalResources {
 	 */
 	public static BufferedImage toBufferedImage(Image img){
 		
-		System.out.println("To Buff " + img);
 		BufferedImage image = SwingFXUtils.fromFXImage(img, null);
-		System.out.println("image " + image);
 
 	    // Return the buffered image
 	    return image;
@@ -307,18 +364,81 @@ public class LocalResources {
 	public static void loadLocalImages() {
 		System.out.println("Getting local images");
 		
-		List<BugImage> images = getImagesOffcomputer();
-		if( images == null ){
-			System.out.println("images uploaded from computer were null!");
+		String path = getImageDirectory();
+		File file = new File(path);
+		if( file == null || !file.exists() ){
+			file.mkdirs();
 			return;
 		}
 		
-		System.out.println("Local Image Count " + images.size());
-		for(BugImage i : images ){
-			System.out.println("\t" + i.link);
+		// Step through all images
+		for(String name : file.list() ){
+			String ID = name.substring(0,name.indexOf("."));
+			
+			try{
+				Integer id = Integer.parseInt(ID);
+				screenshotIDToDirectory.put(id, file.getAbsolutePath()+"\\"+name);
+				System.out.println("Saved local image: " + ID + ", " + path+name);
+			}catch(NumberFormatException e ){
+				System.out.println("Couldn't convert " + ID + " to int");
+			}
 		}
-		addImages(images);
 		
+		
+//		List<BugImage> images = getImagesOffcomputer();
+//		
+//		System.out.println("Local Image Count " + images.size());
+//		for(BugImage i : images ){
+//			System.out.println("\t" + i.link);
+//		}
+//		addImages(images);
+		
+	}
+
+	public static void clearImages() {
+		screenshotIDToDirectory.clear();
+	}
+
+	public static int getLocalImageCount() {
+		return screenshotIDToDirectory.size();
+	}
+
+	public static int getImageCountOffComputer(){
+		System.out.println("Deleting Local Images count '" + getImageDirectory() + "'");
+		
+		File directory = new File(getImageDirectory());
+		if( directory == null || !directory.exists() ){
+			System.out.println("Directory does not exist.");
+			return 0;
+		}
+		
+		int imageCount = directory.list().length;
+		return imageCount;
+	}
+	
+	/**
+	 * Deletes all files in the ImageDirectory and returns the count of how mnay were deleted
+	 * @return How many images were deleted
+	 */
+	public static int deleteLocalImages() {
+		System.out.println("Deleting Local Images from '" + getImageDirectory() + "'");
+			
+		File directory = new File(getImageDirectory());
+		if( directory == null || !directory.exists() ){
+			System.out.println("Directory does not exist.");
+			return 0;
+		}
+		
+		int deleteCount = 0;
+		for(File f : directory.listFiles()){
+			boolean deleted = f.delete();
+			if( deleted ){
+				deleteCount++;
+			}
+		}
+		
+		System.out.println("Deleted " + deleteCount);
+		return deleteCount;
 	}
 }
 
