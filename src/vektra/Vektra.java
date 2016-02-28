@@ -13,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -689,7 +688,7 @@ public class Vektra extends Application{
 				PopupError.show("Can not refresh!", "Not logged in?");
 			}
 			
-			refreshThread.fullRefreshTime();
+			refreshThread.fullRefresh();
 		}
 	}
 
@@ -707,28 +706,7 @@ public class Vektra extends Application{
 			selectImage(v);
 		}
 	}
-	
-	/**
-	 * Listens for the user to click on a bug in the bug list table.
-	 * Then selects the bug that was clicked on and displays it's information visually.
-	 * @author James
-	 *
-	 */
-	private class BugListListener implements EventHandler<MouseEvent> {
 
-
-		@Override
-		public void handle(MouseEvent t) {
-			//System.out.println("Clicked Table View");
-			@SuppressWarnings("rawtypes")
-			TableCell c = (TableCell) t.getSource();
-            int index = c.getIndex();
-            //System.out.println("index " + index);
-    		BugItem item = importedData.get(index);
-    		selectBug(item);
-		}
-
-	}
 	
 	/**
 	 * Constantly running thread in the background checking if the database has any new updates
@@ -845,7 +823,7 @@ public class Vektra extends Application{
 		/**
 		 * Performs a full refresh on the data collecting everything
 		 */
-		public void fullRefreshTime() {
+		public void fullRefresh() {
 			time = 0;
 			refreshCount = 0;
 		}
@@ -994,7 +972,7 @@ public class Vektra extends Application{
 		loggedInCurrentDate = loggedInCurrentDate2;
 	}
 
-	public void performfullRefresh() {
+	public void performFullRefresh() {
 		if( refreshThread == null || !refreshThread.isAlive() ){
 			PopupError.show("Can not refresh!", "Not logged in?");
 		}
@@ -1002,7 +980,7 @@ public class Vektra extends Application{
 		BugItem selectedBug = deselectBug();
 //		selectedBug.dispose();
 		
-		refreshThread.fullRefreshTime();
+		refreshThread.fullRefresh();
 		
 //		selectBug(selectedBug);
 	}

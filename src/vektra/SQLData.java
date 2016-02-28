@@ -687,7 +687,7 @@ public class SQLData {
 		
 		
 		if( queries.isEmpty() ){
-			PopupError.show("Can not update Bug", "No changes were made to the bug.");
+			PopupError.show("Update Bug", "Could not update Bug\nNo changes were made.");
 			return false;
 		}
 

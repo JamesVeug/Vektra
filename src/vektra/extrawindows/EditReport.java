@@ -1,8 +1,6 @@
 package vektra.extrawindows;
 
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import vektra.BugItem;
 import vektra.Priority;
@@ -61,7 +59,6 @@ public class EditReport extends ModifyReport{
 		BugItem bug = getBug();
 		boolean updated = SQLData.update(bugToEdit, bug);
 		if( !updated ){
-			PopupError.show("Failed to update Bug!", "Could not Update bug on server!.");
 			editReport.setDisable(false);
 		}
 		else{

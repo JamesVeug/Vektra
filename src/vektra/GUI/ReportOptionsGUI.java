@@ -73,7 +73,7 @@ public class ReportOptionsGUI {
 		vektra.setOpenID(openID);
 		
 		Button refresh = new Button("REFRESH");
-		refresh.setOnAction((a)->{vektra.performfullRefresh();});
+		refresh.setOnAction((a)->{vektra.performFullRefresh();});
 		refresh.getStyleClass().add("button_extra");
 		refresh.setPrefWidth(150);
 		refresh.setPrefHeight(50);
