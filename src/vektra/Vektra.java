@@ -892,7 +892,7 @@ public class Vektra extends Application{
 	private class RefreshThread extends Thread {
 		
 		// Time in between refreshes
-		private static final int REFRESHDELAY = 10000;
+		private static final int REFRESHDELAY = 60000;
 		
 		// Amoutn of times we have refreshed
 		private int refreshCount = 0;
