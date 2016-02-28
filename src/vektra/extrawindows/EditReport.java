@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import vektra.BugItem;
 import vektra.Priority;
 import vektra.SQLData;
+import vektra.Vektra;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
 
@@ -15,7 +16,7 @@ public class EditReport extends ModifyReport{
 	private static Button editReport;
 	private static BugItem bugToEdit;
 	
-	public static void display(BugItem bug) {
+	public static void display(BugItem bug, Vektra vektra) {
 		if( bug == null ){
 			PopupError.show("Can not edit Bug", "Null bug supplied. Can not modify!");
 			return;
@@ -44,11 +45,11 @@ public class EditReport extends ModifyReport{
 		addImages(bug.imageMap);
 //		
 		editReport = new Button("Update Bug");
-		editReport.setOnAction(new UpdateBugButtonPress());
+		editReport.setOnAction((a)->ProcessEditBug(vektra));
 		setConfirmButton(editReport);
 	}
 
-	private static void ProcessEditBug(){
+	private static void ProcessEditBug(Vektra vektra){
 		if( !ModifyReport.checkForErrors() ){
 			return;
 		}
@@ -64,19 +65,10 @@ public class EditReport extends ModifyReport{
 			editReport.setDisable(false);
 		}
 		else{
+			vektra.performPartialRefresh();
 			primaryStage.close();
 			PopupMessage.show("Success!", "Modified Bug correctly!");
 		}
 		
-	}
-	
-	private static class UpdateBugButtonPress implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			ProcessEditBug();			
-		}
-
-	}
-	
+	}	
 }

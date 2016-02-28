@@ -4,6 +4,12 @@
 	-fx-font-size: 5pt;
 }
 
+.updatedRow{
+	-fx-background-color: #39473d;
+	-fx-control-inner-background: #39473d;
+	-fx-font-size: 5pt;
+}
+
 .table-view .column-header{
     -fx-font-size: 8;
     -fx-font-family: "Microstyle Bold Extended ATT";

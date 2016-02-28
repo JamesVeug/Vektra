@@ -56,7 +56,7 @@ public class SQLData {
 		try {
 
 			// Get what the current date off the server is.
-			String currentDate = retrieveCurrentTime();
+//			String currentDate = retrieveCurrentTime();
 			
 			// Get all the updates from the last time we performed a select
 			String previousDate = lastUpdate;
@@ -64,7 +64,7 @@ public class SQLData {
 			Statement st = con.createStatement();
 			
 			// Get all the bugid's that have been updated since the last time we updated
-			String dateQuery = "(SELECT * FROM `bugdates` WHERE `lastupdated` >= '" + previousDate + "')";
+			String dateQuery = "(SELECT * FROM `bugdates` WHERE `lastupdated` > '" + previousDate + "')";
 			System.out.println("Date Query: '" + dateQuery + "'");
 
 			// Select all the bugs that have been updated since we last checked the database
@@ -88,7 +88,7 @@ public class SQLData {
 									+ "LEFT JOIN `comments` "
 									+ "ON dates.bugid = comments.bugid " 
 									
-									+ "ORDER BY dates.bugid;";
+									+ "ORDER BY dates.lastupdated;";
 									
 							
 			// Get all the information
@@ -99,8 +99,8 @@ public class SQLData {
 			
 			
 			// If we received an update. Record the time
-			if( data != null ){
-				lastUpdate = currentDate;
+			if( data != null && !data.data.isEmpty() ){
+				lastUpdate = data.data.get(0).lastUpdate;
 			}
 			
 			// Finished getting update
@@ -222,7 +222,7 @@ public class SQLData {
 		try {
 			
 			// Get current time
-			lastUpdate = retrieveCurrentTime();
+//			lastUpdate = retrieveCurrentTime();
 			
 			// Select all bugs, tags, screenshots and order them by BugID.
 			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage, comment, commentid, whocommented, datecommented "
@@ -242,14 +242,21 @@ public class SQLData {
 							+"LEFT JOIN `comments` "
 							+"ON bugs.bugid = comments.bugid "
 							
-							+"ORDER BY bugs.bugid;";
+							+"ORDER BY bugdates.lastupdated DESC;";
 			
 			// Perform the query
 			Statement st = con.createStatement();	
 			ResultSet result = st.executeQuery(query);
 			
 			// Convert data into BugItems, and store them in list above.
-			return processResults(result);
+			DatabaseData data = processResults(result); 
+			
+			// Assign lastUpdate
+			if( data != null && !data.data.isEmpty() ){
+				lastUpdate = data.data.get(0).lastUpdate;
+			}
+			
+			return data;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();

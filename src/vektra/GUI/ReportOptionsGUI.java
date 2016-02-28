@@ -32,7 +32,7 @@ public class ReportOptionsGUI {
 		Button create = new Button("CREATE");
 		vektra.setCreateReport(create);
 		create.setTextAlignment(TextAlignment.CENTER);
-		create.setOnAction((a)->{CreateReport.display(-1);});
+		create.setOnAction((a)->{CreateReport.display(-1, vektra);});
 		create.getStyleClass().add("button_create");
 		create.setPrefWidth(85);
 		create.setPrefHeight(65);
@@ -41,7 +41,7 @@ public class ReportOptionsGUI {
 		Button edit = new Button("EDIT");
 		vektra.setEditReport(edit);
 		edit.setTextAlignment(TextAlignment.CENTER);
-		edit.setOnAction((a)->{EditReport.display(vektra.getSelectedBug());});
+		edit.setOnAction((a)->{EditReport.display(vektra.getSelectedBug(), vektra);});
 		edit.getStyleClass().add("button_edit");
 		edit.setPrefWidth(85);
 		edit.setPrefHeight(50);

@@ -16,6 +16,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import vektra.BugImage;
 import vektra.BugItem;
+import vektra.LocalBugImage;
 import vektra.SQLData;
 import vektra.dialogs.PopupWarning;
 
@@ -61,7 +62,7 @@ public class LocalResources {
 			
 		if( screenshotIDToDirectory.get(screenshotid) != null ){
 			System.out.println("USING LOCAL IMAGE!");
-			return new BugImage(w,h, screenshotIDToDirectory.get(screenshotid));
+			return new LocalBugImage(w,h, screenshotIDToDirectory.get(screenshotid));
 		}
 
 		// Could not find it!

@@ -1,9 +1,14 @@
 package vektra.GUI;
 
+import java.util.Collections;
+
+import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
@@ -20,11 +25,40 @@ import vektra.Status;
 import vektra.Vektra;
 
 public class BugListGUI {
-	final static Background GreenBackground = new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5)));
+	final static Background SetFixedStatusBackground = new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5)));
+	final static Background UpdatedColor = new Background(new BackgroundFill(Color.valueOf("rgb(57, 71, 61)"), new CornerRadii(0), new Insets(5)));
 
+	/**
+	 * Creates a new TableView to contain our list of bugs
+	 * @param primaryStage
+	 * @param vektra
+	 * @return
+	 */
 	public static TableView<BugItem> create(Stage primaryStage, Vektra vektra) {
 		
 		TableView<BugItem> bugs = new TableView<BugItem>();
+		bugs.setRowFactory(new Callback<TableView<BugItem>, TableRow<BugItem>>() {
+	        @Override
+	        public TableRow<BugItem> call(TableView<BugItem> tableView) {
+	            final TableRow<BugItem> row = new TableRow<BugItem>() {
+	                @Override
+	                protected void updateItem(BugItem person, boolean empty){
+	                    super.updateItem(person, empty);
+	                    if( !empty ){
+		                    if (person.hasBeenUpdated) {
+		                        if (! getStyleClass().contains("updatedRow")) {
+		                            getStyleClass().add("updatedRow");
+		                        }
+		                    } else {
+		                        getStyleClass().removeAll(Collections.singleton("updatedRow"));
+		                    }
+	                    }
+	                }
+	            };
+				return row;
+	        }
+	    });
+		
 		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		bugs.setMaxWidth(300);
 		bugs.getStylesheets().add("css/buglist.css");
@@ -36,8 +70,14 @@ public class BugListGUI {
 		return bugs;
 	}
 
+	/**
+	 * Resets up the columns when the information is updated
+	 * @param importedData
+	 * @param bugs
+	 * @param vektra
+	 */
 	public static void setupColumns(ObservableList<BugItem> importedData, TableView<BugItem> bugs, Vektra vektra) {
-    	
+
     	
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Priority> priorityColumn = new TableColumn<BugItem, Priority>("P");
@@ -59,15 +99,14 @@ public class BugListGUI {
 		            		BugItem bug = importedData.get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->vektra.selectBug(bug));
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        
 	                        if( bug.getStatus() == Status.FIXED ){
-		                        setBackground(GreenBackground);
+		                        setBackground(SetFixedStatusBackground);
 	                        	
 	                        }
 	                        else{
 		                        setBackground(new Background(new BackgroundFill(priority.getColor(), new CornerRadii(0), new Insets(5))));
-	                        	
 	                        }
 	                    }
 	                }
@@ -95,7 +134,7 @@ public class BugListGUI {
 		            		BugItem bug = importedData.get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->vektra.selectBug(bug));
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        setText(String.valueOf(item));
 	                    }
 	                }
@@ -122,11 +161,10 @@ public class BugListGUI {
 		            		BugItem bug = importedData.get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->vektra.selectBug(bug));
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        
 	                        
 	                        setText(item.toString());
-	                        
 	                    }
 	                }
 	            };
@@ -150,19 +188,13 @@ public class BugListGUI {
 		            		BugItem bug = importedData.get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->vektra.selectBug(bug));
+	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        
 	                        int[] date = splitDate(item);
-	                        
-//	                        System.out.println("SPLIT DATE: " + item);
-//	                        for(String s : date){
-//	                        	System.out.println("\t"+s);
-//	                        }
 	                        
 	                        String displayDate = date[1] + "-" + date[2] + " " + date[3] + ":" + date[4] + ":" + date[5];
 	                        
 	                        setText(displayDate);
-	                        
 	                    }
 	                }
 	            };
@@ -224,4 +256,22 @@ public class BugListGUI {
 		
 		return numbered;
 	}
+
+
+	private static void refreshRow(TableView<BugItem> bugs, int rowIndex, BugItem bug) {
+		bug.hasBeenUpdated = false;
+		bugs.refresh();
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+

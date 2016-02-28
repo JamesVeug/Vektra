@@ -31,6 +31,7 @@ public class BugItem {
 	public Set<Comment> comments;
 	public String whoUpdated;
 	public String lastUpdate;
+	public boolean hasBeenUpdated = false;
 	
 	/**
 	 * Sets up the bug with the given starter values
@@ -166,33 +167,7 @@ public class BugItem {
 				+ "\tMessage: " + message;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ID;
-		return result;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof BugItem))
-			return false;
-		BugItem other = (BugItem) obj;
-		if (ID != other.ID)
-			return false;
-		return true;
-	}
+	
 
 	/**
 	 * Gets ID of the BugItem
@@ -251,6 +226,129 @@ public class BugItem {
 	 */
 	public Set<Comment> getComments() {
 		return comments;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ID;
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof BugItem))
+			return false;
+		BugItem other = (BugItem) obj;
+		if (ID != other.ID)
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	public int deepHashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ID;
+		result = prime * result + ((comments == null) ? 0 : comments.hashCode());
+		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result + (hasBeenUpdated ? 1231 : 1237);
+		result = prime * result + ((imageMap == null) ? 0 : imageMap.hashCode());
+		result = prime * result + ((lastUpdate == null) ? 0 : lastUpdate.hashCode());
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
+		result = prime * result + ((priority == null) ? 0 : priority.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((tags == null) ? 0 : tags.hashCode());
+		result = prime * result + ((version == null) ? 0 : version.hashCode());
+		result = prime * result + ((who == null) ? 0 : who.hashCode());
+		result = prime * result + ((whoUpdated == null) ? 0 : whoUpdated.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	public boolean deepEquals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof BugItem))
+			return false;
+		BugItem other = (BugItem) obj;
+		if (ID != other.ID)
+			return false;
+		if (comments == null) {
+			if (other.comments != null)
+				return false;
+		} else if (!comments.equals(other.comments))
+			return false;
+		if (date == null) {
+			if (other.date != null)
+				return false;
+		} else if (!date.equals(other.date))
+			return false;
+		if (hasBeenUpdated != other.hasBeenUpdated)
+			return false;
+		if (imageMap == null) {
+			if (other.imageMap != null)
+				return false;
+		} else if (!imageMap.equals(other.imageMap))
+			return false;
+		if (lastUpdate == null) {
+			if (other.lastUpdate != null)
+				return false;
+		} else if (!lastUpdate.equals(other.lastUpdate))
+			return false;
+		if (message == null) {
+			if (other.message != null)
+				return false;
+		} else if (!message.equals(other.message))
+			return false;
+		if (priority == null) {
+			if (other.priority != null)
+				return false;
+		} else if (!priority.equals(other.priority))
+			return false;
+		if (status == null) {
+			if (other.status != null)
+				return false;
+		} else if (!status.equals(other.status))
+			return false;
+		if (tags == null) {
+			if (other.tags != null)
+				return false;
+		} else if (!tags.equals(other.tags))
+			return false;
+		if (version == null) {
+			if (other.version != null)
+				return false;
+		} else if (!version.equals(other.version))
+			return false;
+		if (who == null) {
+			if (other.who != null)
+				return false;
+		} else if (!who.equals(other.who))
+			return false;
+		if (whoUpdated == null) {
+			if (other.whoUpdated != null)
+				return false;
+		} else if (!whoUpdated.equals(other.whoUpdated))
+			return false;
+		return true;
 	}
 
 }

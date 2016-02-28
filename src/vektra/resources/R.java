@@ -6,6 +6,7 @@ import java.util.List;
 
 import javafx.scene.image.Image;
 import vektra.BugImage;
+import vektra.LocalBugImage;
 
 public class R {
 	private static BugImage NULL;
@@ -42,7 +43,7 @@ public class R {
 
 	public static BugImage getNullImage() {
 		if( NULL == null ){
-			NULL = new BugImage("error.png");
+			NULL = new LocalBugImage("error.png");
 		}
 		return NULL;
 	}

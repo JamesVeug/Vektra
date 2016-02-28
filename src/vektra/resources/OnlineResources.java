@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.URL;
 import javafx.scene.image.Image;
 import vektra.BugImage;
+import vektra.OnlineBugImage;
 
 public class OnlineResources {
 	
@@ -26,7 +27,7 @@ public class OnlineResources {
 			return null;
 		}
 		
-		return new BugImage(w, h, link);
+		return new OnlineBugImage(w, h, link);
 	}
 	
 	private static BugImage createImage(String link){
@@ -39,7 +40,7 @@ public class OnlineResources {
 			return null;
 		}
 		
-		return new BugImage(importedImage.getWidth(),importedImage.getHeight(), link);
+		return new OnlineBugImage(importedImage.getWidth(),importedImage.getHeight(), link);
 	}
 
 	/**
@@ -47,7 +48,7 @@ public class OnlineResources {
 	 * @param link
 	 * @return
 	 */
-	private static Image downloadImage(String link) {
+	public static Image downloadImage(String link) {
 		System.out.println("DOWNLOADING IMAGE '" + link + "'");
 		
 		// Check the link is valid

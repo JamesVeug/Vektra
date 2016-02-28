@@ -33,6 +33,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import vektra.BugImage;
 import vektra.BugItem;
+import vektra.OnlineBugImage;
 import vektra.Priority;
 import vektra.Status;
 import vektra.Tag;
@@ -56,7 +57,7 @@ public class ModifyReport {
 	
 	protected static TextField enterLink;
 	protected static HBox screenshotList;
-	private static Map<String,BugImage> bugimages;
+	private static Map<String,ImageView> bugimages;
 	private static Map<ImageView,String> images;
 	
 	protected static ToggleGroup priorityGroup;
@@ -153,7 +154,7 @@ public class ModifyReport {
 			optionPane.addColumn(7, BREAKING);
 			optionPane.addColumn(8, BREAKINGLabel);
 			
-			bugimages = new HashMap<String,BugImage>();
+			bugimages = new HashMap<String,ImageView>();
 			images = new HashMap<ImageView,String>();
 			GridPane screenShotPane  = new GridPane();
 			screenShotPane.setVgap(5); //vertical gap in pixels
@@ -299,22 +300,21 @@ public class ModifyReport {
 		return new Version(version.getText(), stageVersion.getValue());
 	}
 
-	protected static void addImage(String link, BugImage image){
-		bugimages.put(link, image);
-		images.put(image.getImageView(), link);
-		
-		ImageView v = new ImageView(image.getImage());
+	protected static void addImage(String link, Image image){
+		ImageView v = new ImageView(image);
 		v.setOnMouseClicked(new ImageClickedListener());
 		v.setFitWidth(100);
 		v.setFitHeight(100);
+		
+		bugimages.put(link, v);
+		images.put(v, link);
 		screenshotList.getChildren().add(v);
 	}
 	
 	protected static void removeImage(ImageView view){
 		// Finishe remove so removing via mosue click works
 		String removedLink = images.remove(view);
-		BugImage removedImage = bugimages.remove(removedLink);
-		removedImage.dispose();
+		ImageView removedImage = bugimages.remove(removedLink);
 		
 		System.out.println("RemovedImage: " + removedImage);
 		System.out.println("RemovedLink: " + removedLink);
@@ -323,13 +323,18 @@ public class ModifyReport {
 	}
 
 	protected static BugItem getBug(){
-		return new BugItem(bugID, getSelectedTags(bugID), getPriority(), statusSelection.getValue(), null, text.getText(), null, getVersion(), bugimages);
+		Map<String,BugImage> temp = new HashMap<>();
+		for(Entry<String,ImageView> e : bugimages.entrySet()){
+			temp.put(e.getKey(), new OnlineBugImage(e.getKey()));
+		}
+		
+		return new BugItem(bugID, getSelectedTags(bugID), getPriority(), statusSelection.getValue(), null, text.getText(), null, getVersion(), temp);
 	}
 
 	
 	protected static void addImages(Map<String, BugImage> imageMap) {
 		for(Entry<String, BugImage> p : imageMap.entrySet()){
-			addImage(p.getKey(),p.getValue());
+			addImage(p.getKey(),p.getValue().getImage());
 		}
 	}
 	
@@ -400,8 +405,8 @@ public class ModifyReport {
 			}
 			
 			try{
-				BugImage image = OnlineResources.getImage(link);
-				if( image == null || image.getImage() == null ){
+				Image image = OnlineResources.downloadImage(link);
+				if( image == null ){
 					PopupError.show("Upload Image", "Unable to download image!");
 					return;
 				}

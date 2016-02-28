@@ -1,18 +1,9 @@
 package vektra;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.imageio.ImageIO;
-
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 
-public class BugImage {
+public abstract class BugImage {
 	
 	public final double width;
 	public final double height;
@@ -21,7 +12,7 @@ public class BugImage {
 	
 	// To dispose of
 	private ImageView view;
-	private Image image;
+	protected Image image;
 	
 //	AsyncImageProperty imageProperty = new AsyncImageProperty();  // create async image loading property
 //
@@ -42,28 +33,7 @@ public class BugImage {
 		height = h;
 	}
 	
-	public Image getImage(){
-		if( image == null ){
-//			getImageView();
-			//imageProperty.imageHandleProperty().set("/my/image/to/load.png");  // set an image to load
-			try{
-				
-				
-				System.out.println("Loading Image: '" + link + "'");
-				BufferedImage buffimage = ImageIO.read(new File(link));
-				WritableImage image = null;
-				image = SwingFXUtils.toFXImage(buffimage, image);
-				this.image = image;
-			}catch( IllegalArgumentException e ){
-				e.printStackTrace();
-				return null;
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-					
-		return image;	
-	}
+	public abstract Image getImage();
 	
 	public ImageView getImageView(){
 		

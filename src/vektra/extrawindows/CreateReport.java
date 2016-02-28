@@ -11,6 +11,7 @@ import vektra.BugItem;
 import vektra.SQLData;
 import vektra.Stage;
 import vektra.Status;
+import vektra.Vektra;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
 import vektra.dialogs.PopupWarning;
@@ -20,7 +21,7 @@ public class CreateReport extends ModifyReport{
 	
 	private static Button createReport;
 	
-	public static void display(int maxID) {
+	public static void display(int maxID, Vektra vektra) {
 		ModifyReport.display("Create Report", maxID+1);
 
 		
@@ -32,11 +33,11 @@ public class CreateReport extends ModifyReport{
 		stageVersion.setValue(Stage.ALPHA);
 
 		createReport = new Button("Create Bug");
-		createReport.setOnAction(new CreateReportButtonPress());
+		createReport.setOnAction((a)->ProcessCreatingReport(vektra));
 		setConfirmButton(createReport);
 	}
 
-	private static void ProcessCreatingReport(){
+	private static void ProcessCreatingReport(Vektra vektra){
 		if( !ModifyReport.checkForErrors() ){
 			return;
 		}
@@ -103,26 +104,21 @@ public class CreateReport extends ModifyReport{
 		}
 		else if( insertedErrors.size() == 1 ){
 			
+			// Refresh
+			vektra.performPartialRefresh();
+			
 			// No errors
 			PopupMessage.show("Inserted Bug Successfully!", "New BugID: " + insertedErrors.get(0));
 			
 		}
 		else{
 			
+			// Refresh
+			vektra.performPartialRefresh();
+			
 			// Some errors
 			PopupWarning.show("Warning adding Bug", "Successfully added bug but with some warnings", errorMessages);
 		}
-	}
-
-	
-	
-	private static class CreateReportButtonPress implements EventHandler<ActionEvent> {
-
-		@Override
-		public void handle(ActionEvent arg0) {
-			ProcessCreatingReport();			
-		}
-
 	}
 	
 }
