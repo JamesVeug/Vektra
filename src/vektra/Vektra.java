@@ -170,164 +170,6 @@ public class Vektra extends Application{
 	}
 
 	
-
-
-	/**
-	 * Sets up the table with all the bugs we currently have sorted
-	 * HACK HACK HACK
-	 * Recreates all the columns
-	 */
-//	@SuppressWarnings("unchecked")
-//	private void setupTable() {
-//    	final Background GreenBackground = new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5)));
-//    	
-//    	
-//		// Bottom Left ( BUG LIST )
-//		TableColumn<BugItem, Priority> priorityColumn = new TableColumn<BugItem, Priority>("P");
-//		priorityColumn.setMinWidth(20);
-//		priorityColumn.setMaxWidth(20);
-//		priorityColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Priority>("priority"));
-//		priorityColumn.setCellFactory(new Callback<TableColumn<BugItem, Priority>, TableCell<BugItem, Priority>>() {
-//	        public TableCell<BugItem, Priority> call(TableColumn<BugItem, Priority> param) {
-//	            return new TableCell<BugItem, Priority>() {
-//	            	
-//
-//	                @Override
-//	                public void updateItem(Priority priority, boolean empty) {
-//	                    super.updateItem(priority, empty);
-//	                    
-//	                    if (!isEmpty()) {
-//
-//		                    int index = getIndex();
-//		            		BugItem item = importedData.get(index);
-//		            		
-//	                        this.getStylesheets().add("css/buglist.css");
-//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
-//	                        
-//	                        if( item.getStatus() == Status.FIXED ){
-//		                        setBackground(GreenBackground);
-//	                        	
-//	                        }
-//	                        else{
-//		                        setBackground(new Background(new BackgroundFill(priority.getColor(), new CornerRadii(0), new Insets(5))));
-//	                        	
-//	                        }
-//	                    }
-//	                }
-//	            };
-//	        }
-//	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			priorityColumn.setSortType(bugs.getColumns().get(0).getSortType());
-//		}
-//		
-//		// Bottom Left ( BUG LIST )
-//		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("ID");
-//		idColumn.setMinWidth(40);
-//		idColumn.setMaxWidth(40);
-//		idColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Integer>("ID"));
-//		idColumn.setCellFactory(new Callback<TableColumn<BugItem, Integer>, TableCell<BugItem, Integer>>() {
-//	        public TableCell<BugItem, Integer> call(TableColumn<BugItem, Integer> param) {
-//	            return new TableCell<BugItem, Integer>() {
-//
-//	                @Override
-//	                public void updateItem(Integer item, boolean empty) {
-//	                    super.updateItem(item, empty);
-//	                    if (!isEmpty()) {
-//	                        this.getStylesheets().add("css/buglist.css");
-//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
-//	                        setText(String.valueOf(item));
-//	                    }
-//	                }
-//	            };
-//	        }
-//	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			idColumn.setSortType(bugs.getColumns().get(1).getSortType());
-//		}
-//		
-//		TableColumn<BugItem, Status> statusColumn = new TableColumn<BugItem, Status>("STATUS");
-//		statusColumn.setMinWidth(50);
-//		statusColumn.setMaxWidth(50);
-//		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Status>("status"));
-//		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, Status>, TableCell<BugItem, Status>>() {
-//	        public TableCell<BugItem, Status> call(TableColumn<BugItem, Status> param) {
-//	            return new TableCell<BugItem, Status>() {
-//
-//	                @Override
-//	                public void updateItem(Status item, boolean empty) {
-//	                    super.updateItem(item, empty);
-//	                    if (!isEmpty()) {
-//	                        this.getStylesheets().add("css/buglist.css");
-//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
-//	                        
-//	                        
-//	                        setText(item.toString());
-//	                        
-//	                    }
-//	                }
-//	            };
-//	        }
-//	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			statusColumn.setSortType(bugs.getColumns().get(2).getSortType());
-//		}
-//		
-//		TableColumn<BugItem, String> updateColumn = new TableColumn<BugItem, String>("UPDATED");
-//		updateColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("lastUpdate"));
-//		updateColumn.setCellFactory(new Callback<TableColumn<BugItem, String>, TableCell<BugItem, String>>() {
-//	        public TableCell<BugItem, String> call(TableColumn<BugItem, String> param) {
-//	            return new TableCell<BugItem, String>() {
-//
-//	                @Override
-//	                public void updateItem(String item, boolean empty) {
-//	                    super.updateItem(item, empty);
-//	                    if (!isEmpty()) {
-//	                        this.getStylesheets().add("css/buglist.css");
-//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, new BugListListener());
-//	                        
-//	                        int[] date = splitDate(item);
-//	                        
-////	                        System.out.println("SPLIT DATE: " + item);
-////	                        for(String s : date){
-////	                        	System.out.println("\t"+s);
-////	                        }
-//	                        
-//	                        String displayDate = date[1] + "-" + date[2] + " " + date[3] + ":" + date[4] + ":" + date[5];
-//	                        
-//	                        setText(displayDate);
-//	                        
-//	                    }
-//	                }
-//	            };
-//	        }
-//	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			updateColumn.setSortType(bugs.getColumns().get(3).getSortType());
-//		}
-//		
-//		@SuppressWarnings("rawtypes")
-//		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
-//		if( sorting == null ){
-//			// Ignore
-//		}
-//		else if( sorting == bugs.getColumns().get(0) ){
-//			bugs.getSortOrder().set(0, priorityColumn);
-//		}
-//		else if( sorting == bugs.getColumns().get(1) ){
-//			bugs.getSortOrder().set(0, idColumn);
-//		}
-//		else if( sorting == bugs.getColumns().get(2) ){
-//			bugs.getSortOrder().set(0, statusColumn);
-//		}
-//		else if( sorting == bugs.getColumns().get(2) ){
-//			bugs.getSortOrder().set(0, updateColumn);
-//		}
-//		
-//		bugs.getColumns().clear();
-//		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn,updateColumn);	
-//		bugs.sort();
-//	}
 	
 	/**
 	 * Divides a timestamp into an array of integers
@@ -366,8 +208,9 @@ public class Vektra extends Application{
 	 * @param loadedData New data loaded off a website
 	 * @param length time taken to load the data
 	 * @param fullUpdate 
+	 * @return 
 	 */
-	public void refreshData(final ObservableList<BugItem> loadedData, final String currentTime, final long length, final boolean fullUpdate) {
+	public Thread refreshData(final ObservableList<BugItem> loadedData, final String currentTime, final long length, final boolean fullUpdate) {
 		System.out.println("Refresh Time: " + length);
 
 		
@@ -397,13 +240,13 @@ public class Vektra extends Application{
 				if( fullUpdate ){
 					bugs.setItems(loadedData);
 					
-					assignUpdated(importedData, loadedData);
-					
 					// Save local data
 					importedData = loadedData;
 				}
 				else{
 					System.out.println("PARTIAL update");
+					
+					setRefreshButtonText("REFRESHING...\nUpdating Data");
 					
 					// Modify the data in the currently save
 					for(BugItem newBug : loadedData){
@@ -456,17 +299,18 @@ public class Vektra extends Application{
 							R.addImages(addedImages);
 						}
 					}
+					setRefreshButtonText("REFRESHING...\nRefreshing GUI");
 				}
 				
 				BugListGUI.setupColumns(importedData, bugs, Vektra.this);
 				
 				// Reselect
-				deselectBug();
-				if( selectedBug != null ){
+				BugItem old = deselectBug();
+				if( old != null ){
 					System.out.println("Reselecting bug");
 					
 					// Get new bug from new data
-					int index = loadedData.indexOf(selectedBug);
+					int index = loadedData.indexOf(old);
 					if( index == -1 ){
 						// Not in new data
 						selectedBug = null;
@@ -478,14 +322,13 @@ public class Vektra extends Application{
 						selectBug(selectedBug);
 					}
 				}
-				
+
+				setRefreshButtonText("REFRESH");
 			}
 			
 		});
 		Platform.runLater(t);
-		
-		
-		
+		return t;
 	}
 
 	protected void assignUpdated(ObservableList<BugItem> oldData, ObservableList<BugItem> newData) {
@@ -503,21 +346,24 @@ public class Vektra extends Application{
 
 	/**
 	 * Deselects the current bug in the bug list
+	 * @return bug that was originally selected
 	 */
-	protected void deselectBug() {
+	protected BugItem deselectBug() {
 		if( selectedBug == null ){
-			return;
+			return null;
 		}
 		
-		for(BugImage i : selectedBug.getImages()){
-			i.dispose();
-		}
+		selectedBug.dispose();
 		
     	screenshotList.getChildren().clear();
     	displayScreenshot.setImage(null);
     	message.setText("");
     	reportID.setText("");
     	version.setText("");
+    	
+    	BugItem oldBug = selectedBug;
+    	selectedBug = null;
+    	return oldBug;
 	}
 
 	/**
@@ -892,7 +738,7 @@ public class Vektra extends Application{
 	private class RefreshThread extends Thread {
 		
 		// Time in between refreshes
-		private static final int REFRESHDELAY = 60000;
+		private static final int REFRESHDELAY = 10000;
 		
 		// Amoutn of times we have refreshed
 		private int refreshCount = 0;
@@ -922,7 +768,7 @@ public class Vektra extends Application{
 						public void run() {
 							refresh.setDisable(true);
 							submitComment.setDisable(true);
-							refresh.setText("REFRESHING...");
+							refresh.setText("REFRESHING...\nGetting Data");
 						}
 						
 					});
@@ -939,12 +785,21 @@ public class Vektra extends Application{
 					// Get the data from the database
 					SQLData.DatabaseData loadedData;
 					if( fullUpdate ){
+						setRefreshButtonText("REFRESHING...\nGetting Data");
+						
+						
 						loadedData = SQLData.getData();
+						
+
+						setRefreshButtonText("REFRESHING...\nSynching Images");
 						
 						// Save local images
 						LocalResources.synchronizeLocalImages(loadedData.images.values());
+						
+						setRefreshButtonText("REFRESHING...\n");
 					}
 					else{
+						setRefreshButtonText("REFRESHING...\nGetting Data");
 						loadedData = SQLData.getUpdatedData();
 						
 						// Do not need to synchronizeLocalImages here as it's done in the refreshData method
@@ -959,10 +814,10 @@ public class Vektra extends Application{
 					
 					
 					// Refresh the GUI
-					refreshData(loadedData.data, SQLData.retrieveCurrentTime(), length, fullUpdate);
+					Thread refreshedData = refreshData(loadedData.data, SQLData.retrieveCurrentTime(), length, fullUpdate);
 					
-					// Disable refresh button
-					while(disable != null && disable.isAlive() ){}
+					// Enable refresh button
+					while(disable != null && disable.isAlive() && refreshedData != null && refreshedData.isAlive() ){}
 					Thread enable = new Thread(new Runnable(){
 
 						@Override
@@ -1072,6 +927,10 @@ public class Vektra extends Application{
 	
 	
 	
+	public void setRefreshButtonText(String string) {
+		Platform.runLater(()->refresh.setText(string));
+	}
+
 	public static void main(String[] args){
 		launch(args);
 	}
@@ -1140,7 +999,12 @@ public class Vektra extends Application{
 			PopupError.show("Can not refresh!", "Not logged in?");
 		}
 		
+		BugItem selectedBug = deselectBug();
+//		selectedBug.dispose();
+		
 		refreshThread.fullRefreshTime();
+		
+//		selectBug(selectedBug);
 	}
 
 	public void performPartialRefresh() {

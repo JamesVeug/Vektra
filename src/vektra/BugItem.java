@@ -351,4 +351,10 @@ public class BugItem {
 		return true;
 	}
 
+	public void dispose() {
+		for(BugImage i : imageMap.values()){
+			i.dispose();
+		}
+	}
+
 }

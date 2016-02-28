@@ -1,6 +1,7 @@
 package vektra;
 
 import javafx.scene.image.Image;
+import vektra.dialogs.PopupError;
 
 public class OnlineBugImage extends BugImage{
 
@@ -19,7 +20,11 @@ public class OnlineBugImage extends BugImage{
 				image = new Image(link);
 			}catch( IllegalArgumentException e ){
 				e.printStackTrace();
+				PopupError.show("Get Online Image","Unable to obtain image.\n"+link+"\n"+e.getMessage());
 				return null;
+			}catch (OutOfMemoryError e) {
+				e.printStackTrace();
+				PopupError.show("Get Online Image","Unable to obtain image.\n"+link+"\nRan out of memory!");
 			}
 		}
 					

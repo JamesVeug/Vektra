@@ -32,11 +32,14 @@ public class LocalBugImage extends BugImage{
 				this.image = image;
 			}catch( IllegalArgumentException e ){
 				e.printStackTrace();
-				PopupError.show("Get Online Image","Unable to obtain image from link\n"+link+"\n"+e.getMessage());
+				PopupError.show("Get Local Image","Unable to obtain image from link\n"+link+"\n"+e.getMessage());
 				return null;
-			} catch (IOException e) {
+			}catch (IOException e) {
 				e.printStackTrace();
-				PopupError.show("Get Online Image","Unable to obtain image from link\n"+link+"\n"+e.getMessage());
+				PopupError.show("Get Local Image","Unable to obtain image from link\n"+link+"\n"+e.getMessage());
+			}catch (OutOfMemoryError e) {
+				e.printStackTrace();
+				PopupError.show("Get Local Image","Unable to obtain image.\n"+link+"\nRan out of memory!");
 			}
 		}
 					

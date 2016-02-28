@@ -642,9 +642,6 @@ public class SQLData {
 		
 		// Add everything to a single query to make sure it works
 		List<String> queries = new ArrayList<String>();
-		
-		// Get the date off the server
-		String currentTime = retrieveCurrentTime();
 
 		// Message has changed
 		if( !oldBug.message.equals(newBug.message) ){
@@ -693,6 +690,10 @@ public class SQLData {
 			PopupError.show("Can not update Bug", "No changes were made to the bug.");
 			return false;
 		}
+
+		
+		// Get the date off the server
+		String currentTime = retrieveCurrentTime();
 		
 		// Save current time so we know it has been edited!
 		
@@ -836,7 +837,6 @@ public class SQLData {
 		
 		// If we have a single ' in the message. Add another so it doesn't break the query. 
 		String quotes = message.replaceAll("'", "''");
-		
 		return quotes;
 	}
 
@@ -931,11 +931,9 @@ public class SQLData {
 
 		// Get currentTime
 		String currentTime = retrieveCurrentTime();
-		
-		System.out.println("Comment ID: " + commentToDelete.id);
 		boolean deleted = submitQuery("DELETE FROM comments where commentid = " + commentToDelete.id);
 		if( !deleted ){
-			System.out.println("Did not delete bug!");
+			System.out.println("Did not delete comment!");
 			return false;
 		}	
 		

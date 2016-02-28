@@ -72,10 +72,7 @@ public class LocalResources {
 	
 	public static void synchronizeLocalImages(Collection<BugImage> databaseData){
 		System.out.println("Syncing " + databaseData.size());
-	
-		// TODO
-		// TODO Not loading 105.jpg or the others. WHY!?
-		// TODO
+
 		
 		Map<Integer, BugImage> databaseImages = new HashMap<Integer, BugImage>();
 		
