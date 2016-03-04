@@ -1,6 +1,7 @@
 package vektra.GUI;
 
 import java.util.Collections;
+import java.util.Comparator;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -103,6 +104,7 @@ public class BugListGUI {
 		TableColumn<BugItem, Priority> priorityColumn = new TableColumn<BugItem, Priority>("P");
 		priorityColumn.setMinWidth(20);
 		priorityColumn.setMaxWidth(20);
+		priorityColumn.setComparator(new PriorityComparator());
 		priorityColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Priority>("priority"));
 		priorityColumn.setCellFactory(new Callback<TableColumn<BugItem, Priority>, TableCell<BugItem, Priority>>() {
 	        public TableCell<BugItem, Priority> call(TableColumn<BugItem, Priority> param) {
@@ -133,9 +135,9 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-		if( !bugs.getColumns().isEmpty() ){
-			priorityColumn.setSortType(bugs.getColumns().get(0).getSortType());
-		}
+//		if( !bugs.getColumns().isEmpty() ){
+//			priorityColumn.setSortType(bugs.getColumns().get(0).getSortType());
+//		}
 		
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("ID");
@@ -161,13 +163,14 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-		if( !bugs.getColumns().isEmpty() ){
-			idColumn.setSortType(bugs.getColumns().get(1).getSortType());
-		}
+//		if( !bugs.getColumns().isEmpty() ){
+//			idColumn.setSortType(bugs.getColumns().get(1).getSortType());
+//		}
 		
 		TableColumn<BugItem, Status> statusColumn = new TableColumn<BugItem, Status>("STATUS");
 		statusColumn.setMinWidth(50);
 		statusColumn.setMaxWidth(50);
+		statusColumn.setComparator(new StatusComparator());
 		statusColumn.setCellValueFactory(new PropertyValueFactory<BugItem, Status>("status"));
 		statusColumn.setCellFactory(new Callback<TableColumn<BugItem, Status>, TableCell<BugItem, Status>>() {
 	        public TableCell<BugItem, Status> call(TableColumn<BugItem, Status> param) {
@@ -190,9 +193,9 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-		if( !bugs.getColumns().isEmpty() ){
-			statusColumn.setSortType(bugs.getColumns().get(2).getSortType());
-		}
+//		if( !bugs.getColumns().isEmpty() ){
+//			statusColumn.setSortType(bugs.getColumns().get(2).getSortType());
+//		}
 		
 		TableColumn<BugItem, String> updateColumn = new TableColumn<BugItem, String>("UPDATED");
 		updateColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("lastUpdate"));
@@ -220,29 +223,29 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-		if( !bugs.getColumns().isEmpty() ){
-			updateColumn.setSortType(bugs.getColumns().get(3).getSortType());
-		}
-		
-		@SuppressWarnings("rawtypes")
-		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
-		if( sorting == null ){
-			// Ignore
-		}
-		else if( sorting == bugs.getColumns().get(0) ){
-			bugs.getSortOrder().set(0, priorityColumn);
-		}
-		else if( sorting == bugs.getColumns().get(1) ){
-			bugs.getSortOrder().set(0, idColumn);
-		}
-		else if( sorting == bugs.getColumns().get(2) ){
-			bugs.getSortOrder().set(0, statusColumn);
-		}
-		else if( sorting == bugs.getColumns().get(2) ){
-			bugs.getSortOrder().set(0, updateColumn);
-		}
-		
-		bugs.getColumns().clear();
+//		if( !bugs.getColumns().isEmpty() ){
+//			updateColumn.setSortType(bugs.getColumns().get(3).getSortType());
+//		}
+//		
+//		@SuppressWarnings("rawtypes")
+//		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
+//		if( sorting == null ){
+//			// Ignore
+//		}
+//		else if( sorting == bugs.getColumns().get(0) ){
+//			bugs.getSortOrder().set(0, priorityColumn);
+//		}
+//		else if( sorting == bugs.getColumns().get(1) ){
+//			bugs.getSortOrder().set(0, idColumn);
+//		}
+//		else if( sorting == bugs.getColumns().get(2) ){
+//			bugs.getSortOrder().set(0, statusColumn);
+//		}
+//		else if( sorting == bugs.getColumns().get(2) ){
+//			bugs.getSortOrder().set(0, updateColumn);
+//		}
+//		
+//		bugs.getColumns().clear();
 		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn,updateColumn);
 	}
 
@@ -274,6 +277,39 @@ public class BugListGUI {
 		numbered[5] = Integer.parseInt(date[5]); // Second
 		
 		return numbered;
+	}
+	
+	
+	private static class PriorityComparator implements Comparator<Priority>{
+
+		@Override
+		public int compare(Priority one, Priority two) {
+			return getValue(one)-getValue(two);
+		}
+		
+		private int getValue(Priority p){
+			if( p == Priority.LOW ) return 0;
+			if( p == Priority.MEDIUM ) return 1;
+			if( p == Priority.HIGH ) return 2;
+			return -1;
+		}
+		
+	}
+	
+	private static class StatusComparator implements Comparator<Status>{
+
+		@Override
+		public int compare(Status one, Status two) {
+			return getValue(one)-getValue(two);
+		}
+		
+		private int getValue(Status s){
+			if( s == Status.FIXED ) return 0;
+			if( s == Status.PENDING ) return 1;
+			if( s == Status.WIP ) return 2;
+			return -1;
+		}
+		
 	}
 }
 
