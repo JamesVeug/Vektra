@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.mysql.jdbc.CommunicationsException;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import javafx.collections.FXCollections;
@@ -92,7 +93,14 @@ public class SQLData {
 									
 							
 			// Get all the information
-			ResultSet result = st.executeQuery(selectionQuery);
+			ResultSet result;
+			try{
+				result = st.executeQuery(selectionQuery);
+			}catch (com.mysql.jdbc.exceptions.jdbc4.CommunicationsException e) {
+				PopupError.show("Get Updated Data", "Could not perform partial refresh.\n"+e.getMessage());
+				e.printStackTrace();
+				return null;
+			}
 		
 			// Get all the bugs that we queried
 			DatabaseData data = processResults(result);
@@ -108,7 +116,7 @@ public class SQLData {
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}
+		} 
 		
 		// An error occured. Just return null
 		return null;
@@ -127,8 +135,12 @@ public class SQLData {
 			Map<Integer,BugItem> bugMapping = new HashMap<Integer,BugItem>();
 			while( result.next() ){
 				Integer id = result.getInt("bugid");
-				String date = result.getString("date");
 				String message = result.getString("message");
+				if( message == null ){
+					continue;
+				}
+				
+				String date = result.getString("date");
 				String poster = result.getString("poster");
 				String priority = result.getString("priority");
 				String status = result.getString("status");
@@ -246,7 +258,14 @@ public class SQLData {
 			
 			// Perform the query
 			Statement st = con.createStatement();	
-			ResultSet result = st.executeQuery(query);
+			ResultSet result;
+			try{
+				result = st.executeQuery(query);
+			}catch (com.mysql.jdbc.exceptions.jdbc4.CommunicationsException e) {
+				PopupError.show("Get Data", "Could not perform full refresh.\n"+e.getMessage());
+				e.printStackTrace();
+				return null;
+			}
 			
 			// Convert data into BugItems, and store them in list above.
 			DatabaseData data = processResults(result); 

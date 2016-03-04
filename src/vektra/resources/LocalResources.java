@@ -9,16 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
-import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import vektra.BugImage;
-import vektra.BugItem;
 import vektra.LocalBugImage;
 import vektra.SQLData;
-import vektra.dialogs.PopupWarning;
 
 public class LocalResources {
 	
@@ -70,7 +66,15 @@ public class LocalResources {
 		return null;
 	}
 	
+	/**
+	 * Takes a collections of images that was imported off the database and compares them to the images stored on the users computer.
+	 * If there are images on the users computer that are not meant to be there then they are removed. Otherwise new images are added.
+	 * @param databaseData
+	 */
 	public static void synchronizeLocalImages(Collection<BugImage> databaseData){
+		if( databaseData == null || databaseData.isEmpty() ){
+			return;
+		}
 		System.out.println("Syncing " + databaseData.size());
 
 		

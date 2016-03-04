@@ -4,6 +4,7 @@ import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.When;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -121,7 +122,6 @@ public class Vektra extends Application{
 		GridPane screenshotList = ScreenShotDisplayGUI.create(primaryStage,this);
 		GridPane messages = BugMessageGUI.create(primaryStage,this);
 		MenuBar menu = setupMenu(primaryStage);
-		
 		
 		GridPane mainLayout = new GridPane();
 		GridPane.setColumnSpan(menu,3);
@@ -740,15 +740,10 @@ public class Vektra extends Application{
 					
 					
 					// Disable refresh button
-					Thread disable = new Thread(new Runnable(){
-
-						@Override
-						public void run() {
+					Thread disable = new Thread(()->{
 							refresh.setDisable(true);
 							submitComment.setDisable(true);
 							refresh.setText("REFRESHING...\nGetting Data");
-						}
-						
 					});
 					Platform.runLater(disable);
 					
@@ -762,13 +757,12 @@ public class Vektra extends Application{
 					
 					// Get the data from the database
 					SQLData.DatabaseData loadedData;
+					setRefreshButtonText("REFRESHING...\nGetting Data");
 					if( fullUpdate ){
-						setRefreshButtonText("REFRESHING...\nGetting Data");
 						
-						
+						// Get all the data off the server
 						loadedData = SQLData.getData();
 						
-
 						setRefreshButtonText("REFRESHING...\nSynching Images");
 						
 						// Save local images
@@ -777,7 +771,6 @@ public class Vektra extends Application{
 						setRefreshButtonText("REFRESHING...\n");
 					}
 					else{
-						setRefreshButtonText("REFRESHING...\nGetting Data");
 						loadedData = SQLData.getUpdatedData();
 						
 						// Do not need to synchronizeLocalImages here as it's done in the refreshData method
@@ -790,23 +783,21 @@ public class Vektra extends Application{
 					// Get how long it took to pull the data
 					long length = end-start;
 					
+					// Only do it if we loaded data
+					if( loadedData != null ){
 					
-					// Refresh the GUI
-					Thread refreshedData = refreshData(loadedData.data, SQLData.retrieveCurrentTime(), length, fullUpdate);
-					
-					// Enable refresh button
-					while(disable != null && disable.isAlive() && refreshedData != null && refreshedData.isAlive() ){}
-					Thread enable = new Thread(new Runnable(){
-
-						@Override
-						public void run() {
-							refresh.setDisable(false);
-							submitComment.setDisable(false);
-							refresh.setText("REFRESH");
-						}
+						// Refresh the GUI
+						Thread refreshedData = refreshData(loadedData.data, SQLData.retrieveCurrentTime(), length, fullUpdate);
 						
-					});
-					Platform.runLater(enable);
+						// Enable refresh button
+						while(disable != null && disable.isAlive() && refreshedData != null && refreshedData.isAlive() ){}
+						Thread enable = new Thread(()->{
+								refresh.setDisable(false);
+								submitComment.setDisable(false);
+								refresh.setText("REFRESH");							
+						});
+						Platform.runLater(enable);
+					}
 					
 					// Reset the timer
 					time = System.currentTimeMillis() + REFRESHDELAY;

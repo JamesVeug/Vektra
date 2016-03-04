@@ -1,137 +1,100 @@
 package vektra.dialogs;
-
+import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-public class LoadingDialog {	
-	private final ProgressBar pb;
-	private final ProgressIndicator pi;
-	private final Label stageLabel;
-	
-	private Stage stage;
-	private String[] messages;
-	
-	private final int maxStages;
-	private int currentStage;
-	
-	private LoadingDialog(int maxStages, String[] messages){		
-		this.maxStages = maxStages;
-		currentStage = 0;
-		this.messages = messages;
-		
-		Group root = new Group();
-	    Scene scene = new Scene(root);
-	    stage = new Stage();
-	    stage.setScene(scene);
-	    stage.setTitle("Progress Controls");
-	
-	    pb = new ProgressBar(0);
-	    pi = new ProgressIndicator(0);
-	    stageLabel = new Label(messages[0]);
+public class LoadingDialog {
+    Task copyWorker;
 
-	
-	    final HBox hb = new HBox();
-	    hb.setSpacing(5);
-	    hb.setAlignment(Pos.CENTER);
-	    hb.getChildren().addAll(pb, pi,stageLabel);
-	    
-	    scene.setRoot(hb);
-	    stage.show();
-	    isVisible = true;
-	}
-	
-	private void stopDialog(){
-		stage.hide();
-	}
-	
-	private void addStage(){
-		currentStage++;
-		pb.setProgress(((double)currentStage)/maxStages);
-		pi.setProgress(((double)currentStage)/maxStages);
-		stageLabel.setText(messages[currentStage]);
-	}
-	
-	private int getCurrentStage(){
-		return currentStage;
-	}
-	
-	private int getMaxStages(){
-		return maxStages;
-	}
-	
-	
-	//
-	//
-	// Static references
-	//
-	//
-	
-	
-	private static boolean isVisible = false;
-	private static LoadingDialog log;
-	
-	public static void start(final int stages, final String... messages){
-		if( isVisible ){
-			PopupError.show("Can not show loading dialog.", "Already visible");
-		}
-		else if( stages <= 0 ){
-			PopupError.show("Can not show loading dialog.", "Stages must be greater than 0 '" + stages + "'");
-		}
-		else if( stages != messages.length ){
-			PopupError.show("Can not show loading dialog.", "Max Stages must match the amount of messages given. Stages: " + stages + ". Messages: " + messages.length);
-		}
-		else if( log != null ){
-			PopupError.show("Can not show loading dialog.", "Dialog already assigned ot variable");
-		}
+    
+    public void show(String title) {
+        Stage primaryStage = new Stage();
+        primaryStage.setTitle("Background Processes");
+        Group root = new Group();
+        Scene scene = new Scene(root, 330, 120, Color.WHITE);
 
-	    isVisible = false;
+        BorderPane mainPane = new BorderPane();
+        root.getChildren().add(mainPane);
 
-    	log = new LoadingDialog(stages, messages);
-	}
-	
-	public static boolean isVisible(){
-		return isVisible;
-	}
-	
-	public static void stop(){
-		if( !isVisible ){
-			PopupError.show("Can not hide loading dialog.", "Dialog is not already visible");
-		}
-		
-		log.stopDialog();
-		log = null;
-		isVisible = false;
-	}
-	
-	/**
-	 * Step to the next bar of the progress bar
-	 */
-	public static void next(){
-		if( log.getCurrentStage()+1 > log.getMaxStages() ){
-			PopupError.show("Error adding stage.", "Current stages exceeded Max Stages. Current: " + (log.currentStage+1) + ". Max: " + log.maxStages);
-		}		
-		
-		log.addStage();
-	}
+        final Label label = new Label("Files Transfer:");
+        final ProgressBar progressBar = new ProgressBar(0);
+        final Label percent = new Label("0");
+
+        final HBox hb = new HBox();
+        hb.setSpacing(5);
+        hb.setAlignment(Pos.CENTER);
+        hb.getChildren().addAll(label, progressBar,percent,new Label("%"));
+        mainPane.setTop(hb);
+
+        final Button startButton = new Button("Start");
+        final Button cancelButton = new Button("Cancel");
+        final HBox hb2 = new HBox();
+        hb2.setSpacing(5);
+        hb2.setAlignment(Pos.CENTER);
+        hb2.getChildren().addAll(startButton, cancelButton);
+        mainPane.setBottom(hb2);
+
+        startButton.setOnAction(new EventHandler<ActionEvent>() {
+
+            public void handle(ActionEvent event) {
+                startButton.setDisable(true);
+                progressBar.setProgress(0);
+                cancelButton.setDisable(false);
+                copyWorker = createWorker();
+
+                progressBar.progressProperty().unbind();
+                progressBar.progressProperty().bind(copyWorker.progressProperty());
+               
+                copyWorker.messageProperty().addListener((v,o,n)->{
+                    System.out.println(n);
+                    percent.setText(n);
+                });
+
+                new Thread(copyWorker).start();
+            }
+        });
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                startButton.setDisable(false);
+                cancelButton.setDisable(true);
+                copyWorker.cancel(true);
+                progressBar.progressProperty().unbind();
+                progressBar.setProgress(0);
+                System.out.println("cancelled.");
+            }
+        });
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    public Task createWorker() {
+        return new Task() {
+            @Override
+            protected Object call() throws Exception {
+            	
+            	final int maxSteps = 100;
+                for (int currentStep = 0; currentStep < maxSteps; currentStep++) {
+                    Thread.sleep(100);
+                    
+                    String message = String.valueOf((currentStep+1));
+                    updateMessage(message);
+                    updateProgress(currentStep + 1, maxSteps);
+                }
+                return true;
+            }
+        };
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
@@ -70,13 +71,12 @@ public class LoginDialog {
 		// Enable/Disable login button depending on whether a username was entered.
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
-		
-		
+
+		loginButton.setDisable(false);
 		database.setText("stardrop_test");
 		username.setText("idonotexist");
-		password.setText("source");
-		loginButton.setDisable(false);
-
+		password.setText("tonkatoy2014");
+		
 		// Do some validation (using the Java 8 lambda syntax).
 		username.textProperty().addListener(new ChangeListener<String>(){
 
@@ -90,13 +90,8 @@ public class LoginDialog {
 		dialog.getDialogPane().setContent(grid);
 
 		// Request focus on the username field by default.
-		Platform.runLater(new Runnable(){
-
-			@Override
-			public void run() {
-				database.requestFocus();
-			}
-			
+		Platform.runLater(()->{
+			database.requestFocus();			
 		});
 
 		// Convert the result to a username-password-pair when the login button is clicked.
@@ -119,6 +114,8 @@ public class LoginDialog {
 
 			@Override
 			public void accept(Pair<String, String> pair) {
+				
+				Task connect = connectWorker();
 				if( SQLData.connect(server.getText(), database.getText(), pair.getKey(), pair.getValue()) ){
 					
 					hasConnected = true;
@@ -138,4 +135,22 @@ public class LoginDialog {
 		
 		return hasConnected;
 	}
+	
+	public static Task connectWorker() {
+        return new Task() {
+            @Override
+            protected Object call() throws Exception {
+            	
+            	final int maxSteps = 100;
+                for (int currentStep = 0; currentStep < maxSteps; currentStep++) {
+                    Thread.sleep(100);
+                    
+                    String message = String.valueOf((currentStep+1));
+                    updateMessage(message);
+                    updateProgress(currentStep + 1, maxSteps);
+                }
+                return true;
+            }
+        };
+    }
 }
