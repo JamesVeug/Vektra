@@ -2,17 +2,14 @@ package vektra.GUI;
 
 import java.util.Collections;
 
-import javafx.collections.ListChangeListener;
-import javafx.collections.ListChangeListener.Change;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -60,6 +57,19 @@ public class BugListGUI {
 	        }
 	    });
 		
+		// Listen for the selected item to change
+		bugs.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+		    if (newSelection != null) {
+		    	BugItem item = bugs.getSelectionModel().getSelectedItem();
+		    	if(item.hasBeenUpdated ){
+		    		item.hasBeenUpdated = false;
+		    	}
+		    	
+		    	// Change the GUI
+		    	vektra.selectBug(item);
+		    }
+		});
+		
 		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		bugs.setMaxWidth(300);
 		bugs.getStylesheets().add("css/buglist.css");
@@ -79,8 +89,17 @@ public class BugListGUI {
 	 */
 	public static void setupColumns(ObservableList<BugItem> importedData, TableView<BugItem> bugs, Vektra vektra) {
 
-    	
+		// Create a new list if we don't have one
+    	bugs.setItems(importedData == null ? FXCollections.observableArrayList() : importedData);
+		
 		// Bottom Left ( BUG LIST )
+		if( bugs.getColumns().isEmpty() ){
+			createColumns(bugs, vektra);
+		}
+		bugs.sort();
+	}
+	
+	private static void createColumns(TableView<BugItem> bugs, Vektra vektra){
 		TableColumn<BugItem, Priority> priorityColumn = new TableColumn<BugItem, Priority>("P");
 		priorityColumn.setMinWidth(20);
 		priorityColumn.setMaxWidth(20);
@@ -97,10 +116,10 @@ public class BugListGUI {
 	                    if (!isEmpty()) {
 
 		                    int index = getIndex();
-		            		BugItem bug = importedData.get(index);
+		            		BugItem bug = bugs.getItems().get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
+//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        
 	                        if( bug.getStatus() == Status.FIXED ){
 		                        setBackground(SetFixedStatusBackground);
@@ -132,10 +151,10 @@ public class BugListGUI {
 	                    super.updateItem(item, empty);
 	                    if (!isEmpty()) {
 	                    	int index = getIndex();
-		            		BugItem bug = importedData.get(index);
+		            		BugItem bug = bugs.getItems().get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
+//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        setText(String.valueOf(item));
 	                    }
 	                }
@@ -159,10 +178,10 @@ public class BugListGUI {
 	                    super.updateItem(item, empty);
 	                    if (!isEmpty()) {
 	                    	int index = getIndex();
-		            		BugItem bug = importedData.get(index);
+		            		BugItem bug = bugs.getItems().get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
+//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        
 	                        
 	                        setText(item.toString());
@@ -186,10 +205,10 @@ public class BugListGUI {
 	                    super.updateItem(item, empty);
 	                    if (!isEmpty()) {
 	                    	int index = getIndex();
-		            		BugItem bug = importedData.get(index);
+		            		BugItem bug = bugs.getItems().get(index);
 		            		
 	                        this.getStylesheets().add("css/buglist.css");
-	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
+//	                        this.addEventFilter(MouseEvent.MOUSE_CLICKED, (a)->{ refreshRow(bugs, index, bug); vektra.selectBug(bug); });
 	                        
 	                        int[] date = splitDate(item);
 	                        
@@ -224,8 +243,7 @@ public class BugListGUI {
 		}
 		
 		bugs.getColumns().clear();
-		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn,updateColumn);	
-		bugs.sort();
+		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn,updateColumn);
 	}
 
 	/**
@@ -256,12 +274,6 @@ public class BugListGUI {
 		numbered[5] = Integer.parseInt(date[5]); // Second
 		
 		return numbered;
-	}
-
-
-	private static void refreshRow(TableView<BugItem> bugs, int rowIndex, BugItem bug) {
-		bug.hasBeenUpdated = false;
-		bugs.refresh();
 	}
 }
 

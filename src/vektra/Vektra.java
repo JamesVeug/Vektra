@@ -54,7 +54,7 @@ import vektra.resources.R;
 public class Vektra extends Application{
 	
 	public static Application APPLICATION;
-	public static final String VERSION = "0.17";
+	public static final String VERSION = "0.18";
 	
 	private Stage primaryStage;
 	
@@ -237,7 +237,6 @@ public class Vektra extends Application{
 				
 				// Assign new values in the table
 				if( fullUpdate ){
-					bugs.setItems(loadedData);
 					
 					// Save local data
 					importedData = loadedData;
