@@ -359,6 +359,9 @@ public class Vektra extends Application{
     	message.setText("");
     	reportID.setText("");
     	version.setText("");
+    	tags.setText("");
+    	priority.setText("");
+    	priorityIndicator.setFill(Color.BLACK);
     	
     	BugItem oldBug = selectedBug;
     	selectedBug = null;
@@ -527,6 +530,7 @@ public class Vektra extends Application{
 	 * If we are not signed in, it will still reset all GUI appropriately.
 	 */
 	public void signOut() {
+		reportLogin.setDisable(true);
 		
 		// Change GUI
 		loginMenuItem.setVisible(true);
@@ -534,12 +538,14 @@ public class Vektra extends Application{
 		loggedInName.setText("-");
 		loggedInPing.setText("-");
 		loggedInCurrentDate.setText("-");
+		reportLogin.setText("LOGIN");
 		bugs.getItems().clear();
+		
+		deselectBug();
 		
 		createReport.setDisable(true);
 		editReport.setDisable(true);
 		deleteReport.setDisable(true);
-		reportLogin.setDisable(true);
 		refresh.setDisable(true);
 		
 		// Disconnect from server
@@ -552,6 +558,7 @@ public class Vektra extends Application{
 			// Tell the user we logged in!
 			PopupMessage.show("Sign Out","Logged Out Successfully!\nGood Bye " + SQLData.getUsername() + "!");
 		}		
+		reportLogin.setDisable(false);
 	}
 
 	/**
@@ -559,7 +566,8 @@ public class Vektra extends Application{
 	 * If the log in is successful. A refresh thread will begin and a message will appear.
 	 */
 	public void login() {
-		
+
+		reportLogin.setDisable(true);
 		
 		boolean loggedIn = LoginDialog.show();
 		if( !loggedIn ){
@@ -589,8 +597,8 @@ public class Vektra extends Application{
 		createReport.setDisable(false);
 		editReport.setDisable(false);
 		deleteReport.setDisable(false);
-		reportLogin.setDisable(false);
 		refresh.setDisable(false);
+		reportLogin.setDisable(false);
 		reportLogin.setText("SIGN OUT");
 		
 		deselectBug();
@@ -610,6 +618,11 @@ public class Vektra extends Application{
 		
 	}
 
+	/**
+	 * Capitilizes the first letter of the string. Will return the given string if empty or null.
+	 * @param username
+	 * @return
+	 */
 	private String capitilize(String username) {
 		if( username == null || username.isEmpty() ){
 			return username;

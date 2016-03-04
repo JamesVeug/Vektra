@@ -70,7 +70,6 @@ public class ReportOptionsGUI {
 		loginButton.getStyleClass().add("button_extra");
 		loginButton.setPrefWidth(150);
 		loginButton.setPrefHeight(50);
-		loginButton.setDisable(true);
 		vektra.setReportLogin(loginButton);
 		
 		Button refresh = new Button("REFRESH");
