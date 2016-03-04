@@ -2,9 +2,10 @@ package vektra;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mysql.jdbc.StringUtils;
+
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.binding.When;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -64,7 +65,7 @@ public class Vektra extends Application{
 	private Button createReport;
 	private Button editReport;
 	private Button deleteReport;
-	private Button openID;
+	private Button reportLogin;
 	private Button refresh;
 	
 	private Label loggedInName;
@@ -525,7 +526,7 @@ public class Vektra extends Application{
 	 * Signs out of the database
 	 * If we are not signed in, it will still reset all GUI appropriately.
 	 */
-	protected void signOut() {
+	public void signOut() {
 		
 		// Change GUI
 		loginMenuItem.setVisible(true);
@@ -538,7 +539,7 @@ public class Vektra extends Application{
 		createReport.setDisable(true);
 		editReport.setDisable(true);
 		deleteReport.setDisable(true);
-		openID.setDisable(true);
+		reportLogin.setDisable(true);
 		refresh.setDisable(true);
 		
 		// Disconnect from server
@@ -557,7 +558,7 @@ public class Vektra extends Application{
 	 * Calls LoginDialog which grabs the information from the user and attempts to log in with it.
 	 * If the log in is successful. A refresh thread will begin and a message will appear.
 	 */
-	protected void login() {
+	public void login() {
 		
 		
 		boolean loggedIn = LoginDialog.show();
@@ -582,14 +583,15 @@ public class Vektra extends Application{
 		//Platform.runLater(refreshThread);
 		//Platform.setImplicitExit(false);
 		
-		loggedInName.setText(SQLData.getUsername());		
+		loggedInName.setText(capitilize(SQLData.getUsername()));		
 		loginMenuItem.setVisible(false);
 		signoutMenuItem.setVisible(true);
 		createReport.setDisable(false);
 		editReport.setDisable(false);
 		deleteReport.setDisable(false);
-		openID.setDisable(false);
+		reportLogin.setDisable(false);
 		refresh.setDisable(false);
+		reportLogin.setText("SIGN OUT");
 		
 		deselectBug();
 		bugs.getItems().clear();
@@ -606,6 +608,16 @@ public class Vektra extends Application{
 		// Tell the user we logged in!
 		PopupMessage.show("Login","Login Successful!\nWelcome " + SQLData.getUsername() + "!");
 		
+	}
+
+	private String capitilize(String username) {
+		if( username == null || username.isEmpty() ){
+			return username;
+		}
+		else if( username.length() == 1 ){
+			return username.substring(0,1).toUpperCase();
+		}
+		return username.substring(0,1).toUpperCase() + username.substring(1);
 	}
 
 	/**
@@ -942,8 +954,8 @@ public class Vektra extends Application{
 		return selectedBug;
 	}
 
-	public void setOpenID(Button openID2) {
-		openID = openID2;
+	public void setReportLogin(Button reportLogin2) {
+		reportLogin = reportLogin2;
 	}
 
 	public void setRefresh(Button refresh2) {
@@ -968,11 +980,7 @@ public class Vektra extends Application{
 		}
 		
 		BugItem selectedBug = deselectBug();
-//		selectedBug.dispose();
-		
 		refreshThread.fullRefresh();
-		
-//		selectBug(selectedBug);
 	}
 
 	public void performPartialRefresh() {

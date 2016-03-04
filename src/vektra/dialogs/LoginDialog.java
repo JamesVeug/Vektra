@@ -71,11 +71,6 @@ public class LoginDialog {
 		// Enable/Disable login button depending on whether a username was entered.
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
-
-		loginButton.setDisable(false);
-		database.setText("stardrop_test");
-		username.setText("idonotexist");
-		password.setText("tonkatoy2014");
 		
 		// Do some validation (using the Java 8 lambda syntax).
 		username.textProperty().addListener(new ChangeListener<String>(){
@@ -116,7 +111,7 @@ public class LoginDialog {
 			public void accept(Pair<String, String> pair) {
 				
 				Task connect = connectWorker();
-				if( SQLData.connect(server.getText(), database.getText(), pair.getKey(), pair.getValue()) ){
+				if( SQLData.connect(server.getText().toLowerCase(), database.getText().toLowerCase(), pair.getKey().toLowerCase(), pair.getValue()) ){
 					
 					hasConnected = true;
 				}

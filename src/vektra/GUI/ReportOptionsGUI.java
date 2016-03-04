@@ -65,12 +65,13 @@ public class ReportOptionsGUI {
 		extraButtonGrid.setPadding(new Insets(5,5,5,0));
 		extraButtonGrid.setVgap(5);
 		
-		Button openID = new Button("OPEN ID");
-		openID.getStyleClass().add("button_extra");
-		openID.setPrefWidth(150);
-		openID.setPrefHeight(50);
-		openID.setDisable(true);
-		vektra.setOpenID(openID);
+		Button loginButton = new Button("LOGIN");
+		loginButton.setOnAction((a)->{if( loginButton.getText().equals("LOGIN")) vektra.login(); else vektra.signOut();});
+		loginButton.getStyleClass().add("button_extra");
+		loginButton.setPrefWidth(150);
+		loginButton.setPrefHeight(50);
+		loginButton.setDisable(true);
+		vektra.setReportLogin(loginButton);
 		
 		Button refresh = new Button("REFRESH");
 		refresh.setOnAction((a)->{vektra.performFullRefresh();});
@@ -80,7 +81,7 @@ public class ReportOptionsGUI {
 		refresh.setDisable(true);
 		vektra.setRefresh(refresh);
 		
-		extraButtonGrid.addRow(0, openID);
+		extraButtonGrid.addRow(0, loginButton);
 		extraButtonGrid.addRow(1, refresh);
 		
 		

@@ -46,7 +46,6 @@ public class BugMessageGUI {
 		GridPane messagePane = new GridPane();
 		messagePane.setPadding(new Insets(5,5,0,5));
 		messagePane.setMaxWidth(400);
-//		messagePane.setBackground(new Background(new BackgroundFill(Color.PINK, new CornerRadii(0), new Insets(0))));
 		
 		Label label = new Label("REPORT DESCRIPTION:");
 		label.getStyleClass().add("reportDescription");
@@ -63,34 +62,32 @@ public class BugMessageGUI {
 		GridPane.setColumnSpan(message, 2);
 		
 //		VBox commentPane = new VBox();
-			TableView<Comment> comments = new TableView<Comment>();
-			comments.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-			comments.getStylesheets().add("css/buglist.css");
+		TableView<Comment> comments = new TableView<Comment>();
+		comments.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+		comments.getStylesheets().add("css/buglist.css");
+		
+		//commentScroll = new ScrollPane(comments);
+		setupComments(new ArrayList<Comment>(), comments, vektra);
+		vektra.setComments(comments);
+		
+		messagePane.addRow(2, comments);
+		GridPane.setColumnSpan(comments, 2);
+		
+		
+		TextField enterComment = new TextField();
+		enterComment.setPromptText("Enter a response here");
+		enterComment.setOnAction((a)->vektra.SubmitCommentButtonPressed(enterComment.getText()));
+		enterComment.getStyleClass().add("createReport_Options_Text");
+		enterComment.setPrefHeight(100);
+		vektra.setEnterComment(enterComment);
+		
+		Button submitComment = new Button("Send");
+		submitComment.setOnAction((a)->vektra.SubmitCommentButtonPressed(enterComment.getText()));
+		vektra.setSubmitComment(submitComment);
 			
-			//commentScroll = new ScrollPane(comments);
-			setupComments(new ArrayList<Comment>(), comments, vektra);
-			vektra.setComments(comments);
-			
-			messagePane.addRow(2, comments);
-			GridPane.setColumnSpan(comments, 2);
-			
-//			GridPane commentOptions = new GridPane();
-				
-				TextField enterComment = new TextField();
-				enterComment.setPromptText("Enter a response here");
-				enterComment.setOnAction((a)->vektra.SubmitCommentButtonPressed(enterComment.getText()));
-				enterComment.getStyleClass().add("createReport_Options_Text");
-//				enterComment.setPrefWidth(357);
-				enterComment.setPrefHeight(100);
-				vektra.setEnterComment(enterComment);
-				
-				Button submitComment = new Button("Send");
-				submitComment.setOnAction((a)->vektra.SubmitCommentButtonPressed(enterComment.getText()));
-				vektra.setSubmitComment(submitComment);
-				
-			messagePane.addRow(3, submitComment);
-			messagePane.addColumn(1, enterComment);
-			GridPane.isFillWidth(enterComment);
+		messagePane.addRow(3, submitComment);
+		messagePane.addColumn(1, enterComment);
+		GridPane.isFillWidth(enterComment);
 
 		GridPane extraInfoPane = new GridPane();
 			extraInfoPane.setPadding(new Insets(0,0,0,10));

@@ -80,7 +80,6 @@ public class ScreenShotDisplayGUI {
 		
 		StackPane screenshotPane = new StackPane();
 		screenshotPane.setStyle("-fx-border-width: 1; -fx-border-color: white;");
-//		screenshotPane.setPrefHeight(325);		
 		screenshotPane.setPadding(new Insets(5));		
 			Image logo = new Image("logo.png");
 			ImageView displayScreenshot = new ImageView(logo);
