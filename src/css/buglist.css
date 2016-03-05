@@ -10,6 +10,12 @@
 	-fx-font-size: 5pt;
 }
 
+.filter {
+    -fx-font-size: 15px;
+    -fx-font-family: "Ariel";
+    -fx-text-fill: white;
+}
+
 .table-view{
     -fx-base: #1d241f;
 }

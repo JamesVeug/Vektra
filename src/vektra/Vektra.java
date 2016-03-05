@@ -2,8 +2,6 @@ package vektra;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mysql.jdbc.StringUtils;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -24,6 +22,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
@@ -41,6 +40,7 @@ import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.DisplayImageWindow;
 import vektra.extrawindows.EditReport;
+import vektra.resources.FilterConfiguration;
 import vektra.resources.LocalResources;
 import vektra.resources.R;
 
@@ -97,7 +97,7 @@ public class Vektra extends Application{
 	private WindowCloseRequest closeRequest;
 	
 	private void setupStage(Stage primaryStage) {
-		primaryStage.setTitle("VEKTRA - Bug Reporter");
+		primaryStage.setTitle("VEKTRA - Bug Reporter v" + VERSION);
 		primaryStage.setWidth(1024);
 		primaryStage.setHeight(800);
 		primaryStage.getIcons().add(new Image("v.jpg"));
@@ -119,7 +119,7 @@ public class Vektra extends Application{
 		setupStage(primaryStage);
 		
 		GridPane reportOptions = ReportOptionsGUI.create(primaryStage,this);
-		TableView<BugItem> bugs = BugListGUI.create(primaryStage,this);
+		Pane bugs = BugListGUI.create(primaryStage,this);
 		GridPane screenshotList = ScreenShotDisplayGUI.create(primaryStage,this);
 		GridPane messages = BugMessageGUI.create(primaryStage,this);
 		MenuBar menu = setupMenu(primaryStage);
@@ -165,7 +165,7 @@ public class Vektra extends Application{
 			refreshThread.partialUpdate();
 		}
 		else{
-			PopupError.show("Submit Commeny", "Could not submit comment");
+			PopupError.show("Submit Comment", "Could not submit comment");
 		}
 	}
 
@@ -699,6 +699,10 @@ public class Vektra extends Application{
 		view.setFitHeight(desiredHeight);
 	}
 	
+	public void refreshBugs(){
+		BugListGUI.setupColumns(importedData, bugs, this);
+	}
+	
 	/**
 	 * When the refresh button is pressed. It will reset the timer on the refresh thread which will then refresh the data.
 	 * @author James
@@ -918,7 +922,10 @@ public class Vektra extends Application{
 		DisplayImageWindow.show(primaryStage, displayScreenshot);
 	}
 	
-	
+	public void filterBugs(){
+		System.out.println("Filter");
+		BugListGUI.setupColumns(FilterConfiguration.filter(importedData), bugs, this);
+	}
 	
 	public void setRefreshButtonText(String string) {
 		Platform.runLater(()->refresh.setText(string));

@@ -6,15 +6,26 @@ import java.util.Comparator;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -22,10 +33,14 @@ import vektra.BugItem;
 import vektra.Priority;
 import vektra.Status;
 import vektra.Vektra;
+import vektra.extrawindows.FilterWindow;
+import vektra.resources.FilterConfiguration;
 
 public class BugListGUI {
 	final static Background SetFixedStatusBackground = new Background(new BackgroundFill(Color.GREEN, new CornerRadii(0), new Insets(5)));
 	final static Background UpdatedColor = new Background(new BackgroundFill(Color.valueOf("rgb(57, 71, 61)"), new CornerRadii(0), new Insets(5)));
+	
+	private static boolean autoFilterBugs = true;
 
 	/**
 	 * Creates a new TableView to contain our list of bugs
@@ -33,53 +48,97 @@ public class BugListGUI {
 	 * @param vektra
 	 * @return
 	 */
-	public static TableView<BugItem> create(Stage primaryStage, Vektra vektra) {
+	public static Pane create(Stage primaryStage, Vektra vektra) {
 		
-		TableView<BugItem> bugs = new TableView<BugItem>();
-		bugs.setRowFactory(new Callback<TableView<BugItem>, TableRow<BugItem>>() {
-	        @Override
-	        public TableRow<BugItem> call(TableView<BugItem> tableView) {
-	            final TableRow<BugItem> row = new TableRow<BugItem>() {
-	                @Override
-	                protected void updateItem(BugItem person, boolean empty){
-	                    super.updateItem(person, empty);
-	                    if( !empty ){
-		                    if (person.hasBeenUpdated) {
-		                        if (! getStyleClass().contains("updatedRow")) {
-		                            getStyleClass().add("updatedRow");
-		                        }
-		                    } else {
-		                        getStyleClass().removeAll(Collections.singleton("updatedRow"));
+		BorderPane pane = new BorderPane();
+		
+			TableView<BugItem> bugs = new TableView<BugItem>();
+			bugs.setRowFactory(new Callback<TableView<BugItem>, TableRow<BugItem>>() {
+		        @Override
+		        public TableRow<BugItem> call(TableView<BugItem> tableView) {
+		            final TableRow<BugItem> row = new TableRow<BugItem>() {
+		                @Override
+		                protected void updateItem(BugItem person, boolean empty){
+		                    super.updateItem(person, empty);
+		                    if( !empty ){
+			                    if (person.hasBeenUpdated) {
+			                        if (! getStyleClass().contains("updatedRow")) {
+			                            getStyleClass().add("updatedRow");
+			                        }
+			                    } else {
+			                        getStyleClass().removeAll(Collections.singleton("updatedRow"));
+			                    }
 		                    }
-	                    }
-	                }
-	            };
-				return row;
-	        }
-	    });
+		                }
+		            };
+					return row;
+		        }
+		    });
+			
+			// Listen for the selected item to change
+			bugs.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+			    if (newSelection != null) {
+			    	BugItem item = bugs.getSelectionModel().getSelectedItem();
+			    	if(item.hasBeenUpdated ){
+			    		item.hasBeenUpdated = false;
+			    	}
+			    	
+			    	// Change the GUI
+			    	vektra.selectBug(item);
+			    }
+			});
+			
+			bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+			bugs.setMaxWidth(300);
+			bugs.getStylesheets().add("css/buglist.css");
+			vektra.setBugs(bugs);
+			
+			setupColumns(null, bugs, vektra);
 		
-		// Listen for the selected item to change
-		bugs.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-		    if (newSelection != null) {
-		    	BugItem item = bugs.getSelectionModel().getSelectedItem();
-		    	if(item.hasBeenUpdated ){
-		    		item.hasBeenUpdated = false;
-		    	}
-		    	
-		    	// Change the GUI
-		    	vektra.selectBug(item);
-		    }
-		});
+		pane.setCenter(bugs);
 		
-		bugs.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-		bugs.setMaxWidth(300);
-		bugs.getStylesheets().add("css/buglist.css");
-		GridPane.isFillHeight(bugs);
-		vektra.setBugs(bugs);
+		//
+		// FILTER OPTIONS
+		//
 		
-		setupColumns(null, bugs, vektra);
+		GridPane filterOptionsPane = new GridPane();
+		filterOptionsPane.setBackground(UpdatedColor);
+		filterOptionsPane.setPadding(new Insets(5));
 		
-		return bugs;
+			Label filterLabel = new Label("Filter");
+			filterLabel.getStylesheets().add("css/buglist.css");
+			filterLabel.getStyleClass().add("filter");
+		filterOptionsPane.addRow(0, filterLabel);
+		
+			HBox filterOptions = new HBox();
+			filterOptions.setAlignment(Pos.CENTER);
+			filterOptions.setSpacing(5);
+			filterOptions.setPadding(new Insets(5));
+
+			ImageView autoFilterIcon = new ImageView();
+				autoFilterIcon.setImage(new Image("auto.png",30,30,false,false));
+			
+			CheckBox autoFilter = new CheckBox();
+				autoFilter.setTooltip(new Tooltip("Auto filter Bug list"));
+				autoFilter.setSelected(autoFilterBugs);
+				autoFilter.selectedProperty().addListener((a,o,n)->{autoFilterBugs = n;});
+				autoFilter.setGraphic(autoFilterIcon);
+				
+			Button filterButton = new Button("FILTER");
+				filterButton.setOnAction((a)->setupColumns(FilterConfiguration.filter(bugs.getItems()), bugs, vektra));
+				filterButton.setTooltip(new Tooltip("Filter the currently listed Bugs"));
+		
+			Button editFilterButton = new Button();
+				editFilterButton.setGraphic(new ImageView(new Image("edit.png",15,15,false,false)));
+				editFilterButton.setOnAction((a)->FilterWindow.show(vektra));
+				editFilterButton.setTooltip(new Tooltip("Edit the Filter Settings"));
+	
+			filterOptions.getChildren().addAll(autoFilterIcon, autoFilter,filterButton,editFilterButton);
+		filterOptionsPane.addRow(1, filterOptions);
+		
+		pane.setBottom(filterOptionsPane);
+		GridPane.setValignment(filterOptions, VPos.BOTTOM);
+		return pane;
 	}
 
 	/**
@@ -91,12 +150,16 @@ public class BugListGUI {
 	public static void setupColumns(ObservableList<BugItem> importedData, TableView<BugItem> bugs, Vektra vektra) {
 
 		// Create a new list if we don't have one
-    	bugs.setItems(importedData == null ? FXCollections.observableArrayList() : importedData);
+		ObservableList<BugItem> filtered = importedData == null ? FXCollections.observableArrayList() : importedData;
+		filtered = autoFilterBugs ? FilterConfiguration.filter(filtered) : filtered;
+		
+    	bugs.setItems(filtered);
 		
 		// Bottom Left ( BUG LIST )
-		if( bugs.getColumns().isEmpty() ){
+//		if( bugs.getColumns().isEmpty() ){
 			createColumns(bugs, vektra);
-		}
+			
+//		}
 		bugs.sort();
 	}
 	
@@ -135,9 +198,9 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			priorityColumn.setSortType(bugs.getColumns().get(0).getSortType());
-//		}
+		if( !bugs.getColumns().isEmpty() ){
+			priorityColumn.setSortType(bugs.getColumns().get(0).getSortType());
+		}
 		
 		// Bottom Left ( BUG LIST )
 		TableColumn<BugItem, Integer> idColumn = new TableColumn<BugItem, Integer>("ID");
@@ -163,9 +226,9 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			idColumn.setSortType(bugs.getColumns().get(1).getSortType());
-//		}
+		if( !bugs.getColumns().isEmpty() ){
+			idColumn.setSortType(bugs.getColumns().get(1).getSortType());
+		}
 		
 		TableColumn<BugItem, Status> statusColumn = new TableColumn<BugItem, Status>("STATUS");
 		statusColumn.setMinWidth(50);
@@ -193,9 +256,9 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			statusColumn.setSortType(bugs.getColumns().get(2).getSortType());
-//		}
+		if( !bugs.getColumns().isEmpty() ){
+			statusColumn.setSortType(bugs.getColumns().get(2).getSortType());
+		}
 		
 		TableColumn<BugItem, String> updateColumn = new TableColumn<BugItem, String>("UPDATED");
 		updateColumn.setCellValueFactory(new PropertyValueFactory<BugItem, String>("lastUpdate"));
@@ -223,29 +286,29 @@ public class BugListGUI {
 	            };
 	        }
 	    });
-//		if( !bugs.getColumns().isEmpty() ){
-//			updateColumn.setSortType(bugs.getColumns().get(3).getSortType());
-//		}
-//		
-//		@SuppressWarnings("rawtypes")
-//		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
-//		if( sorting == null ){
-//			// Ignore
-//		}
-//		else if( sorting == bugs.getColumns().get(0) ){
-//			bugs.getSortOrder().set(0, priorityColumn);
-//		}
-//		else if( sorting == bugs.getColumns().get(1) ){
-//			bugs.getSortOrder().set(0, idColumn);
-//		}
-//		else if( sorting == bugs.getColumns().get(2) ){
-//			bugs.getSortOrder().set(0, statusColumn);
-//		}
-//		else if( sorting == bugs.getColumns().get(2) ){
-//			bugs.getSortOrder().set(0, updateColumn);
-//		}
-//		
-//		bugs.getColumns().clear();
+		if( !bugs.getColumns().isEmpty() ){
+			updateColumn.setSortType(bugs.getColumns().get(3).getSortType());
+		}
+		
+		@SuppressWarnings("rawtypes")
+		TableColumn sorting = bugs.getSortOrder().isEmpty() ? null : bugs.getSortOrder().get(0);
+		if( sorting == null ){
+			// Ignore
+		}
+		else if( sorting == bugs.getColumns().get(0) ){
+			bugs.getSortOrder().set(0, priorityColumn);
+		}
+		else if( sorting == bugs.getColumns().get(1) ){
+			bugs.getSortOrder().set(0, idColumn);
+		}
+		else if( sorting == bugs.getColumns().get(2) ){
+			bugs.getSortOrder().set(0, statusColumn);
+		}
+		else if( sorting == bugs.getColumns().get(2) ){
+			bugs.getSortOrder().set(0, updateColumn);
+		}
+		
+		bugs.getColumns().clear();
 		bugs.getColumns().addAll(priorityColumn, idColumn, statusColumn,updateColumn);
 	}
 

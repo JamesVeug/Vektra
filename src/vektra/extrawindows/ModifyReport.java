@@ -207,6 +207,7 @@ public class ModifyReport {
 			text = new TextArea();
 			text.setPromptText(exampleText);
 			text.setPrefHeight(300);
+			text.setWrapText(true);
 			text.getStyleClass().add("createReport_Message");
 		bottomPane.addRow(0,text);
 		
