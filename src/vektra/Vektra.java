@@ -40,6 +40,7 @@ import vektra.extrawindows.AboutWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.DisplayImageWindow;
 import vektra.extrawindows.EditReport;
+import vektra.extrawindows.ModifyReport;
 import vektra.resources.FilterConfiguration;
 import vektra.resources.LocalResources;
 import vektra.resources.R;
@@ -300,6 +301,11 @@ public class Vektra extends Application{
 					}
 					setRefreshButtonText("REFRESHING...\nRefreshing GUI");
 				}
+
+				
+				// Set it up for 
+				ModifyReport.assignVersions(importedData);
+				
 				
 				BugListGUI.setupColumns(importedData, bugs, Vektra.this);
 				

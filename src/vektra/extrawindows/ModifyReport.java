@@ -1,11 +1,16 @@
 package vektra.extrawindows;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -67,13 +72,17 @@ public class ModifyReport {
 	
 
 	protected static ComboBox<vektra.Stage> stageVersion;
-	protected static TextField version;
+	protected static ComboBox<String> version;
 	protected static ComboBox<Status> statusSelection;
 	protected static GridPane bottomPane;
 	
 	protected static int bugID;
 
+	private static final int MAX_LISTED_VERSIONS = 4;
+	private static List<BugItem> listedVersions = new ArrayList<BugItem>();
+	
 	public static void display(String title, int maxID) {
+		System.out.println("SHOW");
 		bugID = maxID;
 		Stage stage = new Stage();
 		stage.setTitle(title);
@@ -239,9 +248,12 @@ public class ModifyReport {
 				stageVersion.getStyleClass().add("createReport_Options_Text");
 			statusInnerPane.getChildren().add(stageVersion);
 			
-				version = new TextField();
+				version = new ComboBox<String>();
 				version.getStyleClass().add("createReport_Options_Text");
+				version.setStyle("-fx-font-family: Arial");
 				version.setPromptText(exampleVersion);
+				version.getItems().addAll(getVersionStrings());
+				version.setEditable(true);
 			statusInnerPane.getChildren().add(version);
 				
 //				Label bitTypeLabel = new Label("Bit Type:");
@@ -273,7 +285,7 @@ public class ModifyReport {
 		
 		primaryStage = stage;
 	}
-	
+
 	protected static boolean checkForErrors(){
 		
 		if( text.getText().isEmpty() ){
@@ -298,7 +310,38 @@ public class ModifyReport {
 	}
 	
 	private static Version getVersion() {
-		return new Version(version.getText(), stageVersion.getValue());
+		return new Version(version.getSelectionModel().getSelectedItem(), stageVersion.getValue());
+	}
+	
+	private static List<String> getVersionStrings() {
+		List<String> list = new ArrayList<String>();
+		for(BugItem i : listedVersions){
+			System.out.println("Getting " + i.version.version);
+			list.add(i.version.version);
+			if( list.size() >= MAX_LISTED_VERSIONS ){
+				break;
+			}
+		}
+		
+		return list;
+	}
+	
+	/**
+	 * Assign the latest versions
+	 * @param loadedData
+	 */
+	public static void assignVersions(ObservableList<BugItem> loadedData){
+		List<BugItem> list = new ArrayList<BugItem>();
+		for(BugItem i : loadedData){
+			list.add(i);
+		}
+		
+		// Sort by uploaded Date
+		Collections.sort(list,(a,b)->{
+				return a.date.compareTo(b.date);
+		});
+		
+		listedVersions = list;
 	}
 
 	protected static void addImage(String link, Image image){

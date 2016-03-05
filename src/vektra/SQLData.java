@@ -993,6 +993,7 @@ public class SQLData {
 		public ObservableList<BugItem> data = FXCollections.observableArrayList();
 		public Map<Integer, BugImage> images = new HashMap<Integer,BugImage>();
 		
+		
 		public DatabaseData(){}
 		
 		public boolean containsImage(int screenshotid) {

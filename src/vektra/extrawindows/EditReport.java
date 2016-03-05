@@ -38,7 +38,7 @@ public class EditReport extends ModifyReport{
 		
 		statusSelection.setValue(bug.getStatus());
 		stageVersion.setValue(bug.version.stage);
-		version.setText(bug.version.version);
+		version.getSelectionModel().select(bug.version.version);
 
 		addImages(bug.imageMap);
 //		
