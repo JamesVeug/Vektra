@@ -313,6 +313,12 @@ public class FilterConfiguration {
 			loadFilterOptions();
 		}
 		
+		// Save with default value
+		if( text.isEmpty() ){
+			text = FILE_KEY_LIST.get(FILE_FILTER_BUG_WHO);
+		}
+		
+		// Add
 		filters.put(FILE_FILTER_BUG_WHO, text);
 	}
 }

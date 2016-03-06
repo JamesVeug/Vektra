@@ -46,7 +46,7 @@ public class FilterWindow {
 		bugLayout.getStyleClass().add("aboutinfo");
 		
 		whoField = new TextField();
-		whoField.setPromptText("Vektra");
+		whoField.setPromptText("Vektra Joure Sensi");
 		whoField.setText(getWhoPosted());
 
 		bugLayout.getChildren().addAll(new Label("BUGS: "), new Label("Poster"), whoField);
