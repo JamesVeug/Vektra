@@ -36,6 +36,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import vektra.Bit;
 import vektra.BugImage;
 import vektra.BugItem;
 import vektra.OnlineBugImage;
@@ -72,6 +73,7 @@ public class ModifyReport {
 	
 
 	protected static ComboBox<vektra.Stage> stageVersion;
+	protected static ComboBox<vektra.Bit> bitVersion;
 	protected static ComboBox<String> version;
 	protected static ComboBox<Status> statusSelection;
 	protected static GridPane bottomPane;
@@ -250,11 +252,18 @@ public class ModifyReport {
 			
 				version = new ComboBox<String>();
 				version.getStyleClass().add("createReport_Options_Text");
-				version.setStyle("-fx-font-family: Arial");
+				version.setStyle("-fx-font-family: Microstyle Extended ATT");
 				version.setPromptText(exampleVersion);
 				version.getItems().addAll(getVersionStrings());
 				version.setEditable(true);
 			statusInnerPane.getChildren().add(version);
+			
+				bitVersion = new ComboBox<vektra.Bit>();
+				bitVersion.setStyle("-fx-font-family: Microstyle Extended ATT");
+				bitVersion.getItems().addAll(vektra.Bit.bitList);
+				bitVersion.getStyleClass().add("createReport_Options_Text");
+				bitVersion.getSelectionModel().select(Bit.B64);
+			statusInnerPane.getChildren().add(bitVersion);
 				
 //				Label bitTypeLabel = new Label("Bit Type:");
 //				bitTypeLabel.getStyleClass().add("createReport_Options_Headers");
@@ -310,11 +319,11 @@ public class ModifyReport {
 	}
 	
 	private static Version getVersion() {
-		return new Version(version.getSelectionModel().getSelectedItem(), stageVersion.getValue());
+		return new Version(version.getSelectionModel().getSelectedItem(), stageVersion.getValue(), bitVersion.getValue());
 	}
 	
-	private static List<String> getVersionStrings() {
-		List<String> list = new ArrayList<String>();
+	private static Set<String> getVersionStrings() {
+		Set<String> list = new HashSet<String>();
 		for(BugItem i : listedVersions){
 			System.out.println("Getting " + i.version.version);
 			list.add(i.version.version);
@@ -333,12 +342,12 @@ public class ModifyReport {
 	public static void assignVersions(ObservableList<BugItem> loadedData){
 		List<BugItem> list = new ArrayList<BugItem>();
 		for(BugItem i : loadedData){
-			list.add(i);
+				list.add(i);
 		}
 		
 		// Sort by uploaded Date
 		Collections.sort(list,(a,b)->{
-				return a.date.compareTo(b.date);
+			return b.date.compareTo(a.date);
 		});
 		
 		listedVersions = list;

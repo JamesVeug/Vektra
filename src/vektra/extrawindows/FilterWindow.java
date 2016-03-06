@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -76,14 +77,28 @@ public class FilterWindow {
 		Button submit = new Button("SUBMIT");
 		submit.setOnAction((a)->submitFilterSettings(vektra));
 		
+		Button clear = new Button("CLEAR");
+		clear.setOnAction((a)->clearFilterSettings(vektra));
+		
 		VBox layout = new VBox();
 		layout.setSpacing(10);
-		layout.getChildren().addAll(bugLayout,statusLayout,priortyLayout,submit);
+		layout.getChildren().addAll(bugLayout,statusLayout,priortyLayout,clear,submit);
 		layout.setAlignment(Pos.TOP_LEFT);
+		layout.setPadding(new Insets(10));
 		
 		Scene scene = new Scene(layout);
 		stage.setScene(scene);
 		stage.show();
+	}
+
+	private static void clearFilterSettings(Vektra vektra) {
+		for(CheckBox s : statuses){
+			s.setSelected(false);
+		}
+		for(CheckBox s : priorities){
+			s.setSelected(false);
+		}
+		whoField.setText("");
 	}
 
 	private static List<CheckBox> createStatusCheckBoxes() {
@@ -118,15 +133,15 @@ public class FilterWindow {
 		for(CheckBox s : statuses){
 			statusMap.put(Status.get(s.getText()), s.isSelected());
 		}
-		FilterConfiguration.setStatusSettings(statusMap);
 		
 		Map<Priority,Boolean> priorityMap = new HashMap<Priority,Boolean>();
 		for(CheckBox s : priorities){
 			priorityMap.put(Priority.get(s.getText()), s.isSelected());
 		}
+		
+		
+		FilterConfiguration.setStatusSettings(statusMap);
 		FilterConfiguration.setPrioritySettings(priorityMap);
-		
-		
 		FilterConfiguration.saveFilterOptions();
 		
 		stage.close();

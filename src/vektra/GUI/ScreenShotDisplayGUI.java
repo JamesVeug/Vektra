@@ -46,7 +46,7 @@ public class ScreenShotDisplayGUI {
 		
 		Label tagLabel = new Label("TAGS:");
 		tagLabel.setPrefHeight(15);
-		tagLabel.getStyleClass().add("tagstyle");
+		tagLabel.getStyleClass().add("tagstyleheader");
 		screenshotinfo.addRow(1, tagLabel);
 		
 		Label tags = new Label("-");
@@ -57,7 +57,7 @@ public class ScreenShotDisplayGUI {
 		
 		Label priorityLabel = new Label("PRIORITY:");
 		priorityLabel.setPrefHeight(30);
-		priorityLabel.getStyleClass().add("tagstyle");
+		priorityLabel.getStyleClass().add("tagstyleheader");
 		screenshotinfo.addRow(2, priorityLabel);
 		
 		Label priority = new Label("-");
@@ -68,7 +68,7 @@ public class ScreenShotDisplayGUI {
 		
 		Label versionLabel = new Label("VERSION:");
 		versionLabel.setPrefHeight(15);
-		versionLabel.getStyleClass().add("tagstyle");
+		versionLabel.getStyleClass().add("tagstyleheader");
 		screenshotinfo.addRow(3, versionLabel);
 		
 		Label version = new Label("-");

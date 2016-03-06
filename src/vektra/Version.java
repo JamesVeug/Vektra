@@ -3,11 +3,13 @@ package vektra;
 public class Version {
 	public final String version;
 	public final Stage stage;
+	public final Bit bit;
 	
-	public Version(String version, Stage stage) {
+	public Version(String version, Stage stage, Bit bit) {
 		super();
 		this.version = version;
 		this.stage = stage;
+		this.bit = bit;
 	}
 
 	/**
@@ -23,6 +25,13 @@ public class Version {
 	public Stage getStage() {
 		return stage;
 	}
+	
+	/**
+	 * @return the bit
+	 */
+	public Bit getBit(){
+		return bit;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -31,6 +40,7 @@ public class Version {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((bit == null) ? 0 : bit.hashCode());
 		result = prime * result + ((stage == null) ? 0 : stage.hashCode());
 		result = prime * result + ((version == null) ? 0 : version.hashCode());
 		return result;
@@ -48,6 +58,11 @@ public class Version {
 		if (!(obj instanceof Version))
 			return false;
 		Version other = (Version) obj;
+		if (bit == null) {
+			if (other.bit != null)
+				return false;
+		} else if (!bit.equals(other.bit))
+			return false;
 		if (stage == null) {
 			if (other.stage != null)
 				return false;
@@ -60,5 +75,6 @@ public class Version {
 			return false;
 		return true;
 	}
+
 	
 }

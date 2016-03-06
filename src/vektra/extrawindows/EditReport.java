@@ -38,6 +38,7 @@ public class EditReport extends ModifyReport{
 		
 		statusSelection.setValue(bug.getStatus());
 		stageVersion.setValue(bug.version.stage);
+		bitVersion.setValue(bug.version.bit);
 		version.getSelectionModel().select(bug.version.version);
 
 		addImages(bug.imageMap);

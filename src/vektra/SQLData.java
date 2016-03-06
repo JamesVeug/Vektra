@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.mysql.jdbc.CommunicationsException;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import javafx.collections.FXCollections;
@@ -69,7 +68,7 @@ public class SQLData {
 			System.out.println("Date Query: '" + dateQuery + "'");
 
 			// Select all the bugs that have been updated since we last checked the database
-			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage, comment, commentid, whocommented, datecommented " 
+			String selectionQuery = "SELECT dates.bugid, dates.lastupdated, dates.whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage, bit, comment, commentid, whocommented, datecommented " 
 									+ "FROM "
 									+ dateQuery + " AS dates "
 									+ "LEFT JOIN `bugs`  "
@@ -89,7 +88,7 @@ public class SQLData {
 									+ "LEFT JOIN `comments` "
 									+ "ON dates.bugid = comments.bugid " 
 									
-									+ "ORDER BY dates.lastupdated;";
+									+ "ORDER BY dates.lastupdated DESC;";
 									
 							
 			// Get all the information
@@ -109,6 +108,11 @@ public class SQLData {
 			// If we received an update. Record the time
 			if( data != null && !data.data.isEmpty() ){
 				lastUpdate = data.data.get(0).lastUpdate;
+				
+				int dot = lastUpdate.indexOf('.');
+				if( dot != -1 ){
+					lastUpdate = lastUpdate.substring(0, dot);
+				}
 			}
 			
 			// Finished getting update
@@ -136,16 +140,13 @@ public class SQLData {
 			while( result.next() ){
 				Integer id = result.getInt("bugid");
 				String message = result.getString("message");
-				if( message == null ){
-					continue;
-				}
-				
 				String date = result.getString("date");
 				String poster = result.getString("poster");
 				String priority = result.getString("priority");
 				String status = result.getString("status");
 				String version = result.getString("version");
 				String stage = result.getString("stage");
+				String bit = String.valueOf(result.getInt("bit"));
 				
 				// Updated Info
 				String whoUpdated = result.getString("whoupdated");
@@ -175,7 +176,7 @@ public class SQLData {
 				
 				// If we haven't recorded this bug yet. Save it as a new entry 
 				if( !bugMapping.containsKey(id) ){
-					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), Status.get(status), poster,message,date, new Version(version,Stage.get(stage)), screenshot != null ? link : null, screenshot != null ? screenshot : null);
+					BugItem bug = new BugItem(id, tagItem,Priority.get(priority), Status.get(status), poster,message,date, new Version(version,Stage.get(stage), Bit.get(bit)), screenshot != null ? link : null, screenshot != null ? screenshot : null);
 					data.add(bug);
 					bugMapping.put(id, bug);
 					bug.whoUpdated = whoUpdated;
@@ -237,7 +238,7 @@ public class SQLData {
 //			lastUpdate = retrieveCurrentTime();
 			
 			// Select all bugs, tags, screenshots and order them by BugID.
-			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage, comment, commentid, whocommented, datecommented "
+			String query = "SELECT bugs.bugid, lastupdated, whoupdated, date, message, poster, priority, status, tag, tagid, link, screenshotid, version, stage, bit, comment, commentid, whocommented, datecommented "
 							+"FROM `bugs` "
 							+"LEFT JOIN `bugdates` "
 							+"ON bugs.bugid = bugdates.bugid "
@@ -273,6 +274,10 @@ public class SQLData {
 			// Assign lastUpdate
 			if( data != null && !data.data.isEmpty() ){
 				lastUpdate = data.data.get(0).lastUpdate;
+				int dot = lastUpdate.indexOf('.');
+				if( dot != -1 ){
+					lastUpdate = lastUpdate.substring(0, dot);
+				}
 			}
 			
 			return data;
@@ -314,7 +319,7 @@ public class SQLData {
 	 * @return BugImage that stores the link and screenshotid if it's valid. Otherwise null
 	 */
 	private static BugImage getScreenshot(int screenshotid, String link) {
-		System.out.println("SQLData: Getting screenshot - " + screenshotid);
+//		System.out.println("SQLData: Getting screenshot - " + screenshotid);
 		
 		// Check to make sure we have a valid link from the database
 		if( link != null && !link.isEmpty() && !link.equals("NULL") ){
@@ -480,7 +485,7 @@ public class SQLData {
 		}
 		
 		// Submit the version
-		String versioncommand = "INSERT INTO versions (`version`, `stage`, `bugid`) VALUES ('" + bug.version.version + "', '" + bug.version.stage + "', '" + bugid + "')";
+		String versioncommand = "INSERT INTO versions (`version`, `stage`, `bit`, `bugid`) VALUES ('" + bug.version.version + "', '" + bug.version.stage + "', '" + bug.version.bit + "', '" + bugid + "')";
 		boolean versionConfirmation = submitQuery(versioncommand);
 		if( !versionConfirmation ){
 			errors.add(-5);
@@ -682,10 +687,10 @@ public class SQLData {
 		if( newBug.version != null && oldBug.version == null ){
 			
 			// insert new version!
-			queries.add("INSERT INTO versions (`version`, `stage`, `bugid`) VALUES ('" + newBug.version.version + "', '" + newBug.version.stage + "', '" + ID +"');");
+			queries.add("INSERT INTO versions (`version`, `stage`, `bit`, `bugid`) VALUES ('" + newBug.version.version + "', '" + newBug.version.stage + "', '" + newBug.version.bit + "`, '" + newBug.ID +"');");
 		}
 		else if( oldBug != null && !oldBug.version.equals(newBug.version) ){
-			queries.add("UPDATE versions SET version = '" + newBug.version.version + "', stage = '"+newBug.version.stage+"' WHERE BugId = " + ID + "; ");
+			queries.add("UPDATE versions SET version = '" + newBug.version.version + "', stage = '"+newBug.version.stage+"', bit = '"+newBug.version.bit+"' WHERE BugId = " + ID + "; ");
 		}
 
 		// Tags have changed
@@ -1001,7 +1006,7 @@ public class SQLData {
 		}
 
 		public void add(BugItem i){
-			System.out.println("Adding Bug " + i.getID());
+//			System.out.println("Adding Bug " + i.getID());
 		
 			data.add(i);
 			for(BugImage image : i.getImages()){

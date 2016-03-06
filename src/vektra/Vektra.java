@@ -114,7 +114,8 @@ public class Vektra extends Application{
 		
 		// Required in order to be able to use it in css's
 		@SuppressWarnings("unused")
-		final Font font = Font.loadFont(Vektra.class.getClass().getResourceAsStream("/fonts/Microstyle Bold Extended ATT.ttf"), 20);
+		final Font fontBold = Font.loadFont(Vektra.class.getClass().getResourceAsStream("/fonts/Microstyle Bold Extended ATT.ttf"), 20);
+		final Font fontStandared = Font.loadFont(Vektra.class.getClass().getResourceAsStream("/fonts/Microstyle Extended ATT.ttf"), 20);
 		
 		this.primaryStage = primaryStage;
 		setupStage(primaryStage);
@@ -258,6 +259,10 @@ public class Vektra extends Application{
 						}
 						
 						if( index == -1 ){
+							if( newBug.message == null ){
+								System.out.println("Ignoring null Bug " + newBug.ID);
+								continue;
+							}
 							System.out.println("Adding bug " + newBug.ID);
 							
 							// Add new item to bug
@@ -267,11 +272,10 @@ public class Vektra extends Application{
 							R.addImages(newBug.getImages());
 						}
 						else if( newBug.message == null ){
-							System.out.println("Deleting bug");
-							if( selectedBug.equals(newBug) ){
+							System.out.println("Deleting bug " + newBug.ID);
+							if( selectedBug != null && selectedBug.equals(newBug) ){
 								System.out.println("Deselecting bug");
 								deselectBug();
-								selectedBug = null;
 							}
 							
 							// Remove from list
@@ -303,11 +307,12 @@ public class Vektra extends Application{
 				}
 
 				
-				// Set it up for 
-				ModifyReport.assignVersions(importedData);
 				
 				
 				BugListGUI.setupColumns(importedData, bugs, Vektra.this);
+
+				// Set it up for 
+				ModifyReport.assignVersions(importedData);
 				
 				// Reselect
 				BugItem old = deselectBug();
@@ -418,7 +423,7 @@ public class Vektra extends Application{
             loggedDate.setText(bug.date == null ? "-" : bug.date);
             whoUpdated.setText(bug.whoUpdated == null ? "-" : bug.whoUpdated);
             updatedDate.setText(bug.lastUpdate == null ? "-" : bug.lastUpdate);
-            version.setText(bug.version == null ? "-" : bug.version.stage + " " + bug.version.version);
+            version.setText(bug.version == null ? "-" : bug.version.stage + " " + bug.version.version + " " + bug.version.bit + "B");
 
             // Clear images and add new ones if there are some
         	screenshotList.getChildren().clear();
@@ -706,7 +711,7 @@ public class Vektra extends Application{
 	}
 	
 	public void refreshBugs(){
-		BugListGUI.setupColumns(importedData, bugs, this);
+		BugListGUI.filterBugs(importedData, bugs, this);
 	}
 	
 	/**

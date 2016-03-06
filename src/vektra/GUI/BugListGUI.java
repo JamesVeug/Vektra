@@ -41,6 +41,8 @@ public class BugListGUI {
 	final static Background UpdatedColor = new Background(new BackgroundFill(Color.valueOf("rgb(57, 71, 61)"), new CornerRadii(0), new Insets(5)));
 	
 	private static boolean autoFilterBugs = true;
+	private static Label bugsFilteredLabel;
+	private static Label bugCountLabel;
 
 	/**
 	 * Creates a new TableView to contain our list of bugs
@@ -92,8 +94,6 @@ public class BugListGUI {
 			bugs.setMaxWidth(300);
 			bugs.getStylesheets().add("css/buglist.css");
 			vektra.setBugs(bugs);
-			
-			setupColumns(null, bugs, vektra);
 		
 		pane.setCenter(bugs);
 		
@@ -104,16 +104,37 @@ public class BugListGUI {
 		GridPane filterOptionsPane = new GridPane();
 		filterOptionsPane.setBackground(UpdatedColor);
 		filterOptionsPane.setPadding(new Insets(5));
+		filterOptionsPane.setAlignment(Pos.TOP_LEFT);
 		
 			Label filterLabel = new Label("Filter");
 			filterLabel.getStylesheets().add("css/buglist.css");
 			filterLabel.getStyleClass().add("filter");
 		filterOptionsPane.addRow(0, filterLabel);
 		
+			HBox filterCountPane = new HBox();
+
+			// Bug Filter Count
+			bugsFilteredLabel = new Label("?");
+			bugsFilteredLabel.setPadding(new Insets(0,0,0,10));
+			bugsFilteredLabel.getStylesheets().add("css/buglist.css");
+			bugsFilteredLabel.getStyleClass().add("filter");
+			Label label = new Label("/");
+			label.getStylesheets().add("css/buglist.css");
+			label.getStyleClass().add("filter");
+
+			// Bug Count
+			bugCountLabel = new Label("?");
+			bugCountLabel.getStylesheets().add("css/buglist.css");
+			bugCountLabel.getStyleClass().add("filter");
+			filterCountPane.getChildren().addAll(bugsFilteredLabel,label,bugCountLabel);
+			
+		filterOptionsPane.addColumn(1, filterCountPane);
+		
 			HBox filterOptions = new HBox();
 			filterOptions.setAlignment(Pos.CENTER);
 			filterOptions.setSpacing(5);
 			filterOptions.setPadding(new Insets(5));
+			GridPane.setColumnSpan(filterOptions, 2);
 
 			ImageView autoFilterIcon = new ImageView();
 				autoFilterIcon.setImage(new Image("auto.png",30,30,false,false));
@@ -125,7 +146,7 @@ public class BugListGUI {
 				autoFilter.setGraphic(autoFilterIcon);
 				
 			Button filterButton = new Button("FILTER");
-				filterButton.setOnAction((a)->setupColumns(FilterConfiguration.filter(bugs.getItems()), bugs, vektra));
+				filterButton.setOnAction((a)->filterBugs(bugs.getItems(), bugs, vektra));
 				filterButton.setTooltip(new Tooltip("Filter the currently listed Bugs"));
 		
 			Button editFilterButton = new Button();
@@ -136,9 +157,16 @@ public class BugListGUI {
 			filterOptions.getChildren().addAll(autoFilterIcon, autoFilter,filterButton,editFilterButton);
 		filterOptionsPane.addRow(1, filterOptions);
 		
+		setupColumns(null, bugs, vektra);
 		pane.setBottom(filterOptionsPane);
 		GridPane.setValignment(filterOptions, VPos.BOTTOM);
 		return pane;
+	}
+
+	public static void filterBugs(ObservableList<BugItem> items, TableView<BugItem> bugs, Vektra vektra) {
+		autoFilterBugs = true;
+		setupColumns(items, bugs, vektra);
+		autoFilterBugs = false;
 	}
 
 	/**
@@ -149,9 +177,17 @@ public class BugListGUI {
 	 */
 	public static void setupColumns(ObservableList<BugItem> importedData, TableView<BugItem> bugs, Vektra vektra) {
 
+		bugCountLabel.setText(importedData == null ? "?" : String.valueOf(importedData.size()));
+		
 		// Create a new list if we don't have one
 		ObservableList<BugItem> filtered = importedData == null ? FXCollections.observableArrayList() : importedData;
-		filtered = autoFilterBugs ? FilterConfiguration.filter(filtered) : filtered;
+		if( autoFilterBugs ){
+			filtered = FilterConfiguration.filter(filtered);
+			bugsFilteredLabel.setText(String.valueOf(filtered.size()));
+		}
+		else{
+			bugsFilteredLabel.setText(importedData == null ? "?" : String.valueOf(importedData.size()));
+		}
 		
     	bugs.setItems(filtered);
 		

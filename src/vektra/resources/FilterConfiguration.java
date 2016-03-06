@@ -156,7 +156,7 @@ public class FilterConfiguration {
 				// Check value is valid
 				String value = scan.next();
 				
-				System.out.println("Found: " + key + ", " + value);
+//				System.out.println("Found: " + key + ", " + value);
 				if(!loadedKeys.contains(key)){
 					PopupWarning.show("Loading Filter Configurations", "Unknown key:", key);
 					filters.remove(key);
@@ -164,7 +164,7 @@ public class FilterConfiguration {
 				else{
 					loadedKeys.remove(key);
 					filters.put(key, value); 
-					System.out.println("Putting " + key + " , " + value);
+//					System.out.println("Putting " + key + " , " + value);
 				}
 			}
 			scan.close();
