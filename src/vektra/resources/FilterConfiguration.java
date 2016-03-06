@@ -115,7 +115,7 @@ public class FilterConfiguration {
 			}
 			
 			// BUGS
-			else if( (bug.who.equals(filters.get(FILE_FILTER_BUG_WHO))) ){
+			else if( getFilteredNames().contains(bug.who) ){
 				return true;
 			}
 		}catch(NullPointerException e){
@@ -127,6 +127,22 @@ public class FilterConfiguration {
 		return false;
 	}
 	
+	private static Set<String> getFilteredNames() {
+		Set<String> names = new HashSet<String>();
+		
+		System.out.println("Fitlering Names: ");
+		String nameString = filters.get(FILE_FILTER_BUG_WHO);
+		if( !nameString.isEmpty() ){
+			String[] splitNames = nameString.split(" ");
+			for(String n : splitNames){
+				System.out.print(n.trim() + ", ");
+				names.add(n.trim());
+			}
+		}
+		System.out.println();
+		return names;
+	}
+
 	/**
 	 * Loads the current filter options saved on the computer
 	 */
@@ -147,6 +163,7 @@ public class FilterConfiguration {
 			Scanner scan = new Scanner(file);
 			while(scan.hasNext()){
 				String key = scan.next();
+				System.out.println("Key " + key);
 				
 				if( !scan.hasNext() ){
 					PopupError.show("Loading Filter Configurations", "Could not find value for key " + key);
@@ -154,7 +171,7 @@ public class FilterConfiguration {
 				}
 				
 				// Check value is valid
-				String value = scan.next();
+				String value = scan.nextLine().trim();
 				
 //				System.out.println("Found: " + key + ", " + value);
 				if(!loadedKeys.contains(key)){
@@ -192,7 +209,7 @@ public class FilterConfiguration {
 			
 			// Create new Config file
 			for(String k : filters.keySet()){
-				print.println(k + " " + filters.get(k));
+				print.println(k.trim() + " " + filters.get(k).trim());
 			}
 			
 			print.close();
@@ -276,6 +293,27 @@ public class FilterConfiguration {
 				filters.put(name, String.valueOf(e.getValue()));
 			}
 		}
+	}
+	
+	public static String getWhoPostedSettings(){
+		if( filters.isEmpty() ){
+			loadFilterOptions();
+		}
+		
+		String who = filters.get(FILE_FILTER_BUG_WHO);
+		if( who.equals(FILE_KEY_LIST.get(FILE_FILTER_BUG_WHO)) ){
+			return "";
+		}
+		
+		return who;
+	}
+
+	public static void setBugSettings(String text) {
+		if( filters.isEmpty() ){
+			loadFilterOptions();
+		}
+		
+		filters.put(FILE_FILTER_BUG_WHO, text);
 	}
 }
 

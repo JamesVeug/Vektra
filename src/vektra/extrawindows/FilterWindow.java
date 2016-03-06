@@ -47,6 +47,7 @@ public class FilterWindow {
 		
 		whoField = new TextField();
 		whoField.setPromptText("Vektra");
+		whoField.setText(getWhoPosted());
 
 		bugLayout.getChildren().addAll(new Label("BUGS: "), new Label("Poster"), whoField);
 		
@@ -74,21 +75,29 @@ public class FilterWindow {
 		priortyLayout.getChildren().addAll(priorities);
 		
 		// Submit Buttom
-		Button submit = new Button("SUBMIT");
-		submit.setOnAction((a)->submitFilterSettings(vektra));
-		
-		Button clear = new Button("CLEAR");
-		clear.setOnAction((a)->clearFilterSettings(vektra));
+		HBox buttonPane = new HBox();
+		buttonPane.setSpacing(20);
+			Button submit = new Button("SUBMIT");
+			submit.setOnAction((a)->submitFilterSettings(vektra));
+			
+			Button clear = new Button("CLEAR");
+			clear.setOnAction((a)->clearFilterSettings(vektra));
+		buttonPane.getChildren().addAll(clear,submit);
 		
 		VBox layout = new VBox();
 		layout.setSpacing(10);
-		layout.getChildren().addAll(bugLayout,statusLayout,priortyLayout,clear,submit);
+		layout.getChildren().addAll(bugLayout,statusLayout,priortyLayout,buttonPane);
 		layout.setAlignment(Pos.TOP_LEFT);
 		layout.setPadding(new Insets(10));
 		
 		Scene scene = new Scene(layout);
 		stage.setScene(scene);
 		stage.show();
+	}
+
+	private static String getWhoPosted() {
+		String who = FilterConfiguration.getWhoPostedSettings();
+		return who;
 	}
 
 	private static void clearFilterSettings(Vektra vektra) {
@@ -142,6 +151,7 @@ public class FilterWindow {
 		
 		FilterConfiguration.setStatusSettings(statusMap);
 		FilterConfiguration.setPrioritySettings(priorityMap);
+		FilterConfiguration.setBugSettings(whoField.getText());
 		FilterConfiguration.saveFilterOptions();
 		
 		stage.close();

@@ -239,10 +239,12 @@ public class Vektra extends Application{
 				}
 				
 				// Assign new values in the table
+				int bugsEdited = 0;
 				if( fullUpdate ){
 					
 					// Save local data
 					importedData = loadedData;
+					bugsEdited = loadedData.size();
 				}
 				else{
 					System.out.println("PARTIAL update");
@@ -268,6 +270,8 @@ public class Vektra extends Application{
 							// Add new item to bug
 							importedData.add(0,newBug);
 							
+							bugsEdited++;
+							
 							// Add local images
 							R.addImages(newBug.getImages());
 						}
@@ -283,7 +287,8 @@ public class Vektra extends Application{
 							
 							// Delete local images
 							R.removeImages(removed.getImages());
-							
+
+							bugsEdited++;
 						}
 						else{
 							System.out.println("Updating bug " + newBug);
@@ -301,13 +306,17 @@ public class Vektra extends Application{
 							
 							R.removeImages(deletedImages);
 							R.addImages(addedImages);
+							bugsEdited++;
 						}
 					}
 					setRefreshButtonText("REFRESHING...\nRefreshing GUI");
 				}
 
-				
-				
+				// Only setup if we edited something
+				if( bugsEdited == 0 ){
+					System.out.println("Bugs Edited: " + bugsEdited);
+					return;
+				}
 				
 				BugListGUI.setupColumns(importedData, bugs, Vektra.this);
 
