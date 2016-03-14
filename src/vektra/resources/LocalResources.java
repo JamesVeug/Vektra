@@ -340,7 +340,7 @@ public class LocalResources {
 	}
 
 	private static String getImageDirectory() {
-		return "resources/" + SQLData.getDatabase() + "/images/";
+		return R.getDirectory() + "/resources/" + SQLData.getDatabase() + "/images/";
 	}
 	
 	/**

@@ -72,6 +72,12 @@ public class LoginDialog {
 		final Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
 		loginButton.setDisable(true);
 		
+		loginButton.setDisable(false);
+		database.setText("stardrop_test");
+		username.setText("idonotexist");
+		password.setText("tonkatoy2014");
+		
+		
 		// Do some validation (using the Java 8 lambda syntax).
 		username.textProperty().addListener(new ChangeListener<String>(){
 

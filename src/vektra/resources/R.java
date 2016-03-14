@@ -1,14 +1,16 @@
 package vektra.resources;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javafx.scene.image.Image;
 import vektra.BugImage;
 import vektra.LocalBugImage;
+import vektra.dialogs.PopupError;
 
 public class R {
+	private static String FILE_DIRECTORY = null;
 	private static BugImage NULL;
 	
 	public static BugImage getImage(String link, int screenshotid){
@@ -43,7 +45,7 @@ public class R {
 
 	public static BugImage getNullImage() {
 		if( NULL == null ){
-			NULL = new LocalBugImage("error.png");
+			NULL = new LocalBugImage(R.class.getClass().getResource("error.png").toString());
 		}
 		return NULL;
 	}
@@ -81,6 +83,28 @@ public class R {
 	
 	public static int getImageCount(){
 		return LocalResources.getLocalImageCount();
+	}
+
+	public static String getDirectory() {
+		if( FILE_DIRECTORY == null ){
+			try{
+				String APPDATA = System.getenv("APPDATA");
+				File file = new File(APPDATA + "/VektraBugReporter");
+				if( !file.exists() ){
+					file.mkdirs();
+				}
+				
+				FILE_DIRECTORY = file.getPath();
+			}catch( SecurityException e ){
+				FILE_DIRECTORY = R.class.getResource("v.png").getPath();
+				FILE_DIRECTORY = FILE_DIRECTORY.substring(0, FILE_DIRECTORY.lastIndexOf("/"));
+				
+				PopupError.show("Getting File Directory", "Access Denied getting file directory\n"+e.getMessage() + "\n\nUsing default directory:\n" + FILE_DIRECTORY);
+			}
+		}
+			
+		System.out.println("FILE_DIRECTORY: " + FILE_DIRECTORY);
+		return FILE_DIRECTORY;
 	}
 }
 

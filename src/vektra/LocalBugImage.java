@@ -3,6 +3,7 @@ package vektra;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
@@ -26,6 +27,7 @@ public class LocalBugImage extends BugImage{
 				
 				
 				System.out.println("Loading Image: '" + link + "'");
+				InputStream input = LocalBugImage.class.getClass().getResourceAsStream(link);
 				BufferedImage buffimage = ImageIO.read(new File(link));
 				WritableImage image = null;
 				image = SwingFXUtils.toFXImage(buffimage, image);
