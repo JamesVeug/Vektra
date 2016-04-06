@@ -2,6 +2,8 @@ package vektra;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.security.auth.login.Configuration;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -36,7 +38,9 @@ import vektra.dialogs.LoginDialog;
 import vektra.dialogs.PopupConfirmation;
 import vektra.dialogs.PopupError;
 import vektra.dialogs.PopupMessage;
+import vektra.dialogs.PopupWarningConfirmation;
 import vektra.extrawindows.AboutWindow;
+import vektra.extrawindows.ConfigurationWindow;
 import vektra.extrawindows.CreateReport;
 import vektra.extrawindows.DisplayImageWindow;
 import vektra.extrawindows.EditReport;
@@ -526,6 +530,26 @@ public class Vektra extends Application{
 			
 		});
 		
+		Menu options = new Menu("Options");
+		MenuItem clearResources = new MenuItem("Clear Resources");
+		options.getItems().add(clearResources);
+		clearResources.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent arg0) {
+				if( PopupWarningConfirmation.show("Clear Resources", "This will delete all local images. You will need to reload the program to continue.", "Are you sure you want to continue?") ){
+					R.clearResources();
+				}
+			}
+			
+		});
+		MenuItem preferences = new MenuItem("Preferences");
+		options.getItems().add(preferences);
+		preferences.setOnAction(new EventHandler<ActionEvent>(){
+			public void handle(ActionEvent arg0) {
+				ConfigurationWindow.show(Vektra.this);
+			}
+			
+		});
+		
 		Menu help = new Menu("Help");
 		MenuItem about = new MenuItem("About");
 		help.getItems().add(about);
@@ -537,9 +561,8 @@ public class Vektra extends Application{
 		});
 		
 		menuBar.getMenus().add(file);
-		//menuBar.getMenus().add(edit);
-		//menuBar.getMenus().add(view);
 		menuBar.getMenus().add(report);
+		menuBar.getMenus().add(options);
 		menuBar.getMenus().add(help);
 
 		return menuBar;		

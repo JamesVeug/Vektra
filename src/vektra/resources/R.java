@@ -88,8 +88,7 @@ public class R {
 	public static String getDirectory() {
 		if( FILE_DIRECTORY == null ){
 			try{
-				String APPDATA = System.getenv("APPDATA");
-				File file = new File(APPDATA + "/VektraBugReporter");
+				File file = new File(Configurations.getImageDirectory());
 				if( !file.exists() ){
 					file.mkdirs();
 				}
@@ -105,6 +104,10 @@ public class R {
 			
 		System.out.println("FILE_DIRECTORY: " + FILE_DIRECTORY);
 		return FILE_DIRECTORY;
+	}
+
+	public static void clearResources() {
+		LocalResources.deleteLocalImages();
 	}
 }
 

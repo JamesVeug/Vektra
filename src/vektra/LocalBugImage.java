@@ -29,6 +29,9 @@ public class LocalBugImage extends BugImage{
 				System.out.println("Loading Image: '" + link + "'");
 				BufferedImage buffimage = null;
 				
+				// Since one way won't work
+				// Try different ways!
+				// HACK HACK HACK HACK HACK HACK HACK 
 				InputStream input = LocalBugImage.class.getClass().getResourceAsStream(link);
 				if( input != null ){
 					buffimage = ImageIO.read(input);

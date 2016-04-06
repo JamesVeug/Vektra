@@ -442,6 +442,16 @@ public class LocalResources {
 		System.out.println("Deleted " + deleteCount);
 		return deleteCount;
 	}
+	
+	public boolean deleteLocalResources(){
+		File d = new File(R.getDirectory() + "/resources/");
+		if( !d.exists() ){
+			return false;
+		}
+		
+		
+		return d.delete();
+	}
 }
 
 

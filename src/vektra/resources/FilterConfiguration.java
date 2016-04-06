@@ -220,7 +220,7 @@ public class FilterConfiguration {
 	}
 
 	private static String getDirectory() {
-		return "filter.cfg";
+		return System.getenv("APPDATA") + "/VektraBugReporter/filter.cfg";
 	}
 	
 	public static Map<Status,Boolean> getStatusSettings(){
