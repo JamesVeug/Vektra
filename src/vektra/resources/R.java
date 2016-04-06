@@ -45,7 +45,7 @@ public class R {
 
 	public static BugImage getNullImage() {
 		if( NULL == null ){
-			NULL = new LocalBugImage(R.class.getClass().getResource("error.png").toString());
+			NULL = new LocalBugImage("error.png");
 		}
 		return NULL;
 	}

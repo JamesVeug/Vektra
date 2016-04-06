@@ -27,8 +27,29 @@ public class LocalBugImage extends BugImage{
 				
 				
 				System.out.println("Loading Image: '" + link + "'");
+				BufferedImage buffimage = null;
+				
 				InputStream input = LocalBugImage.class.getClass().getResourceAsStream(link);
-				BufferedImage buffimage = ImageIO.read(new File(link));
+				if( input != null ){
+					buffimage = ImageIO.read(input);
+				}
+				else{
+					input = LocalBugImage.class.getClass().getResourceAsStream("/"+link);
+					if( input != null ){
+						buffimage = ImageIO.read(input);
+					}
+					else{
+						File file = new File(link);
+						if( file.exists() ){
+							buffimage = ImageIO.read(file);
+						}
+						else{
+							throw new IOException("Could not find solution to loading file.");
+						}
+					}
+				}
+				
+				
 				WritableImage image = null;
 				image = SwingFXUtils.toFXImage(buffimage, image);
 				this.image = image;
